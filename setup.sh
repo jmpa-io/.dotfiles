@@ -120,6 +120,12 @@ hash aws &>/dev/null || {
         || doe "failed to install awscli"
 }
 
+# install jq, if needed.
+hash jq &>/dev/null || {
+    sudo apt-get install jq -y \
+        || die "failed to install jq"
+}
+
 # install gitconfig, if needed.
 if ! [[ -f "$HOME/.gitconfig" ]]; then
     ln -s "$PWD/git/gitconfig" "$HOME/.gitconfig" \
