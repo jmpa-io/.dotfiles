@@ -1,0 +1,19 @@
+#!/bin/zsh
+
+# general.
+export DOTFILES="$HOME/.dotfiles"
+export ROOT="$HOME/.local"
+export PATH="$PATH:$ROOT/bin"
+
+# zsh.
+export HISTFILE="$HOME/.zhistory" # history filepath
+export HISTSIZE=10000             # maximum events for internal history
+export SAVEHIST=10000             # maximum events in history file
+
+# go.
+export GOPATH="$ROOT/go"
+export GOPRIVATE="*"
+export CDPATH="$GOPATH/src/github.com/jmpa-oss"
+
+# aws.
+export AWS_DEFAULT_REGION="ap-southeast-2"

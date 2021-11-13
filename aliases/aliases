@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# zsh.
+alias d='dirs -v' # enables jump-back alias for previously visited directories.
+for index ({0..9}) alias "$index"="cd +${index}"; unset index
+
+# aws.
+aws() {
+    case $* in
+        # who am I authed as?
+        auth) command aws sts get-caller-identity ;;
+        # what is the arn I am authed as?
+        who) command aws sts get-caller-identity --query "Arn" --output text ;;
+        # quick auth to ECR.
+        ecr) command aws ecr get-login --no-include-email --region "$AWS_DEFAULT_REGION" ;;
+        # run "default" command.
+        *) command aws "$@" ;;
+    esac
+}
+
+# general.
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias dotfiles='code $DOTFILES'
+alias zsrc='source $HOME/.zshrc'

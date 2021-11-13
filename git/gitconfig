@@ -1,0 +1,20 @@
+[user]
+    name = Jordan Cleal
+    email = mr.jordan.cleal@gmail.com
+
+[color]
+    ui = true
+
+[url "https://github.com/"]
+    insteadOf = ssh://git@github.com/
+
+[credential]
+        helper = manager
+
+# account for a work related git config.
+[includeIf "gitdir:$GOPATH/src/MYOB-Technology"]
+    path = $HOME/.gitconfig.work
+[includeIf "gitdir:$GOPATH/src/myob-ops"]
+    path = $HOME/.gitconfig.work
+[includeIf "gitdir:$GOPATH/src/myob-fma"]
+    path = $HOME/.gitconfig.work
