@@ -14,7 +14,7 @@ v=5; [[ ${BASH_VERSION:0:1} -lt "$v" ]] \
     || die "$0 must be run from the repository root directory"
 
 # check deps.
-deps=("curl")
+deps=("curl" "unzip")
 for dep in "${deps[@]}"; do
     hash "$dep" 2>/dev/null || missing+=("$dep")
 done
@@ -55,11 +55,11 @@ if ! [[ -f /usr/bin/zsh ]]; then
 fi
 
 # install starship, if not installed.
-if [[ $(starship -V &>/dev/null) -ne 0 ]]; then
+if [[ $(hash starship &>/dev/null) -ne 0 ]]; then
 
     # download starship.
     file=starship.sh
-    curl -sSL -o "$file" https://starship.rs/install.sh  \
+    curl -sSLo "$file" https://starship.rs/install.sh  \
         || die "failed to download $file"
     chmod +x ./$file \
         || die "failed to grant execute permissions to $file"
@@ -104,7 +104,7 @@ for file in "${files[@]}"; do
 done
 
 # install go.
-if [[ $(go version &>/dev/null) -ne 0 ]]; then
+if [[ $(hash go &>/dev/null) -ne 0 ]]; then
     sudo apt-get install golang -y \
         || die "failed to install go"
 fi
@@ -114,3 +114,14 @@ if ! [[ -f "$HOME/.gitconfig" ]]; then
     ln -s "$PWD/git/gitconfig" "$HOME/.gitconfig" \
         || die "failed to create symlink for gitconfig"
 fi
+
+# install aws.
+[[ $(hash aws &>/dev/null) ]] || { 
+    file="awscliv2.zip"
+    curl -sSLo "$file" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+        || die "failed to download $file"
+    unzip "$file" \
+        || die "failed to unzip $file"
+    sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin \
+        || doe "failed to install awscli"
+}
