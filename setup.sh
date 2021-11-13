@@ -117,7 +117,9 @@ hash aws &>/dev/null || {
     unzip "$file" \
         || die "failed to unzip $file"
     sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin \
-        || doe "failed to install awscli"
+        || doe "failed to install awscli" 
+    aws configure set region ap-southeast-2 \
+        || die "failed to set the default aws region"
 }
 
 # install jq, if needed.
