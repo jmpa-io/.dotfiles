@@ -55,7 +55,7 @@ if ! [[ -f /usr/bin/zsh ]]; then
 fi
 
 # install starship, if not installed.
-if [[ $(hash starship &>/dev/null) -ne 0 ]]; then
+hash starship &>/dev/null || {
 
     # download starship.
     file=starship.sh
@@ -76,10 +76,10 @@ if [[ $(hash starship &>/dev/null) -ne 0 ]]; then
     fi
     ln -s "$PWD/starship/starship.toml" "$dir/starship.toml" \
         || die "failed to create symlink for starship config."
-fi
+}
 
 # setup directories.
-dirs=("$HOME/.local" )
+dirs=("$HOME/.local" "$HOME/.local/bin")
 for dir in "${dirs[@]}"; do
     [[ -d "$dir" ]] && { continue; }
     mkdir "$dir" \
@@ -103,20 +103,14 @@ for file in "${files[@]}"; do
     fi
 done
 
-# install go.
-if [[ $(hash go &>/dev/null) -ne 0 ]]; then
+# install go, if needed.
+hash go &>/dev/null || {
     sudo apt-get install golang -y \
         || die "failed to install go"
-fi
+}
 
-# install gitconfig.
-if ! [[ -f "$HOME/.gitconfig" ]]; then
-    ln -s "$PWD/git/gitconfig" "$HOME/.gitconfig" \
-        || die "failed to create symlink for gitconfig"
-fi
-
-# install aws.
-[[ $(hash aws &>/dev/null) ]] || { 
+# install aws, if needed.
+hash aws &>/dev/null || { 
     file="awscliv2.zip"
     curl -sSLo "$file" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
         || die "failed to download $file"
@@ -125,3 +119,15 @@ fi
     sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin \
         || doe "failed to install awscli"
 }
+
+# install gitconfig, if needed.
+if ! [[ -f "$HOME/.gitconfig" ]]; then
+    ln -s "$PWD/git/gitconfig" "$HOME/.gitconfig" \
+        || die "failed to create symlink for gitconfig"
+fi
+
+# install git-credential-manager, if needed.
+if ! [[ -f "$HOME/.local/bin/git-credential-manager" ]]; then
+    ln -s "$PWD/git/git-credential-manager" "$HOME/.local/bin/git-credential-manager" \
+        || die "failed to create symlink for git-credential-manager"
+fi

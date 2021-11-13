@@ -9,7 +9,7 @@
     insteadOf = ssh://git@github.com/
 
 [credential]
-        helper = manager
+    helper = manager
 
 # account for a work related git config.
 [includeIf "gitdir:$GOPATH/src/MYOB-Technology"]
