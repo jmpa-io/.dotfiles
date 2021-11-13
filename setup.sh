@@ -78,14 +78,6 @@ hash starship &>/dev/null || {
         || die "failed to create symlink for starship config."
 }
 
-# setup directories.
-dirs=("$HOME/.local" "$HOME/.local/bin")
-for dir in "${dirs[@]}"; do
-    [[ -d "$dir" ]] && { continue; }
-    mkdir "$dir" \
-        || die "failed to create $dir"
-done
-
 # setup .dotfiles in $HOME, if needed.
 if ! [[ -d "$HOME/.dotfiles" ]]; then
     ln -s "$PWD" "$HOME/.dotfiles" \
@@ -132,10 +124,4 @@ hash jq &>/dev/null || {
 if ! [[ -f "$HOME/.gitconfig" ]]; then
     ln -s "$PWD/git/gitconfig" "$HOME/.gitconfig" \
         || die "failed to create symlink for gitconfig"
-fi
-
-# install git-credential-manager, if needed.
-if ! [[ -f "$HOME/.local/bin/git-credential-manager" ]]; then
-    ln -s "$PWD/git/git-credential-manager" "$HOME/.local/bin/git-credential-manager" \
-        || die "failed to create symlink for git-credential-manager"
 fi
