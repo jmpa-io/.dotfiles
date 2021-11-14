@@ -44,7 +44,7 @@
                 "name": "cmd"
             },
             {
-                "colorScheme": "Campbell",
+                "colorScheme": "Dracula",
                 "experimental.retroTerminalEffect": false,
                 "font": {
                     "face": "Fira Code",
