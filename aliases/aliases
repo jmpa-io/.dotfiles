@@ -11,6 +11,8 @@ os=$(uname) \
 alias d='dirs -v' # enables jump-back alias for previously visited directories.
 for index ({0..9}) alias "$index"="cd +${index}"; unset index
 
+alias funcs='print -l ${(ok)functions[(I)[^_]*]}' # list all functions available.
+
 # aws.
 aws() {
   case $* in

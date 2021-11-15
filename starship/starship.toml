@@ -93,7 +93,7 @@ disabled=true
 disabled=true
 
 [line_break]
-disabled=false
+disabled=true
 
 [lua]
 disabled=true
