@@ -27,6 +27,16 @@ aws() {
   esac
 }
 
+# git.
+git() {
+  case $* in
+    # show me all the branches by default.
+    branch) command git branch --all ;;
+    # run "default" command.
+    *) command git "$@" ;;
+  esac
+}
+
 # general.
 case "$os" in
   Darwin)
