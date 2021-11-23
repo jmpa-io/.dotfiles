@@ -1,6 +1,6 @@
 # https://starship.rs/config
 
-add_newline=true
+add_newline=false
 
 [aws]
 disabled=true
