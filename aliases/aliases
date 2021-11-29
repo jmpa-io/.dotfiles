@@ -21,7 +21,7 @@ aws() {
     # what is the arn I am authed as?
     who) command aws sts get-caller-identity --query "Arn" --output text ;;
     # quick auth to ECR.
-    ecr) command aws ecr get-login --no-include-email --region "$AWS_DEFAULT_REGION" ;;
+    "ecr "*.dkr.ecr.*.amazonaws.com*) command aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin "$2";;
     # run "default" command.
     *) command aws "$@" ;;
   esac
