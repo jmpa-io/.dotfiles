@@ -21,7 +21,7 @@ os=$(uname) \
 
 # check deps.
 case "$os" in
-  Darwin) deps=("curl") ;;
+  Darwin) deps=("curl" "brew") ;;
   Linux)  deps=("curl" "unzip") ;;
 esac
 for dep in "${deps[@]}"; do
@@ -71,6 +71,12 @@ done
 if ! [[ -f "$HOME/.gitconfig" ]]; then
   ln -s "$PWD/git/gitconfig" "$HOME/.gitconfig" \
     || die "failed to create symlink for gitconfig"
+fi
+
+# setup .local directory.
+if ! [[ -d "$HOME/.local" ]]; then
+  mkdir "$HOME/.local" \
+    || die "failed to create local folder in $HOME"
 fi
 
 # install starship config.
