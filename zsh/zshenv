@@ -12,7 +12,7 @@ export SAVEHIST=10000             # maximum events in history file
 
 # go.
 export GOPATH="$ROOT/go"
-export GOPRIVATE="*"
+export GOPRIVATE="github.com/myob-ops,github.com/myob-technology,github.com/myob-fma"
 export CDPATH="$GOPATH/src/github.com/jmpa-io"
 
 # aws.
