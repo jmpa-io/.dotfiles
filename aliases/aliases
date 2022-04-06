@@ -32,6 +32,15 @@ git() {
   case $* in
     # show me all the branches by default.
     branch) command git branch --all ;;
+    # pulls the latest template changes, if able.
+    update)
+      git fetch template 2>/dev/null
+      if [[ $? -eq 0 ]]; then
+        git merge template/main --allow-unrelated-histories
+      else
+        echo "failed to pull template changes; has this repository been setup with a parent template?"
+      fi
+      ;;
     # run "default" command.
     *) command git "$@" ;;
   esac
