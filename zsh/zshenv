@@ -13,7 +13,7 @@ export SAVEHIST=10000             # maximum events in history file
 # go.
 export GOPATH="$ROOT/go"
 export GOPRIVATE="*"
-export CDPATH="$GOPATH/src/github.com/jmpa-oss"
+export CDPATH="$GOPATH/src/github.com/jmpa-io"
 
 # aws.
 export AWS_DEFAULT_REGION="ap-southeast-2"
