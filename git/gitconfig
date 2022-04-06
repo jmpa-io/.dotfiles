@@ -5,16 +5,10 @@
 [color]
     ui = true
 
-[url "https://github.com/"]
-    insteadOf = ssh://git@github.com/
+# need this for Go.
+[url "git@github.com:"]
+	insteadOf = https://github.com/
 
-[credential]
+# setup creds helper for home machine.
+[credential "https://github.com"]
     helper = manager
-
-# account for a work related git config.
-[includeIf "gitdir:$GOPATH/src/MYOB-Technology"]
-    path = $HOME/.gitconfig.work
-[includeIf "gitdir:$GOPATH/src/myob-ops"]
-    path = $HOME/.gitconfig.work
-[includeIf "gitdir:$GOPATH/src/myob-fma"]
-    path = $HOME/.gitconfig.work
