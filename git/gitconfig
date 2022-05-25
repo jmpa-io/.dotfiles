@@ -1,14 +1,14 @@
 [user]
-    name = Jordan Cleal
-    email = mr.jordan.cleal+github@gmail.com
+  name = Jordan Cleal
+  email = mr.jordan.cleal+github@gmail.com
 
 [color]
-    ui = true
+  ui = true
 
 # need this for Go.
-[url "git@github.com:"]
-	insteadOf = https://github.com/
+[url "https://github.com/"]
+  insteadOf = ssh://git@github.com/
 
 # setup creds helper for home machine.
 [credential "https://github.com"]
-    helper = manager
+  helper = manager
