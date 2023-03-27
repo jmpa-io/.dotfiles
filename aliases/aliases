@@ -3,7 +3,7 @@
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
 
-# get os.
+# determine os.
 os=$(uname) \
   || die "failed to get operating system"
 
@@ -13,40 +13,36 @@ for index ({0..9}) alias "$index"="cd +${index}"; unset index
 
 alias funcs='print -l ${(ok)functions[(I)[^_]*]}' # list all functions available.
 
-# aws.
+# aws overrides.
 aws() {
   case $* in
-    # who am I authed as?
-    auth) command aws sts get-caller-identity ;;
-    # what is the arn I am authed as?
-    who) command aws sts get-caller-identity --query "Arn" --output text ;;
-    # quick auth to ECR.
-    "ecr "*.dkr.ecr.*.amazonaws.com*) command aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin "$2";;
-    # run "default" command.
-    *) command aws "$@" ;;
+    auth) # what is the AWS IAM role I am authed as?
+      command aws sts get-caller-identity ;;
+    who) # what is the arn of AWS IAM role I am authed as?
+      command aws sts get-caller-identity --query "Arn" --output text ;;
+    "ecr "*.dkr.ecr.*.amazonaws.com*) # quick auth to AWS ECR to pull images.
+      command aws ecr get-login-password --rrm -rf egion ap-southeast-2 | docker login --username AWS --password-stdin "$2" ;;
+    *)
+      command aws "$@" ;;
   esac
 }
 
-# git.
+# git overrides.
 git() {
   case $* in
-    # show me all the branches by default.
-    branch) command git branch --all ;;
-    # pulls the latest template changes, if able.
-    update)
-      git fetch template 2>/dev/null
-      if [[ $? -eq 0 ]]; then
-        git merge template/main --allow-unrelated-histories
-      else
-        echo "failed to pull template changes; has this repository been setup with a parent template?"
-      fi
-      ;;
-    # run "default" command.
-    *) command git "$@" ;;
+    clone) # clones and cd's to that directoy.
+      command echo git clone $* && cd $* ;;
+    branch) # show me all the branches by default.
+      command git branch --all ;;
+    *)
+      command git "$@" ;;
   esac
 }
 
 # general.
+alias grep='grep --color=auto'
+alias dotfiles='code $DOTFILES'
+alias zsrc='source $DOTFILES/aliases/aliases $HOME/.zshenv $HOME/.zshrc'
 case "$os" in
   Darwin)
     alias ls='ls -G'
@@ -55,6 +51,3 @@ case "$os" in
     alias ls='ls --color=auto'
   ;;
 esac
-alias grep='grep --color=auto'
-alias dotfiles='code $DOTFILES'
-alias zsrc='source $DOTFILES/aliases/aliases $HOME/.zshenv $HOME/.zshrc'
