@@ -9,7 +9,7 @@ os=$(uname) \
 
 # zsh.
 alias d='dirs -v' # enables jump-back alias for previously visited directories.
-for index ({0..9}) alias "$index"="cd +${index}"; unset index
+for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
 alias funcs='print -l ${(ok)functions[(I)[^_]*]}' # list all functions available.
 
@@ -20,8 +20,30 @@ aws() {
       command aws sts get-caller-identity ;;
     who) # what is the arn of AWS IAM role I am authed as?
       command aws sts get-caller-identity --query "Arn" --output text ;;
+    profiles) # list all AWS profiles, including which one is currently authed.
+      profile="${AWS_PROFILE:-default}"
+      command aws --no-cli-pager configure list-profiles | while read p; do
+        prefix="  "; [[ "$p" == "$profile" ]] && prefix=" *"
+        echo "$prefix $p"
+      done
+      ;;
+    "profile clear") # resets the AWS_PROFILE to the default profile.
+      export AWS_PROFILE="default" ;;
+    "login "*) # logins into the AWS account, for the given profile.
+      profile=""
+      profiles=$(aws --no-cli-pager configure list-profiles)
+      <<< "$profiles" while read -r p; do
+        [[ "$p" == "$2" ]] && { profile="$p"; break; }
+      done
+      if [[ -z "$profile" ]]; then
+        echo "$2 is not a valid AWS profile that can be logged into; Please give a valid profile."
+      else
+        export AWS_PROFILE="$profile"
+        aws sso login
+      fi
+      ;;
     "ecr "*.dkr.ecr.*.amazonaws.com*) # quick auth to AWS ECR to pull images.
-      command aws ecr get-login-password --rrm -rf egion ap-southeast-2 | docker login --username AWS --password-stdin "$2" ;;
+      command aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin "$2" ;;
     *)
       command aws "$@" ;;
   esac
@@ -30,7 +52,7 @@ aws() {
 # git overrides.
 git() {
   case $* in
-    clone) # clones and cd's to that directoy.
+    clone) # clones and cd's to that directory.
       command echo git clone $* && cd $* ;;
     branch) # show me all the branches by default.
       command git branch --all ;;
@@ -51,3 +73,4 @@ case "$os" in
     alias ls='ls --color=auto'
   ;;
 esac
+alias make=gmake
