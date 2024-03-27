@@ -8,15 +8,22 @@
     status = auto
     branch = auto
 
-# need this for Go.
-[url "https://github.com/"]
-  insteadOf = ssh://git@github.com/
+# # need this for Go.
+# [url "https://github.com/"]
+#   insteadOf = ssh://git@github.com/
 
-# setup creds helper for home machine.
-[credential "https://github.com"]
-    helper = manager
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+
+# # setup creds helper for home machine.
+# [credential "https://github.com"]
+#     helper = manager
 
 [alias]
   # makes it easier to determine if the branch is main or master.
   # taken from: https://stackoverflow.com/questions/66232497/git-alias-which-works-for-main-or-master-or-other/67672350#67672350
   main-branch = !git symbolic-ref refs/remotes/origin/HEAD | cut -d'/' -f4
+
+[diff]
+  colormoved = "default"
+  colormovedws = "allow-indentation-change"
