@@ -57,10 +57,10 @@ if ! [[ -d "$HOME/.dotfiles" ]]; then
 fi
 
 # setup .zshrc files.
-files=("zshenv" "zshrc")
+files=(".zshenv" ".zshrc")
 for file in "${files[@]}"; do
   src="$PWD/zsh/$file"
-  dest="$HOME/.$file"
+  dest="$HOME/$file"
   if ! [[ -L "$dest" ]]; then
     ln -s "$src" "$dest" \
       || die "failed to create symlink from $src to $dest"
@@ -69,7 +69,7 @@ done
 
 # setup .gitconfig.
 if ! [[ -f "$HOME/.gitconfig" ]]; then
-  ln -s "$PWD/git/gitconfig" "$HOME/.gitconfig" \
+  ln -s "$PWD/git/.gitconfig" "$HOME/.gitconfig" \
     || die "failed to create symlink for gitconfig"
 fi
 
@@ -98,7 +98,7 @@ hash zsh &>/dev/null || {
         || die "failed to install zsh"
     ;;
     Linux)
-      sudo apt-get install -y zsh \
+      sudo pacman -Syu zsh \
         || die "failed to install zsh"
     ;;
   esac
@@ -135,7 +135,7 @@ hash go &>/dev/null || {
         || die "failed to install go"
     ;;
     Linux)
-      sudo apt-get install golang -y \
+      sudo pacman -Syu golang -y \
         || die "failed to install go"
     ;;
   esac
@@ -178,5 +178,15 @@ hash jq &>/dev/null || {
       sudo apt-get install jq -y \
         || die "failed to install jq"
     ;;
+  esac
+}
+
+# install polybar.
+hash polybar &>/dev/null || {
+  case "$os" in
+    Linux)
+      pacman -S polybar \
+        || die "failed to install polybar"
+      ;;
   esac
 }

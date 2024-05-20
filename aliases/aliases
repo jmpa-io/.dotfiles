@@ -7,29 +7,60 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
 os=$(uname) \
   || die "failed to get operating system"
 
-# zsh.
-alias d='dirs -v' # enables jump-back alias for previously visited directories.
+# setup aliases to autojump to previously visited directories.
+alias d="dirs -v"
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
-alias funcs='print -l ${(ok)functions[(I)[^_]*]}' # list all functions available.
+# general.
+alias zsrc='source $DOTFILES/aliases/aliases $HOME/.zshenv $HOME/.zshrc'
+case "$os" in
+  Darwin)
+    alias ls='ls -G'
+    alias dotfiles='code "$DOTFILES"'
+    alias grep="grep --color=auto"
+  ;;
+  Linux)
+    alias ls='ls --color=auto'                                          # overrides ls to run this default.
+    alias dotfiles='nvim "$DOTFILES"'                                   # opens dotfiles in IDE.
+    alias grep="grep --color=auto"                                      # overrides grep to run this default.
+    alias lockscreen="i3lock"                                           # verbose way to lock the computer.
+    alias lock="i3lock"                                                 # shorthand way to locks the computer.
+    alias shutdown="shutdown -h now"                                    # shuts down the computer immediately.
+    alias restart="shutdown -r now"                                     # restarts the computer immediately.
+    alias screenshot="scrot"                                            # takes a screenshot.
+    alias olss="firefox $(ls "$HOME/Pictures" | sort -r | head -n1)"    # opens the last screenshot taken in Firefox.
+    alias orphans="pacman -Qtdq | sudo pacman -Rns -"                   # removes all orphaned packages.
+    alias clock="tty-clock -s -c -C 5 -t"                               # renders a nice clock, using tty-clock, in the terminal.
+  ;;
+esac
 
 # aws overrides.
 aws() {
   case $* in
-    auth) # what is the AWS IAM role I am authed as?
+
+    # what is the AWS IAM Role I am authed to?
+    auth)
       command aws sts get-caller-identity ;;
-    who) # what is the arn of AWS IAM role I am authed as?
+
+    # what is the ARN of the AWS IAM Role I am authed as?
+    who)
       command aws sts get-caller-identity --query "Arn" --output text ;;
-    profiles) # list all AWS profiles, including which one is currently authed.
+
+    # list ALL the AWS profiles available, including which one is currently authed.
+    profiles)
       profile="${AWS_PROFILE:-default}"
       command aws --no-cli-pager configure list-profiles | while read p; do
         prefix="  "; [[ "$p" == "$profile" ]] && prefix=" *"
         echo "$prefix $p"
       done
       ;;
+
+    # resets the AWS_PROFILE to the default profile.
     "profile clear") # resets the AWS_PROFILE to the default profile.
       export AWS_PROFILE="default" ;;
-    "login "*) # logins into the AWS account, for the given profile.
+
+    # logs into the AWS Account associated with the given profile.
+    "login "*)
       profile=""
       profiles=$(aws --no-cli-pager configure list-profiles)
       <<< "$profiles" while read -r p; do
@@ -39,11 +70,15 @@ aws() {
         echo "$2 is not a valid AWS profile that can be logged into; Please give a valid profile."
       else
         export AWS_PROFILE="$profile"
-        aws sso login
+        command aws sso login
       fi
       ;;
-    "ecr "*.dkr.ecr.*.amazonaws.com*) # quick auth to AWS ECR to pull images.
+
+    # a quick way to auth to the given AWS ECR repository, using the ARN.
+    "ecr "*.dkr.ecr.*.amazonaws.com*)
       command aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin "$2" ;;
+
+    # run the default command, if none of the above are applicable.
     *)
       command aws "$@" ;;
   esac
@@ -52,25 +87,19 @@ aws() {
 # git overrides.
 git() {
   case $* in
-    clone) # clones and cd's to that directory.
-      command echo git clone $* && cd $* ;;
-    branch) # show me all the branches by default.
+
+    # runs 'git clone' and then changes into the directory cloned.
+    "clone "*)
+      command git clone "$2" && cd $(cut -d"/" -f5 <<< "$2")
+      ;;
+
+    # shows all the branches available.
+    branch)
       command git branch --all ;;
+
+    # run the default command, if none of the above are applicable.
     *)
       command git "$@" ;;
   esac
 }
 
-# general.
-alias grep='grep --color=auto'
-alias dotfiles='code $DOTFILES'
-alias zsrc='source $DOTFILES/aliases/aliases $HOME/.zshenv $HOME/.zshrc'
-case "$os" in
-  Darwin)
-    alias ls='ls -G'
-  ;;
-  Linux)
-    alias ls='ls --color=auto'
-  ;;
-esac
-alias make=gmake

@@ -1,5 +1,3 @@
-#!/bin/zsh
-#
 #  ______     ______     __  __     ______     ______
 # /\___  \   /\  ___\   /\ \_\ \   /\  == \   /\  ___\
 # \/_/  /__  \ \___  \  \ \  __ \  \ \  __<   \ \ \____
@@ -12,16 +10,17 @@
 #
 # REFERENCES:
 # — https://thevaluable.dev/zsh-install-configure-mouseless
+# - https://github.com/BrodieRobertson/dotfiles
 
 # funcs.
 die() { echo "$1" >&2; }
 
-# remove last login message on booting iTerm2.
-# https://stackoverflow.com/questions/15769615/remove-last-login-message-for-new-tabs-in-terminal
-printf '\33c\e[3J'
+# determine os.
+os=$(uname) \
+  || die "failed to get operating system"
 
 # enable for tab-completion.
-autoload -U compinit; compinit
+autoload -U compinit; compinit -u
 
 # enable to allow tab completion to work with dashes.
 # eg. try `cp -` + tab
@@ -63,3 +62,11 @@ if [[ $(starship -V &>/dev/null) -eq 0 ]]; then
   eval "$(starship init zsh)" \
     || die "failed to setup starship"
 fi
+
+# load opener image + quote.
+case "$os" in
+  "Linux") wezterm imgcat "$DOTFILES"/tree.png ;;
+esac
+echo "       A tree is just a tree when a tree is a tree." | lolcat --spread 5.0
+echo; echo
+
