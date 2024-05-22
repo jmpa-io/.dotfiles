@@ -1,0 +1,182 @@
+
+#    _ ____
+#   (_)_  /
+#  / //_ < 
+# /_/____/ 
+#          
+
+# mods.
+set $mod    Mod4
+set $smod   Shift
+
+# look & feel.
+set $wm_font          pango:FiraCode Nerd Font 8
+set $wm_gap_height    15
+set $wm_gap_width     15
+set $wm_border_size   3
+
+# colors.
+set $wm_color_active_bg      #556064
+set $wm_color_active_fg      #80FFF9
+set $wm_color_inactive_bg    #2F3D44
+set $wm_color_inactive_fg    #1ABC9C
+set $wm_color_background     #2B2C2B
+
+# keys.
+set $wm_key_left    Left
+set $wm_key_right   Right
+set $wm_key_up      Up
+set $wm_key_down    Down
+
+# applications.
+set $wm_terminal      wezterm 
+set $wm_browser       firefox
+set $wm_app_launcher  rofi
+set $wm_compositor    picom
+
+# workspaces.
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9"
+set $ws10 "10"
+
+# configs.
+include $HOME/.i3/configs/autostart
+include $HOME/.i3/configs/bindings
+include $HOME/.i3/configs/modes
+
+# border style <normal|1pixel|pixel xx|none|pixel>.
+default_border pixel $wm_border_size
+
+# floating boarder style <normal|1pixel|pixel xx|none|pixel>.
+default_floating_border pixel $wm_border_size
+
+# Additionally, you can issue commands with the following syntax. This is useful to bind keys to changing the gap size.
+# gaps inner|outer current|all set|plus|minus <px>
+# gaps inner all set 10
+# gaps outer all plus 5
+
+# Smart gaps (gaps used if only more than one container on the workspace)
+smart_gaps on
+
+# Smart borders (draw borders around container only if it is not the only container on this workspace) 
+# on|no_gaps (on=always activate and no_gaps=only activate if the gap size to the edge of the screen is 0)
+smart_borders on
+
+# sets the colors for i3 in general.
+# class.                  border.               background.           text.                 indicator.            child_border.
+client.focused            $wm_color_active_bg   $wm_color_active_bg   $wm_color_active_fg   $wm_color_active_bg   $wm_color_active_bg
+client.focused_inactive   $wm_color_inactive_bg $wm_color_inactive_bg $wm_color_inactive_fg $wm_color_inactive_bg $wm_color_inactive_bg
+client.unfocused          $wm_color_inactive_bg $wm_color_inactive_bg $wm_color_inactive_fg $wm_color_inactive_bg $wm_color_inactive_bg
+client.urgent             $wm_color_inactive_bg $wm_color_inactive_bg $wm_color_inactive_fg $wm_color_inactive_bg $wm_color_inactive_bg
+client.placeholder        $wm_color_inactive_bg $wm_color_inactive_bg $wm_color_inactive_fg $wm_color_inactive_bg $wm_color_inactive_bg
+client.background         $wm_color_inactive_bg $wm_color_inactive_bg $wm_color_inactive_fg $wm_color_inactive_bg $wm_color_inactive_bg
+
+# ------------- Miscellaneous -----------
+
+# sets the font used for titlebars.
+font $wm_font
+
+# use Mouse+$mod to drag floating windows to their wanted position.
+floating_modifier $mod
+
+# hide borders <none|vertical|horizontal|both|smart|smart_no_gaps>; default=none.
+hide_edge_borders smart
+
+# forces focus to only be changable by bindings.
+# focus_follows_mouse no
+
+# workspace back and forth (with/without active container).
+workspace_auto_back_and_forth yes
+
+# open applications in specific workspaces.
+assign [class="firefox"] $ws2
+
+# open applications with specific settings.
+for_window [class="Pamac-manager"] floating enable
+for_window [class="Pavucontrol"] floating enable
+for_window [class="qt5ct"] floating enable sticky enable border normal
+for_window [class="Pamac-manager"] floating enable
+for_window [class="Pavucontrol"] floating enable
+for_window [class="qt5ct"] floating enable sticky enable border normal
+for_window [title="i3_help"] floating enable sticky enable border normal
+for_window [class="Lightdm-settings"] floating enable
+for_window [class="Lxappearance"] floating enable sticky enable border normal
+for_window [class="Manjaro-hello"] floating enable
+for_window [class="Manjaro Settings Manager"] floating enable border normal
+for_window [class="Nitrogen"] floating enable sticky enable border normal
+# for_window [title="alsamixer"] floating enable border pixel 1
+# for_window [class="calamares"] floating enable border normal
+# for_window [class="Clipgrab"] floating enable
+# for_window [title="File Transfer*"] floating enable
+# for_window [class="fpakman"] floating enable
+# for_window [class="Galculator"] floating enable border pixel 1
+# for_window [class="GParted"] floating enable border normal
+# for_window [title="MuseScore: Play Panel"] floating enable
+# for_window [class="Oblogout"] fullscreen enable
+# for_window [class="octopi"] floating enable
+# for_window [class="Qtconfig-qt4"] floating enable sticky enable border normal
+# for_window [class="Simple-scan"] floating enable border normal
+# for_window [class="(?i)System-config-printer.py"] floating enable border normal
+# for_window [class="Timeset-gui"] floating enable border normal
+# for_window [class="(?i)virtualbox"] floating enable border normal
+# for_window [class="Xfburn"] floating enable
+
+# switch to workspace with urgent window automatically.
+for_window [urgent=latest] focus
+
+# # Color palette used for the terminal ( ~/.Xresources file )
+# # Colors are gathered based on the documentation:
+# # https://i3wm.org/docs/userguide.html#xresources
+# # Change the variable name at the place you want to match the color
+# # of your terminal like this:
+# # [example]
+# # If you want your bar to have the same background color as your 
+# # terminal background change the line 362 from:
+# # background #14191D
+# # to:
+# # background $term_background
+# # Same logic applied to everything else.
+# set_from_resource $term_background background
+# set_from_resource $term_foreground foreground
+# set_from_resource $term_color0     color0
+# set_from_resource $term_color1     color1
+# set_from_resource $term_color2     color2
+# set_from_resource $term_color3     color3
+# set_from_resource $term_color4     color4
+# set_from_resource $term_color5     color5
+# set_from_resource $term_color6     color6
+# set_from_resource $term_color7     color7
+# set_from_resource $term_color8     color8
+# set_from_resource $term_color9     color9
+# set_from_resource $term_color10    color10
+# set_from_resource $term_color11    color11
+# set_from_resource $term_color12    color12
+# set_from_resource $term_color13    color13
+# set_from_resource $term_color14    color14
+# set_from_resource $term_color15    color15
+
+# # Theme colors
+# # class                 border  backgr. text    indic.   child_border
+# client.focused          #556064 #556064 #80FFF9 #FDF6E3
+# client.focused_inactive #2F3D44 #2F3D44 #1ABC9C #454948
+# client.unfocused        #2F3D44 #2F3D44 #1ABC9C #454948
+# client.urgent           #CB4B16 #FDF6E3 #1ABC9C #268BD2
+# client.placeholder      #000000 #0c0c0c #ffffff #000000
+# client.background       #2B2C2B
+#
+#############################
+### settings for i3-gaps: ###
+#############################
+
+# Set inner/outer gaps
+gaps inner 8
+gaps outer 1
+
+
