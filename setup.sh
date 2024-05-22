@@ -70,7 +70,7 @@ done
 # setup .gitconfig.
 if ! [[ -f "$HOME/.gitconfig" ]]; then
   ln -s "$PWD/git/.gitconfig" "$HOME/.gitconfig" \
-    || die "failed to create symlink for gitconfig"
+    || die "failed to create symlink forgesture gitconfig"
 fi
 
 # setup .local directory.
@@ -88,6 +88,17 @@ if ! [[ -f "$HOME/.config/starship.toml" ]]; then
   fi
   ln -s "$PWD/starship/starship.toml" "$dir/starship.toml" \
     || die "failed to create symlink for starship config"
+fi
+
+# setup polybar config.
+if ! [[ -d "$HOME/.config/polybar/" ]]; then
+  dir="$HOME/.config"
+  if ! [[ -d "$dir" ]]; then
+    mkdir "$dir" \
+      || die "failed to create $dir"
+  fi
+  ln -s "$PWD/polybar" "$dir/" \
+    || die "failed to create symlink for polybar config."
 fi
 
 # install zsh.
