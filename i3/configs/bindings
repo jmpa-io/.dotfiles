@@ -1,0 +1,151 @@
+# start a terminal.
+bindsym $mod+Return exec $wm_terminal
+
+# start a browser session.
+bindsym $mod+$smod+Return exec $wm_browser
+bindsym $mod+F2 exec $wm_browser
+
+# start app launcher, to quickly switch between other apps.
+bindsym $mod+d exec $wm_app_launcher -show window
+bindsym $mod+Ctrl+b exec $wm_terminal -e 'bmenu'
+
+# start pavucontrol, a GUI for controlling pulseaudio.
+bindsym $mod+m exec pavucontrol
+bindsym $mod+$smod+m exec $wm_terminal -e 'ncpamixer'
+
+# start pcmanfm, a GUI for browsing files.
+bindsym $mod+F3 exec pcmanfm
+
+# start ranger, a TUI for browsing files.
+bindsym $mod+$smod+F3 exec $wm_terminal -e 'ranger'
+
+# start btop, a TUI for seeing usage on this machine. 
+bindsym $mod+$smod+F4 exec $wm_terminal -e 'btop'
+
+# control screen brightness.
+# bindsym XF86MonBrightnessUp exec "xbacklight -inc 10; notify-send 'brightness up'"
+# bindsym XF86MonBrightnessDown exec "xbacklight -dec 10; notify-send 'brightness down'"
+
+# no idea what these are...
+# bindsym $mod+Shift+F3 exec pcmanfm_pkexec
+# bindsym $mod+F5 exec terminal -e 'mocp'
+# bindsym $mod+t exec --no-startup-id pkill picom
+# bindsym $mod+Ctrl+t exec --no-startup-id picom -b
+# bindsym $mod+Shift+d --release exec "killall dunst; exec notify-send 'restart dunst'"
+
+# control screenshots.
+bindsym Print exec --no-startup-id i3-scrot
+bindsym $mod+Print --release exec --no-startup-id i3-scrot -w
+bindsym $mod+Shift+Print --release exec --no-startup-id i3-scrot -s
+
+# start help page for Manjaro i3.
+bindsym $mod+$smod+h exec xdg-open /usr/share/doc/manjaro/i3_help.pdf
+
+# bindsym $mod+Ctrl+x --release exec --no-startup-id xkill
+
+# change focus.
+bindsym $mod+$wm_key_left  focus left
+bindsym $mod+$wm_key_right focus right
+bindsym $mod+$wm_key_up    focus up
+bindsym $mod+$wm_key_down  focus down
+
+# move focused window.
+bindsym $mod+$smod+$wm_key_left  move left
+bindsym $mod+$smod+$wm_key_right move right
+bindsym $mod+$smod+$wm_key_up    move up
+bindsym $mod+$smod+$wm_key_down  move down
+
+# resize mode.
+bindsym $mod+r mode "resize"
+
+# change borders.
+bindsym $mod+u border none
+bindsym $mod+y border pixel 0
+bindsym $mod+n border normal
+bindsym $mod+j border smart
+
+# allow switch to workspace.
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+bindsym $mod+0 workspace $ws10
+
+# allow move focused container to workspace.
+bindsym $mod+$smod+1 move container to workspace $ws1
+bindsym $mod+$smod+2 move container to workspace $ws2
+bindsym $mod+$smod+3 move container to workspace $ws3
+bindsym $mod+$smod+4 move container to workspace $ws4
+bindsym $mod+$smod+5 move container to workspace $ws5
+bindsym $mod+$smod+6 move container to workspace $ws6
+bindsym $mod+$smod+7 move container to workspace $ws7
+bindsym $mod+$smod+8 move container to workspace $ws8
+bindsym $mod+$smod+9 move container to workspace $ws9
+bindsym $mod+$smod+0 move container to workspace $ws10
+
+# split orientation.
+bindsym $mod+h split h; exec notify-send 'tile horizontally'
+bindsym $mod+v split v; exec notify-send 'tile vertically'
+bindsym $mod+q split toggle
+
+# change container layout (stacked, tabbed, toggle split).
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+
+# toggle tiling / floating.
+bindsym $mod+$smod+space floating toggle
+
+# change focus between tiling / floating windows.
+bindsym $mod+space focus mode_toggle
+
+# toggle sticky.
+bindsym $mod+$smod+s sticky toggle
+
+# focus the parent container.
+bindsym $mod+a focus parent
+
+# move the currently focused window to the scratchpad.
+bindsym $mod+$smod+minus move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+# If there are multiple scratchpad windows, this command cycles through them.
+bindsym $mod+minus scratchpad show
+
+#navigate workspaces next / previous
+bindsym $mod+Ctrl+Right workspace next
+bindsym $mod+Ctrl+Left workspace prev
+
+# allow move back (view or container) to previous workspace.
+bindsym $mod+b workspace back_and_forth
+bindsym $mod+$smod+b move container to workspace back_and_forth; workspace back_and_forth
+
+# lock screen.
+bindsym $mod+F9 exec --no-startup-id blurlock
+
+# enter fullscreen mode on the focused window.
+bindsym $mod+f fullscreen toggle
+
+# reload the configuration file.
+bindsym $mod+$smod+c reload
+
+# kill the focused window.
+bindsym $mod+$smod+q kill
+
+# restart i3 in-place (preserves your layout/session; use this to test changes to i3).
+bindsym $mod+$smod+r restart
+
+# exit i3 (logs you out of your X session).
+bindsym $mod+$smod+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+
+# Set shut down, restart and locking features
+bindsym $mod+$smod+F12 mode "$mode_system"
+
+# set gaps mode.
+bindsym $mod+Shift+g mode "$mode_gaps"
+
