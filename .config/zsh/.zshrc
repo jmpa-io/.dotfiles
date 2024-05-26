@@ -65,7 +65,7 @@ fi
 
 # load opener image + quote.
 case "$os" in
-  "Linux") wezterm imgcat "$DOTFILES"/tree.png ;;
+  "Linux") cat "$HOME/tree.png" | wezterm imgcat ;;
 esac
 echo "       A tree is just a tree when a tree is a tree." | lolcat --spread 5.0
 echo; echo

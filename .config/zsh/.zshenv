@@ -6,9 +6,12 @@ export EDITOR="nvim"
 export BROWSER="firefox"
 
 # zsh.
-export HISTFILE="$HOME/.zhistory" # history filepath
-export HISTSIZE=10000             # maximum events for internal history
-export SAVEHIST=10000             # maximum events in history file
+export HISTFILE="$HOME/.zhistory" # history filepath.
+export HISTSIZE=10000             # maximum events for internal history.
+export SAVEHIST=10000             # maximum events in history file.
+
+# starship.
+export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
 
 # go.
 export PATH="$PATH:/usr/local/go/bin"
