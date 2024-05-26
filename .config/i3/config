@@ -1,9 +1,9 @@
 
 #    _ ____
 #   (_)_  /
-#  / //_ < 
-# /_/____/ 
-#          
+#  / //_ <
+# /_/____/
+#
 
 # mods.
 set $mod    Mod4
@@ -29,7 +29,7 @@ set $wm_key_up      Up
 set $wm_key_down    Down
 
 # applications.
-set $wm_terminal      wezterm 
+set $wm_terminal      wezterm
 set $wm_browser       firefox
 set $wm_app_launcher  rofi
 set $wm_compositor    picom
@@ -65,7 +65,7 @@ default_floating_border pixel $wm_border_size
 # Smart gaps (gaps used if only more than one container on the workspace)
 smart_gaps on
 
-# Smart borders (draw borders around container only if it is not the only container on this workspace) 
+# Smart borders (draw borders around container only if it is not the only container on this workspace)
 # on|no_gaps (on=always activate and no_gaps=only activate if the gap size to the edge of the screen is 0)
 smart_borders on
 
@@ -137,7 +137,7 @@ for_window [urgent=latest] focus
 # # Change the variable name at the place you want to match the color
 # # of your terminal like this:
 # # [example]
-# # If you want your bar to have the same background color as your 
+# # If you want your bar to have the same background color as your
 # # terminal background change the line 362 from:
 # # background #14191D
 # # to:
