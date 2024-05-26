@@ -49,7 +49,7 @@ setopt HIST_VERIFY            # do not execute immediately upon history expansio
 # source external files.
 files=(
   "$HOME/work"
-  "$DOTFILES/aliases/aliases"
+  "$HOME/aliases"
 )
 for file in "${files[@]}"; do
   if [[ -f "$file" ]]; then
@@ -62,6 +62,9 @@ if [[ $(starship -V &>/dev/null) -eq 0 ]]; then
   eval "$(starship init zsh)" \
     || die "failed to setup starship"
 fi
+
+# enable zsh-syntax-highlighting.
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # load opener image + quote.
 case "$os" in
