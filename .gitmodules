@@ -1,3 +1,0 @@
-[submodule ".config/neovim"]
-	path = .config/neovim
-	url = https://github.com/jmpa-io/NvChad
