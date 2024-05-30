@@ -12,7 +12,7 @@ alias d="dirs -v"
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
 # general.
-alias zsrc='source $DOTFILES/aliases/aliases $HOME/.zshenv $HOME/.zshrc'
+alias zsrc='source $HOME/aliases $HOME/.zshenv $HOME/.zshrc'
 case "$os" in
   Darwin)
     alias ls='ls -G'
@@ -23,8 +23,8 @@ case "$os" in
     alias ls='ls --color=auto'                                          # overrides ls to run this default.
     alias dotfiles='nvim "$DOTFILES"'                                   # opens dotfiles in IDE.
     alias grep="grep --color=auto"                                      # overrides grep to run this default.
-    alias lockscreen="i3lock"                                           # verbose way to lock the computer.
-    alias lock="i3lock"                                                 # shorthand way to locks the computer.
+    alias lockscreen="$HOME/bin/lock.sh"                                # verbose way to lock the computer.
+    alias lock="$HOME/bin/lock.sh"                                      # shorthand way to locks the computer.
     alias shutdown="shutdown -h now"                                    # shuts down the computer immediately.
     alias restart="shutdown -r now"                                     # restarts the computer immediately.
     alias screenshot="scrot"                                            # takes a screenshot.

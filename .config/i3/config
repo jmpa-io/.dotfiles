@@ -48,8 +48,8 @@ set $ws10 "10"
 
 # configs.
 include $HOME/.i3/configs/autostart
-include $HOME/.i3/configs/bindings
 include $HOME/.i3/configs/modes
+include $HOME/.i3/configs/bindings
 
 # border style <normal|1pixel|pixel xx|none|pixel>.
 default_border pixel $wm_border_size

@@ -259,7 +259,7 @@ configure-i3: .config/i3
 
 configure-common: ## Configure common files used across multiple tools.
 configure-common: .config/common
-	for file in $(shell find .config/common -mindepth 1 -type f); do \
+	for file in $(shell find .config/common -mindepth 1 -maxdepth 1); do \
 		ln -sf $(PWD)/$$file $(HOME)/; \
 	done
 
