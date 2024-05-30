@@ -1,13 +1,13 @@
 # defines resize mode, where we can resize windows using the keys defined below,
-# or by using our mouse. Please note, the bindings defined here will trigger as 
+# or by using our mouse. Please note, the bindings defined here will trigger as
 # soon as this mode is entered.
 mode "resize" {
- 
+
   # allow resize window.
   bindsym $wm_key_left    resize shrink width 10 px or 10 ppt
   bindsym $wm_key_right   resize grow width 10 px or 10 ppt
   bindsym $wm_key_up      resize shrink height 10 px or 10 ppt
-  bindsym $wm_key_down    resize grow height 10 px or 10 ppt 
+  bindsym $wm_key_down    resize grow height 10 px or 10 ppt
 
   # allow resize gap.
   bindsym $smod+$wm_key_left    gaps horizontal minus 5
@@ -23,7 +23,7 @@ mode "resize" {
 
 set $mode_system (l)ock, (e)xit, switch_(u)ser, (s)uspend, (h)ibernate, (r)eboot, (Shift+s)hutdown
 mode "$mode_system" {
-    bindsym l exec --no-startup-id i3exit lock, mode "default"
+    bindsym l exec --no-startup-id "$HOME/bin/lock.sh", mode "default"
     bindsym s exec --no-startup-id i3exit suspend, mode "default"
     bindsym u exec --no-startup-id i3exit switch_user, mode "default"
     bindsym e exec --no-startup-id i3exit logout, mode "default"

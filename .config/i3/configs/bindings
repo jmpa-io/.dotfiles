@@ -19,7 +19,7 @@ bindsym $mod+F3 exec pcmanfm
 # start ranger, a TUI for browsing files.
 bindsym $mod+$smod+F3 exec $wm_terminal -e 'ranger'
 
-# start btop, a TUI for seeing usage on this machine. 
+# start btop, a TUI for seeing usage on this machine.
 bindsym $mod+$smod+F4 exec $wm_terminal -e 'btop'
 
 # control screen brightness.
@@ -147,5 +147,5 @@ bindsym $mod+$smod+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcu
 bindsym $mod+$smod+F12 mode "$mode_system"
 
 # set gaps mode.
-bindsym $mod+Shift+g mode "$mode_gaps"
+bindsym $mod+$smod+g mode "$mode_gaps"
 
