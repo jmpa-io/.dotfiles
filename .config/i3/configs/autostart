@@ -11,7 +11,7 @@ exec --no-startup-id pamac-tray
 exec --no-startup-id clipit
 
 # run xautolock, to setup autolocking this machine after a period of time.
-exec --no-startup-id xautolock -time 10 -locker blurlock
+exec --no-startup-id xautolock -time 10 -locker "$HOME/bin/lock.sh"
 
 # TODO: this.
 exec_always --no-startup-id fix_xcursor

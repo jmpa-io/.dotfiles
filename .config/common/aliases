@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# handles aliases and extensions to commands for our terminal.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
