@@ -22,6 +22,9 @@ bindsym $mod+$smod+F3 exec $wm_terminal -e 'ranger'
 # start btop, a TUI for seeing usage on this machine.
 bindsym $mod+$smod+F4 exec $wm_terminal -e 'btop'
 
+# start vlc, a GUI For playing media files.
+bindsym $mod+F5 exec 'vlc'
+
 # control screen brightness.
 # bindsym XF86MonBrightnessUp exec "xbacklight -inc 10; notify-send 'brightness up'"
 # bindsym XF86MonBrightnessDown exec "xbacklight -dec 10; notify-send 'brightness down'"
