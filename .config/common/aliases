@@ -89,10 +89,13 @@ aws() {
 git() {
   case $* in
 
+    # runs 'git pull' while pruning old branches.
+    "pull "*)
+      command git pull --prune "$2" ;;
+
     # runs 'git clone' and then changes into the directory cloned.
     "clone "*)
-      command git clone "$2" && cd $(cut -d"/" -f5 <<< "$2")
-      ;;
+      command git clone "$2" && cd $(cut -d"/" -f5 <<< "$2") ;;
 
     # shows all the branches available.
     branch)
