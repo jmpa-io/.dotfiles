@@ -29,10 +29,20 @@ set $wm_key_up      Up
 set $wm_key_down    Down
 
 # applications.
-set $wm_terminal      wezterm
-set $wm_browser       firefox
-set $wm_app_launcher  rofi
-set $wm_compositor    picom
+set $wm_terminal          wezterm
+set $wm_browser           firefox
+set $wm_app_launcher      rofi
+set $wm_compositor        picom
+
+set $wm_audio_control_gui pavucontrol
+set $wm_audio_control_tui ncpamixer
+
+set $wm_file_browser_gui  pcmanfm
+set $wm_file_browser_tui  ranger
+
+set $wm_system_info_tui   btop
+
+set $wm_media_player_gui  vlc
 
 # workspaces.
 set $ws1 "1"
