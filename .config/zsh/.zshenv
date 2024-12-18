@@ -28,3 +28,6 @@ export GREP_COLOR='mt=01;34'
 
 # gcc.
 export PATH="$PATH:/usr/local/osx-ndk-x86/bin"
+
+# gtk.
+export GTK_THEME="Adwaita:dark"
