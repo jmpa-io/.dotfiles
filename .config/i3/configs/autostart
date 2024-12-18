@@ -1,28 +1,28 @@
-# TODO: this.
+
+#                __             __             __
+#   ____ ___  __/ /_____  _____/ /_____ ______/ /_
+#  / __ `/ / / / __/ __ \/ ___/ __/ __ `/ ___/ __/
+# / /_/ / /_/ / /_/ /_/ (__  ) /_/ /_/ / /  / /_
+# \__,_/\__,_/\__/\____/____/\__/\__,_/_/   \__/
+#
+#
+# A collection of applications & processes to start on boot.
+#
+
+# run polkit-gnome-authentication-agent-1, which handles auth for GUI applications.
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
 # run nitrogen, to setup the background wallpaper.
 exec --no-startup-id nitrogen --restore; sleep 1; picom -b
 
-# TODO: this.
-exec --no-startup-id nm-applet
-exec --no-startup-id xfce4-power-manager
-exec --no-startup-id pamac-tray
-exec --no-startup-id clipit
+# run clipip, a clipboard manager.
+exec --no-startup-id clipit -d
 
-# run xautolock, to setup autolocking this machine after a period of time.
+# run xautolock, a way to lock this machine after a period of time.
 exec --no-startup-id xautolock -time 10 -locker "$HOME/bin/lock.sh"
 
-# TODO: this.
+# run fix_xcursor, a script to automatically set the theme of a cursor in i3.
 exec_always --no-startup-id fix_xcursor
-
-# TODO: not sure what these are.. research these when I have internet again.
-# exec --no-startup-id blueman-applet
-# exec_always --no-startup-id sbxkb
-# exec --no-startup-id start_conky_maia
-# exec --no-startup-id start_conky_green
-# exec --no-startup-id manjaro-hello
-# exec_always --no-startup-id ff-theme-util
 
 # run compositor, for window effects.
 exec_always --no-startup-id $wm_compositor
