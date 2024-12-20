@@ -18,6 +18,9 @@ exec --no-startup-id nitrogen --restore; sleep 1; picom -b
 # run clipip, a clipboard manager.
 exec --no-startup-id clipit -d
 
+# run xfce4-power-manager, a way to manage brightness controls on keyboard.
+exec --no-startup-id xfce4-power-manager
+
 # run xautolock, a way to lock this machine after a period of time.
 exec --no-startup-id xautolock -time 10 -locker "$HOME/bin/lock.sh"
 
