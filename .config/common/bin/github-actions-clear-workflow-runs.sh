@@ -5,10 +5,6 @@
 die() { echo "$1" >&2; exit "${2:-1}"; }
 usage() { echo "usage: $0 <org/repo>"; exit 64; }
 
-# check pwd.
-[[ ! -d .git ]] \
-  && die "must be run from repository root directory"
-
 # check deps.
 deps=(curl)
 for dep in "${deps[@]}"; do
