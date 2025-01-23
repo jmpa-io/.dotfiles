@@ -66,6 +66,12 @@ fi
 # enable zsh-syntax-highlighting.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+# enable fzf completion & key bindings, if installed.
+if [[ $(fzf --version &>/dev/null) -eq 0 ]]; then
+  source /usr/share/fzf/completion.zsh
+  source /usr/share/fzf/key-bindings.zsh
+fi
+
 # load opener image + quote.
 case "$os" in
   "Linux") cat "$HOME/tree.png" | wezterm imgcat ;;
