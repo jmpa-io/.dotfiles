@@ -59,6 +59,9 @@ bindsym $mod+$smod+F6   exec $wm_terminal -e $wm_audio_control_tui
 bindsym $mod+F7         exec $wm_background_settings_gui
 bindsym $mod+$smod+F7   exec $wm_login_screen_settings_gui
 
+# F8 - screen manager.
+bindym $mod+F8          exec $wm_screen_manager_gui
+
 # change focused window.
 bindsym $mod+$wm_key_left         focus left
 bindsym $mod+$wm_key_right        focus right
