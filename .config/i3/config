@@ -47,6 +47,8 @@ set $wm_media_player_gui  vlc
 set $wm_background_settings_gui     nitrogen
 set $wm_login_screen_settings_gui   lightdm-settings
 
+set $wm_screen_manager_gui  arandr
+
 # workspaces.
 set $ws1 "1"
 set $ws2 "2"
