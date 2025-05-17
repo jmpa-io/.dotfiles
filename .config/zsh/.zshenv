@@ -22,6 +22,7 @@ export PATH="$PATH:$GOPATH/bin"
 
 # aws.
 export AWS_DEFAULT_REGION="ap-southeast-2"
+export AWS_REGION="$AWS_DEFAULT_REGION"
 
 # grep.
 export GREP_COLOR='mt=01;34'
