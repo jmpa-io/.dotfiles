@@ -60,7 +60,7 @@ bindsym $mod+F7         exec $wm_background_settings_gui
 bindsym $mod+$smod+F7   exec $wm_login_screen_settings_gui
 
 # F8 - screen manager.
-bindym $mod+F8          exec $wm_screen_manager_gui
+bindsym $mod+F8         exec $wm_screen_manager_gui
 
 # change focused window.
 bindsym $mod+$wm_key_left         focus left
