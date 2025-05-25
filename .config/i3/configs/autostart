@@ -21,8 +21,8 @@ exec --no-startup-id clipit -d
 # run xfce4-power-manager, a way to manage brightness controls on keyboard.
 exec --no-startup-id xfce4-power-manager
 
-# run xautolock, a way to lock this machine after a period of time.
-exec --no-startup-id xautolock -time 10 -locker "$HOME/bin/lock.sh"
+# setup autolock mechanism.
+exec --no-startup-id "$HOME/bin/system/launch-autolock.sh"
 
 # run fix_xcursor, a script to automatically set the theme of a cursor in i3.
 exec_always --no-startup-id fix_xcursor

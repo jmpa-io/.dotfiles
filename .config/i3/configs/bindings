@@ -31,36 +31,36 @@ bindsym $mod+$smod+q kill
 bindsym $mod+$smod+r restart
 
 # screenshots.
-bindsym Print               exec --no-startup-id i3-scrot
-bindsym $mod+Print          --release exec --no-startup-id i3-scrot -w
-bindsym $mod+Shift+Print    --release exec --no-startup-id i3-scrot -s
+bindsym Print             exec --no-startup-id i3-scrot
+bindsym $mod+Print        --release exec --no-startup-id i3-scrot -w
+bindsym $mod+Shift+Print  --release exec --no-startup-id i3-scrot -s
 
 # F1 - terminal (alt).
-bindsym $mod+F1         exec $wm_terminal
+bindsym $mod+F1           exec $wm_terminal
 
 # F2 - browser (alt).
-bindsym $mod+F2         exec $wm_browser
+bindsym $mod+F2           exec $wm_browser
 
 # F3 - file browsing.
-bindsym $mod+F3         exec $wm_file_browser_gui
-bindsym $mod+$smod+F3   exec $wm_terminal -e $wm_file_browser_tui
+bindsym $mod+F3           exec $wm_file_browser_gui
+bindsym $mod+$smod+F3     exec $wm_terminal -e $wm_file_browser_tui
 
 # F4 - system info.
-bindsym $mod+$smod+F4   exec $wm_terminal -e $wm_system_info_tui
+bindsym $mod+$smod+F4     exec $wm_terminal -e $wm_system_info_tui
 
 # F5 - media player.
-bindsym $mod+F5         exec $wm_media_player_gui
+bindsym $mod+F5           exec $wm_media_player_gui
 
 # F6 - audio control.
-bindsym $mod+F6         exec $wm_audio_control_gui
-bindsym $mod+$smod+F6   exec $wm_terminal -e $wm_audio_control_tui
+bindsym $mod+F6           exec $wm_audio_control_gui
+bindsym $mod+$smod+F6     exec $wm_terminal -e $wm_audio_control_tui
 
 # F7 - background & login screen settings.
-bindsym $mod+F7         exec $wm_background_settings_gui
-bindsym $mod+$smod+F7   exec $wm_login_screen_settings_gui
+bindsym $mod+F7           exec $wm_background_settings_gui
+bindsym $mod+$smod+F7     exec $wm_login_screen_settings_gui
 
 # F8 - screen manager.
-bindsym $mod+F8         exec $wm_screen_manager_gui
+bindsym $mod+F8           exec $wm_screen_manager_gui
 
 # change focused window.
 bindsym $mod+$wm_key_left         focus left
@@ -139,7 +139,7 @@ bindsym $mod+$smod+b move container to workspace back_and_forth; workspace back_
 # resize mode.
 bindsym $mod+r mode "resize"
 
-# Set shut down, restart and locking features
+# set shut down, restart and locking features
 bindsym $mod+$smod+F12 mode "$mode_system"
 
 # set gaps mode.

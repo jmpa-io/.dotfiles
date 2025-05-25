@@ -22,10 +22,10 @@ case "$os" in
   ;;
   Linux)
     alias ls='ls --color=auto'                                          # overrides ls to run this default.
-    alias dotfiles='nvim "$DOTFILES"'                                   # opens dotfiles in IDE.
+    alias dotfiles="nvim \"+cd $DOTFILES\" $DOTFILES"                   # opens dotfiles in IDE.
     alias grep="grep --color=auto"                                      # overrides grep to run this default.
-    alias lockscreen="$HOME/bin/lock.sh"                                # verbose way to lock the computer.
-    alias lock="$HOME/bin/lock.sh"                                      # shorthand way to locks the computer.
+    alias lockscreen="$HOME/system/bin/lock.sh"                         # verbose way to lock the computer.
+    alias lock="$HOME/bin/system/lock.sh"                               # shorthand way to locks the computer.
     alias shutdown="shutdown -h now"                                    # shuts down the computer immediately.
     alias restart="shutdown -r now"                                     # restarts the computer immediately.
     alias screenshot="scrot"                                            # takes a screenshot.
@@ -56,7 +56,7 @@ aws() {
       done
       ;;
 
-    # resets the AWS_PROFILE to the default profile.
+    # resets the AWS_PROFILE to https://www.reddit.com/r/neovim/comments/6rvsa2/nvimdiff/the default profile.
     "profile clear") # resets the AWS_PROFILE to the default profile.
       export AWS_PROFILE="default" ;;
 
