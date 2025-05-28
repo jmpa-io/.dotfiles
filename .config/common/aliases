@@ -32,6 +32,8 @@ case "$os" in
     alias olss="firefox $(ls "$HOME/Pictures" | sort -r | head -n1)"    # opens the last screenshot taken in Firefox.
     alias orphans="pacman -Qtdq | sudo pacman -Rns -"                   # removes all orphaned packages.
     alias clock="tty-clock -s -c -C 5 -t"                               # renders a nice clock, using tty-clock, in the terminal.
+    alias neofetch="fastfetch"                                          # prints system information.
+    alias open="pcmanfm"                                                # opens the given directory in a GUI file manager.
   ;;
 esac
 
