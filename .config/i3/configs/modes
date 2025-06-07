@@ -36,7 +36,7 @@ mode "resize" {
 # call; each mode does at it says on the tin, and nothing extra or fancy.
 set $mode_system (l)ock, (e)xit, switch_(u)ser, (s)uspend, (h)ibernate, (r)eboot, (Shift+s)hutdown
 mode "$mode_system" {
-    bindsym l exec --no-startup-id "$HOME/bin/lock.sh", mode "default"
+    bindsym l exec --no-startup-id "$HOME/bin/system/lock.sh", mode "default"
     bindsym s exec --no-startup-id i3exit suspend, mode "default"
     bindsym u exec --no-startup-id i3exit switch_user, mode "default"
     bindsym e exec --no-startup-id i3exit logout, mode "default"
