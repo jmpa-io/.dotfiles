@@ -2,7 +2,7 @@
   <img src="./docs/logo.png">
 </p>
 
-# .dotfiles
+# `.dotfiles`
 
 ```diff
 + Here are my dotfiles.
