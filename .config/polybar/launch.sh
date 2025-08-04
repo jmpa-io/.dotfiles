@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
-# terminate any existing instances of polybar.
+# Terminate any existing instances of polybar.
 killall -q polybar
 
-# launch bar.
+# Wait until the processes have been shut down.
+while pgrep -u "$UID" -x polybar >/dev/null; do sleep 0.5; done
+
+# launch a bar per monitor.
 echo "---" | tee -a /tmp/polybar.log
-polybar top -c "$HOME/.config/polybar/config.ini" 2>&1 | tee -a /tmp/polybar.log & disown
+for m in $(xrandr --query | grep " connected" | cut -d" " -f1); do
+  MONITOR="$m" polybar top -c "$HOME/.config/polybar/config.ini" 2>&1 | tee -a /tmp/polybar.log & disown
+done
 
 echo "Bars launched..."
