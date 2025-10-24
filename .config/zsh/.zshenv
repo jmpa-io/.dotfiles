@@ -1,4 +1,8 @@
-# general.
+
+# determine os (export so it's available in .zshrc).
+export os=$(uname) || { echo "failed to get operating system" >&2; exit 1; }
+
+# general (cross-platform).
 export DOTFILES="$HOME/.dotfiles"
 export ROOT="$HOME"
 export PATH="$PATH:$ROOT/bin"
@@ -27,11 +31,31 @@ export AWS_REGION="$AWS_DEFAULT_REGION"
 # grep.
 export GREP_COLOR='mt=01;34'
 
-# gcc.
-export PATH="$PATH:/usr/local/osx-ndk-x86/bin"
+# os-specific configurations.
+case "$os" in
+  "Darwin")
+    # homebrew.
+    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
-# gtk.
-export GTK_THEME="Adwaita:dark"
+    # use GNU make instead of macOS make
+    export PATH="/opt/homebrew/libexec/gnubin:$PATH"
+    
+    # gcc (macOS specific).
+    export PATH="$PATH:/usr/local/osx-ndk-x86/bin"
+    ;;
 
-# mason.
-export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
+  "Linux")
+    # gtk (Linux specific).
+    export GTK_THEME="Adwaita:dark"
+
+    # gcc.
+    export PATH="$PATH:/usr/local/osx-ndk-x86/bin"
+
+    # gtk.
+    export GTK_THEME="Adwaita:dark"
+
+    # mason.
+    export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
+    ;;
+
+esac
