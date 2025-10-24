@@ -108,6 +108,7 @@ fi
 # load opener image + quote.
 case "$os" in
   "Linux") cat "$HOME/tree-v2.png" | wezterm imgcat ;;
+  "Darwin") imgcat "$HOME/tree-v2.png" ;;
 esac
 echo; echo
 
