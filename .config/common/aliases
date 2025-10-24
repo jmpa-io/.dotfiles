@@ -97,7 +97,18 @@ git() {
       command gh auth status --active --json hosts --jq '.hosts."github.com"[0]' ;;
 
     "switch")
-      command gh auth switch ;;
+      command gh auth switch
+      case "$os" in
+        Darwin)
+          git credential-osxkeychain erase <<< "protocol=https
+host=github.com" 2>/dev/null || true
+          ;;
+        Linux)
+          git credential reject <<< "protocol=https
+host=github.com" 2>/dev/null || true
+          ;;
+      esac
+      ;;
 
     # runs 'git pull' while pruning old branches.
     "pull "*)
@@ -105,7 +116,7 @@ git() {
 
     # runs 'git clone' and then changes into the directory cloned.
     "clone "*)
-      command git clone "$2" && cd $(cut -d"/" -f5 <<< "$2") ;;
+      command git clone "$2" && cd "$(basename "$2" .git)" ;;
 
     # shows all the branches available.
     branch)
