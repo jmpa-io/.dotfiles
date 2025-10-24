@@ -91,6 +91,13 @@ aws() {
 git() {
   case $* in
 
+    # checks who the current gh user is.
+    "who")
+      command gh auth status --active --json hosts --jq '.hosts."github.com"[0]' ;;
+
+    "switch")
+      command gh auth switch ;;
+
     # runs 'git pull' while pruning old branches.
     "pull "*)
       command git pull --prune "$2" ;;
@@ -108,4 +115,3 @@ git() {
       command git "$@" ;;
   esac
 }
-
