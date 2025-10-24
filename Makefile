@@ -1,3 +1,6 @@
+# NOTES:
+# - The way things are installed and configured and setup has a lot of duplicate code - this can be refactored and simplified.
+# - A configure isn't run by OS, so tools are being configured that don't really need to be configured.
 
 # The shell to use for executing commands.
 SHELL = /bin/sh
@@ -19,19 +22,42 @@ install: \
 	install-go \
 	install-awscli \
 	install-zsh \
+	install-zsh-syntax-highlighting \
+	install-fzf \
+	install-neovim \
+	install-bash \
 	install-starship \
 	install-polybar \
 	install-jq
 
 configure: ## ** Configures ALL tools available for the operating system of this machine.
 configure: \
+	configure-git \
+	configure-github-cli \
+	configure-awscli \
 	configure-zsh \
-	configure-starship
+	configure-starship \
+	configure-neovim \
+	configure-wezterm \
+	configure-common
 
 setup: ## ** Installs AND configures ALL tools available for the operating system of this machine.
 setup: \
+	create-directories \
+	setup-go \
+	setup-git \
+	setup-github-cli \
+	setup-awscli \
 	setup-zsh \
-	setup-starship
+	setup-zsh-syntax-highlighting \
+	setup-fzf \
+	setup-neovim \
+	setup-bash \
+	setup-starship \
+	setup-polybar \
+	setup-jq \
+	setup-wezterm \
+	setup-common
 
 ---: ## ---
 
@@ -66,6 +92,9 @@ install-go: ## Install 'go'.
 
 # NOTE: go is also being configured in the `.zshenv` file.
 
+setup-go: ## Install 'go' (no configuration needed).
+setup-go: install-go
+
 # ---------- git ----------
 
 # NOTE: git is assumed installed.
@@ -77,7 +106,7 @@ configure-git: .config/git
 	done
 
 setup-git: ## Install AND configure 'git'.
-setup-git: install-git configure-git
+setup-git: configure-git
 
 # ----------- github-cli -----------
 
@@ -86,8 +115,7 @@ define install-github-cli-linux
 endef
 
 define install-github-cli-darwin
-	# TODO: is this the right command to install the gh cli on Darwin?
-	# brew install gh
+	brew install gh
 endef
 
 define install-github-cli-for-os
@@ -105,6 +133,9 @@ configure-github-cli: ## Configure 'github-cli'.
 	# setup 'github-cli' as a credential helper.
 	gh auth setup-git
 
+setup-github-cli: ## Install AND configure 'github-cli'.
+setup-github-cli: install-github-cli configure-github-cli
+
 # ----------- awscli ----------
 
 define install-awscli-linux
@@ -114,8 +145,7 @@ define install-awscli-linux
 endef
 
 define install-awscli-darwin
-	curl -sSLo "dist/awscli/AWSCLIV2.pkg" "https://awscli.amazonaws.com/AWSCLIV2.pkg"
-	installer -pkg "dist/awscli/AWSCLIV2.pkg" -target
+	brew install awscli
 endef
 
 define install-awscli-for-os
@@ -130,6 +160,9 @@ configure-awscli: ## Configure 'awscli'.
 
 	# set default region.
 	aws configure set region ap-southeast-2
+
+setup-awscli: ## Install AND configure 'awscli'.
+setup-awscli: install-awscli configure-awscli
 
 # ----------- zsh ----------
 
@@ -202,6 +235,9 @@ endef
 install-polybar: ## Install 'polybar'.
 	$(call install-polybar-for-os,$(OS))
 
+setup-polybar: ## Install 'polybar' (no configuration needed).
+setup-polybar: install-polybar
+
 # ---------- neovim ----------
 
 define install-neovim-linux
@@ -209,8 +245,7 @@ define install-neovim-linux
 endef
 
 define install-neovim-darwin
-	# TODO: is this the right way to install neovim on Darwin?
-	# brew install neovim
+	brew install neovim
 endef
 
 define install-neovim-for-os
@@ -223,6 +258,9 @@ install-neovim: ## Install 'neovim'.
 configure-neovim: ## Configure 'neovim'.
 configure-neovim: .config/neovim $(HOME)/.config
 	ln -sf $(PWD)/$</ $(HOME)/.config/nvim
+
+setup-neovim: ## Install AND configure 'neovim'.
+setup-neovim: install-neovim configure-neovim
 
 # ---------- wezterm ----------
 
@@ -247,6 +285,9 @@ configure-wezterm: .config/wezterm
 		ln -sf $(PWD)/$$file $(HOME)/; \
 	done
 
+setup-wezterm: ## Install AND configure 'wezterm'.
+setup-wezterm: install-wezterm configure-wezterm
+
 # ---------- i3 ----------
 
 # NOTE: i3 is assumed installed.
@@ -262,6 +303,9 @@ configure-common: .config/common
 	for file in $(shell find .config/common -mindepth 1 -maxdepth 1); do \
 		ln -sf $(PWD)/$$file $(HOME)/; \
 	done
+
+setup-common: ## Install 'common' (no configuration needed).
+setup-common: configure-common
 
 # ---------- jq ----------
 
@@ -279,6 +323,69 @@ endef
 
 install-jq: ## Install 'jq'.
 	$(call install-jq-for-os,$(OS))
+
+setup-jq: ## Install 'jq' (no configuration needed).
+setup-jq: install-jq
+
+# ---------- zsh-syntax-highlighting ----------
+
+define install-zsh-syntax-highlighting-linux
+	pacman -S zsh-syntax-highlighting
+endef
+
+define install-zsh-syntax-highlighting-darwin
+	brew install zsh-syntax-highlighting
+endef
+
+define install-zsh-syntax-highlighting-for-os
+	$(call install-zsh-syntax-highlighting-$1)
+endef
+
+install-zsh-syntax-highlighting: ## Install 'zsh-syntax-highlighting'.
+	$(call install-zsh-syntax-highlighting-for-os,$(OS))
+
+setup-zsh-syntax-highlighting: ## Install 'zsh-syntax-highlighting' (no configuration needed).
+setup-zsh-syntax-highlighting: install-zsh-syntax-highlighting
+
+# ---------- fzf ----------
+
+define install-fzf-linux
+	pacman -S fzf
+endef
+
+define install-fzf-darwin
+	brew install fzf
+endef
+
+define install-fzf-for-os
+	$(call install-fzf-$1)
+endef
+
+install-fzf: ## Install 'fzf'.
+	$(call install-fzf-for-os,$(OS))
+
+setup-fzf: ## Install 'fzf' (no configuration needed).
+setup-fzf: install-fzf
+
+# ---------- bash ----------
+
+define install-bash-linux
+	pacman -S bash
+endef
+
+define install-bash-darwin
+	brew install bash
+endef
+
+define install-bash-for-os
+	$(call install-bash-$1)
+endef
+
+install-bash: ## Install 'bash'.
+	$(call install-bash-for-os,$(OS))
+
+setup-bash: ## Install 'bash' (no configuration needed).
+setup-bash: install-bash
 
 # ----------------------
 
