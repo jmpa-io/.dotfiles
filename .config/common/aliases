@@ -18,6 +18,7 @@ case "$os" in
   Darwin)
     alias ls='ls -G'
     alias dotfiles='code "$DOTFILES"'
+    alias code='open -a "Visual Studio Code"'
     alias grep="grep --color=auto"
   ;;
   Linux)
