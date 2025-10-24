@@ -17,7 +17,9 @@
 
 # use gh as a cred helper.
 [credential "https://github.com/"]
-  helper = !/usr/bin/gh auth git-credential
+  helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = !gh auth git-credential
 
 [alias]
   # makes it easier to determine if the branch is main or master.
@@ -27,9 +29,3 @@
 [diff]
   colormoved = "default"
   colormovedws = "allow-indentation-change"
-[credential "https://github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
-[credential "https://gist.github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
