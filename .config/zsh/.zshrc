@@ -48,8 +48,8 @@ setopt HIST_VERIFY            # do not execute immediately upon history expansio
 
 # source external files.
 files=(
-  "$HOME/work"
   "$HOME/aliases"
+  "$HOME/work"
 )
 for file in "${files[@]}"; do
   if [[ -f "$file" ]]; then
