@@ -28,7 +28,8 @@ install: \
 	install-bash \
 	install-starship \
 	install-polybar \
-	install-jq
+	install-jq \
+	install-docker
 
 configure: ## ** Configures ALL tools available for the operating system of this machine.
 configure: \
@@ -56,6 +57,7 @@ setup: \
 	setup-starship \
 	setup-polybar \
 	setup-jq \
+	setup-docker \
 	setup-wezterm \
 	setup-common
 
@@ -386,6 +388,26 @@ install-bash: ## Install 'bash'.
 
 setup-bash: ## Install 'bash' (no configuration needed).
 setup-bash: install-bash
+
+# ---------- docker ----------
+
+define install-docker-linux
+	pacman -S docker docker-compose
+endef
+
+define install-docker-darwin
+	brew install docker
+endef
+
+define install-docker-for-os
+	$(call install-docker-$1)
+endef
+
+install-docker: ## Install 'docker'.
+	$(call install-docker-for-os,$(OS))
+
+setup-docker: ## Install 'docker' (no configuration needed).
+setup-docker: install-docker
 
 # ----------------------
 
