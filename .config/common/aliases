@@ -12,14 +12,17 @@ os=$(uname) \
 alias d="dirs -v"
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
+# zsh.
+alias zsrc='for f in "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/work"; do [[ -f "$f" ]] && source "$f"; done'
+
 # general.
-alias zsrc='source $HOME/aliases $HOME/.zshenv $HOME/.zshrc'
 case "$os" in
   Darwin)
     alias ls='ls -G'
     alias dotfiles='code "$DOTFILES"'
     alias code='open -a "Visual Studio Code"'
     alias grep="grep --color=auto"
+    alias act="act --container-architecture linux/amd64"
   ;;
   Linux)
     alias ls='ls --color=auto'                                          # overrides ls to run this default.
