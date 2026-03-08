@@ -12,13 +12,17 @@ os=$(uname) \
 alias d="dirs -v"
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
+# zsh.
+alias zsrc='for f in "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/work"; do [[ -f "$f" ]] && source "$f"; done'
+
 # general.
-alias zsrc='source $HOME/aliases $HOME/.zshenv $HOME/.zshrc'
 case "$os" in
   Darwin)
     alias ls='ls -G'
     alias dotfiles='code "$DOTFILES"'
+    alias code='open -a "Visual Studio Code"'
     alias grep="grep --color=auto"
+    alias act="act --container-architecture linux/amd64"
   ;;
   Linux)
     alias ls='ls --color=auto'                                          # overrides ls to run this default.
@@ -91,13 +95,31 @@ aws() {
 git() {
   case $* in
 
+    # checks who the current gh user is.
+    "who")
+      command gh auth status --active --json hosts --jq '.hosts."github.com"[0]' ;;
+
+    "switch")
+      command gh auth switch
+      case "$os" in
+        Darwin)
+          git credential-osxkeychain erase <<< "protocol=https
+host=github.com" 2>/dev/null || true
+          ;;
+        Linux)
+          git credential reject <<< "protocol=https
+host=github.com" 2>/dev/null || true
+          ;;
+      esac
+      ;;
+
     # runs 'git pull' while pruning old branches.
     "pull "*)
       command git pull --prune "$2" ;;
 
     # runs 'git clone' and then changes into the directory cloned.
     "clone "*)
-      command git clone "$2" && cd $(cut -d"/" -f5 <<< "$2") ;;
+      command git clone "$2" && cd "$(basename "$2" .git)" ;;
 
     # shows all the branches available.
     branch)
@@ -108,4 +130,3 @@ git() {
       command git "$@" ;;
   esac
 }
-

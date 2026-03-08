@@ -48,8 +48,8 @@ setopt HIST_VERIFY            # do not execute immediately upon history expansio
 
 # source external files.
 files=(
-  "$HOME/work"
   "$HOME/aliases"
+  "$HOME/work"
 )
 for file in "${files[@]}"; do
   if [[ -f "$file" ]]; then
@@ -64,17 +64,51 @@ if [[ $(starship -V &>/dev/null) -eq 0 ]]; then
 fi
 
 # enable zsh-syntax-highlighting.
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+case "$os" in
+  "Darwin")
+    if [[ -f "/opt/homebrew/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+      source "/opt/homebrew/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    elif [[ -f "/usr/local/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+      source "/usr/local/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    fi
+    ;;
+  "Linux")
+    if [[ -f "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+      source "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    fi
+    ;;
+esac
 
 # enable fzf completion & key bindings, if installed.
 if [[ $(fzf --version &>/dev/null) -eq 0 ]]; then
-  source /usr/share/fzf/completion.zsh
-  source /usr/share/fzf/key-bindings.zsh
+  case "$os" in
+    "Darwin")
+      if [[ -f "/opt/homebrew/opt/fzf/shell/completion.zsh" ]]; then
+        source "/opt/homebrew/opt/fzf/shell/completion.zsh"
+      elif [[ -f "/usr/local/opt/fzf/shell/completion.zsh" ]]; then
+        source "/usr/local/opt/fzf/shell/completion.zsh"
+      fi
+      if [[ -f "/opt/homebrew/opt/fzf/shell/key-bindings.zsh" ]]; then
+        source "/opt/homebrew/opt/fzf/shell/key-bindings.zsh"
+      elif [[ -f "/usr/local/opt/fzf/shell/key-bindings.zsh" ]]; then
+        source "/usr/local/opt/fzf/shell/key-bindings.zsh"
+      fi
+      ;;
+    "Linux")
+      if [[ -f "/usr/share/fzf/completion.zsh" ]]; then
+        source "/usr/share/fzf/completion.zsh"
+      fi
+      if [[ -f "/usr/share/fzf/key-bindings.zsh" ]]; then
+        source "/usr/share/fzf/key-bindings.zsh"
+      fi
+      ;;
+  esac
 fi
 
 # load opener image + quote.
 case "$os" in
   "Linux") cat "$HOME/tree-v2.png" | wezterm imgcat ;;
+  "Darwin") imgcat "$HOME/tree-v2.png" ;;
 esac
 echo; echo
 
