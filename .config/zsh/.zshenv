@@ -37,24 +37,15 @@ case "$os" in
     # homebrew.
     export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
-    # use GNU make instead of macOS make
+    # use GNU make instead of macOS make.
     export PATH="/opt/homebrew/libexec/gnubin:$PATH"
-    
-    # gcc (macOS specific).
-    export PATH="$PATH:/usr/local/osx-ndk-x86/bin"
     ;;
 
   "Linux")
     # gtk (Linux specific).
     export GTK_THEME="Adwaita:dark"
 
-    # gcc.
-    export PATH="$PATH:/usr/local/osx-ndk-x86/bin"
-
-    # gtk.
-    export GTK_THEME="Adwaita:dark"
-
-    # mason.
+    # mason (neovim lsp tool installer).
     export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
     ;;
 

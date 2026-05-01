@@ -28,18 +28,20 @@ case "$os" in
     alias ls='ls --color=auto'                                          # overrides ls to run this default.
     alias dotfiles="nvim \"+cd $DOTFILES\" $DOTFILES"                   # opens dotfiles in IDE.
     alias grep="grep --color=auto"                                      # overrides grep to run this default.
-    alias lockscreen="$HOME/system/bin/lock.sh"                         # verbose way to lock the computer.
-    alias lock="$HOME/bin/system/lock.sh"                               # shorthand way to locks the computer.
+    alias lock="$HOME/bin/system/lock.sh"                               # locks the computer.
+    alias lockscreen="$HOME/bin/system/lock.sh"                         # verbose alias for lock.
     alias shutdown="shutdown -h now"                                    # shuts down the computer immediately.
     alias restart="shutdown -r now"                                     # restarts the computer immediately.
     alias screenshot="scrot"                                            # takes a screenshot.
-    alias olss="firefox $(ls "$HOME/Pictures" | sort -r | head -n1)"    # opens the last screenshot taken in Firefox.
     alias orphans="pacman -Qtdq | sudo pacman -Rns -"                   # removes all orphaned packages.
     alias clock="tty-clock -s -c -C 5 -t"                               # renders a nice clock, using tty-clock, in the terminal.
     alias neofetch="fastfetch"                                          # prints system information.
     alias open="pcmanfm"                                                # opens the given directory in a GUI file manager.
   ;;
 esac
+
+# opens the last screenshot taken in Firefox (resolved at invocation time, not source time).
+olss() { firefox "$(ls "$HOME/Pictures" | sort -r | head -n1)"; }
 
 # aws overrides.
 aws() {
@@ -66,8 +68,8 @@ aws() {
       done
       ;;
 
-    # resets the AWS_PROFILE to https://www.reddit.com/r/neovim/comments/6rvsa2/nvimdiff/the default profile.
-    "profile clear") # resets the AWS_PROFILE to the default profile.
+    # resets the AWS_PROFILE to the default profile.
+    "profile clear")
       export AWS_PROFILE="default" ;;
 
     # logs into the AWS Account associated with the given profile.
@@ -105,7 +107,6 @@ aws() {
 git() {
   case $* in
 
-
     # checks who the current gh user is.
     "who")
       command gh auth status --active --json hosts --jq '.hosts."github.com"[0]' ;;
@@ -126,19 +127,26 @@ host=github.com" 2>/dev/null || true
 
     # runs 'git pull' while pruning old branches.
     "pull "*)
-      command git pull --prune "$2" ;;
+      command git pull --prune "${@:2}" ;;
 
     # runs 'git clone' and then changes into the directory cloned.
     "clone "*)
-      command git clone "$2" && cd "$(basename "$2" .git)" ;;
+      # last arg is either the destination dir or derived from the URL.
+      local args=("${@:2}")
+      local dest="${args[-1]}"
+      # if only one arg (the URL), derive the dir name from it.
+      [[ "${#args[@]}" -eq 1 ]] && dest="$(basename "$dest" .git)"
+      command git clone "${args[@]}" && cd "$dest" ;;
 
     # shows all the branches available.
     branch)
       command git branch --all ;;
 
-    # opens the repository in the default browser
+    # opens the repository in the default browser.
     "open")
-      url=$(command git remote get-url origin | sed 's/\(\.git\)*$\|git@github.com:/https:\/\/github.com\//g')
+      url=$(command git remote get-url origin \
+        | sed -E 's|git@github\.com:|https://github.com/|' \
+        | sed -E 's|\.git$||')
       case "$os" in
         Darwin)
           open "$url"
