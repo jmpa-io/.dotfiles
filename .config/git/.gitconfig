@@ -6,10 +6,18 @@
   #     name = Your Name
   #     email = your.email@work.com
   #
-  # The [includeIf] block below will pick it up automatically for repos
-  # inside ~/work/.
+  # The [includeIf] blocks below will pick it up automatically for repos
+  # inside the configured work directories.
 
-[includeIf "gitdir:~/work/"]
+[includeIf "gitdir:~/go/src/github.com/work-general/"]
+  path = ~/.gitconfig-work
+[includeIf "gitdir:~/go/src/github.com/work-security/"]
+  path = ~/.gitconfig-work
+[includeIf "gitdir:~/go/src/github.com/work-exceptions/"]
+  path = ~/.gitconfig-work
+[includeIf "gitdir:~/go/src/github.com/jcleal/"]
+  path = ~/.gitconfig-work
+[includeIf "gitdir:~/.dotfiles/"]
   path = ~/.gitconfig-work
 
 [init]
