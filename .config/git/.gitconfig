@@ -1,25 +1,38 @@
 [user]
-  name = Jordan-Cleal_cba
-  email = Jordan.Cleal@cba.com.au
+  # No identity committed here - set name and email locally per machine.
+  # For work machines, create ~/.gitconfig-work with your work identity:
+  #
+  #   [user]
+  #     name = Your Name
+  #     email = your.email@work.com
+  #
+  # The [includeIf] block below will pick it up automatically for repos
+  # inside ~/work/.
+
+[includeIf "gitdir:~/work/"]
+  path = ~/.gitconfig-work
 
 [init]
   defaultBranch = main
 
+[pull]
+  rebase = true
+
+[push]
+  default = current
+
 [color]
-    ui = true
-    diff = auto
-    status = auto
-    branch = auto
+  ui = true
 
 # force https, instead of ssh, for things like 'go get'.
 [url "https://github.com/"]
-    insteadOf = "git@github.com:"
+  insteadOf = "git@github.com:"
 
 # use gh as a cred helper.
 [credential "https://github.com/"]
   helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = !gh auth git-credential
+  helper = !gh auth git-credential
 
 [alias]
   # makes it easier to determine if the branch is main or master.

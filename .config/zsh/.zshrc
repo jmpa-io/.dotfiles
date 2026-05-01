@@ -30,7 +30,7 @@ _comp_options+=(globdots)
 setopt AUTO_CD                # go to folder path without using cd.
 setopt CORRECT                # spelling correction.
 setopt CDABLE_VARS            # change directory to a path stored in a variable.
-setopt EXTENDED_GLOB          # cse extended globbing syntax.
+setopt EXTENDED_GLOB          # use extended globbing syntax.
 setopt AUTO_PUSHD             # push the current directory visited on the stack.
 setopt PUSHD_IGNORE_DUPS      # do not store duplicates in the stack.
 setopt PUSHD_SILENT           # do not print the directory stack after pushd or popd
@@ -58,7 +58,7 @@ for file in "${files[@]}"; do
 done
 
 # use starship, if installed.
-if [[ $(starship -V &>/dev/null) -eq 0 ]]; then
+if command -v starship &>/dev/null; then
   eval "$(starship init zsh)" \
     || die "failed to setup starship"
 fi
@@ -80,7 +80,7 @@ case "$os" in
 esac
 
 # enable fzf completion & key bindings, if installed.
-if [[ $(fzf --version &>/dev/null) -eq 0 ]]; then
+if command -v fzf &>/dev/null; then
   case "$os" in
     "Darwin")
       if [[ -f "/opt/homebrew/opt/fzf/shell/completion.zsh" ]]; then
@@ -111,4 +111,3 @@ case "$os" in
   "Darwin") imgcat "$HOME/tree-v2.png" ;;
 esac
 echo; echo
-

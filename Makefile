@@ -3,7 +3,7 @@
 # - A configure isn't run by OS, so tools are being configured that don't really need to be configured.
 
 # The shell to use for executing commands.
-SHELL = /bin/sh
+SHELL = /bin/bash
 
 # The operating system the Makefile is being executed on.
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
@@ -40,6 +40,8 @@ configure: \
 	configure-starship \
 	configure-neovim \
 	configure-wezterm \
+	configure-btop \
+	configure-i3 \
 	configure-common
 
 setup: ## ** Installs AND configures ALL tools available for the operating system of this machine.
@@ -59,7 +61,9 @@ setup: \
 	setup-jq \
 	setup-docker \
 	setup-wezterm \
-	setup-common
+	setup-btop \
+	setup-common \
+	setup-i3
 
 ---: ## ---
 
@@ -151,7 +155,7 @@ define install-awscli-darwin
 endef
 
 define install-awscli-for-os
-	$(call install-aws-$1)
+	$(call install-awscli-$1)
 endef
 
 install-awscli: ## Install 'awscli'.
@@ -227,14 +231,14 @@ define install-polybar-linux
 endef
 
 define install-polybar-darwin
-	# do nothing.
+	# polybar is Linux-only; nothing to do on macOS.
 endef
 
 define install-polybar-for-os
 	$(call install-polybar-$1)
 endef
 
-install-polybar: ## Install 'polybar'.
+install-polybar: ## Install 'polybar' (Linux only).
 	$(call install-polybar-for-os,$(OS))
 
 setup-polybar: ## Install 'polybar' (no configuration needed).
@@ -271,11 +275,11 @@ define install-wezterm-linux
 endef
 
 define install-wezterm-darwin
-	# do nothing.
+	brew install --cask wezterm
 endef
 
 define install-wezterm-for-os
-	$(call install-neovim-$1)
+	$(call install-wezterm-$1)
 endef
 
 install-wezterm: ## Install 'wezterm'.
@@ -290,13 +294,30 @@ configure-wezterm: .config/wezterm
 setup-wezterm: ## Install AND configure 'wezterm'.
 setup-wezterm: install-wezterm configure-wezterm
 
+# ---------- btop ----------
+
+configure-btop: ## Configure 'btop'.
+configure-btop: .config/btop $(HOME)/.config
+	ln -sf $(PWD)/$< $(HOME)/.config/
+
+setup-btop: ## Configure 'btop' (no installation needed, assumed present).
+setup-btop: configure-btop
+
 # ---------- i3 ----------
 
-# NOTE: i3 is assumed installed.
+# NOTE: i3 is assumed installed on Linux. Skipped on other platforms.
 
-configure-i3: ## Configure 'i3'.
+configure-i3: ## Configure 'i3' (Linux only).
+ifeq ($(OS),linux)
 configure-i3: .config/i3
 	ln -sf $(PWD)/$< $(HOME)/.i3
+else
+configure-i3:
+	@echo "Skipping i3 configuration (not supported on $(OS))."
+endif
+
+setup-i3: ## Configure 'i3' (Linux only).
+setup-i3: configure-i3
 
 # ---------- common ----------
 
