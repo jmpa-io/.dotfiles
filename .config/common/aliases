@@ -107,9 +107,23 @@ aws() {
 git() {
   case $* in
 
-    # checks who the current gh user is.
+    # checks who the current gh user is, and what git identity will be used for commits.
     "who")
-      command gh auth status --active --json hosts --jq '.hosts."github.com"[0]' ;;
+      local gh_user gh_protocol name email name_src email_src y r
+      y=$'\033[1;33m'
+      r=$'\033[0m'
+      gh_user=$(command gh auth status --active --json hosts --jq '.hosts."github.com"[0].login' 2>/dev/null || echo "(not logged in)")
+      gh_protocol=$(command gh auth status --active --json hosts --jq '.hosts."github.com"[0].gitProtocol' 2>/dev/null || echo "(unknown)")
+      name=$(command git config user.name 2>/dev/null || echo "(not set)")
+      email=$(command git config user.email 2>/dev/null || echo "(not set)")
+      name_src=$(command git config --show-origin user.name 2>/dev/null | cut -f1 | sed 's|file:||' | sed "s|$HOME|~|" || echo "(not set)")
+      email_src=$(command git config --show-origin user.email 2>/dev/null | cut -f1 | sed 's|file:||' | sed "s|$HOME|~|" || echo "(not set)")
+      printf "\n"
+      printf "  gh auth (cli)      %s  (${y}%s${r})\n" "$gh_user" "$gh_protocol"
+      printf "  commit author      %s  (${y}%s${r})\n" "$name" "$name_src"
+      printf "  commit email       %s  (${y}%s${r})\n" "$email" "$email_src"
+      printf "\n"
+      ;;
 
     "switch")
       command gh auth switch
