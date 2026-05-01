@@ -57,7 +57,11 @@ aws() {
     profiles)
       profile="${AWS_PROFILE:-default}"
       command aws --no-cli-pager configure list-profiles | while read p; do
-        prefix="  "; [[ "$p" == "$profile" ]] && prefix=" *"
+        # Skip -admin profiles as they're just for role assumption.
+        [[ "$p" == *-admin ]] && continue
+        # Show * for both the profile and its -admin variant
+        prefix="  "
+        [[ "$p" == "$profile" || "${p}-admin" == "$profile" ]] && prefix=" *"
         echo "$prefix $p"
       done
       ;;
@@ -68,16 +72,22 @@ aws() {
 
     # logs into the AWS Account associated with the given profile.
     "login "*)
-      profile=""
-      profiles=$(aws --no-cli-pager configure list-profiles)
-      <<< "$profiles" while read -r p; do
-        [[ "$p" == "$2" ]] && { profile="$p"; break; }
-      done
-      if [[ -z "$profile" ]]; then
-        echo "$2 is not a valid AWS profile that can be logged into; Please give a valid profile."
+      profile="$2"
+      if ! command aws --no-cli-pager configure list-profiles | grep -q "^${profile}$"; then
+        echo "'$profile' is not a valid AWS profile; Run 'aws profiles' to see a list of profiles."
+        return 1
+      fi
+
+      command aws sso login --profile "$profile"
+
+      # Check if there's a corresponding -admin profile and use that instead
+      admin_profile="${profile}-admin"
+      if command aws --no-cli-pager configure list-profiles | grep -q "^${admin_profile}$"; then
+        export AWS_PROFILE="$admin_profile"
+        echo "Switched to admin profile: $admin_profile"
       else
         export AWS_PROFILE="$profile"
-        command aws sso login
+        echo "Using profile: $profile"
       fi
       ;;
 
@@ -94,6 +104,7 @@ aws() {
 # git overrides.
 git() {
   case $* in
+
 
     # checks who the current gh user is.
     "who")
@@ -124,6 +135,19 @@ host=github.com" 2>/dev/null || true
     # shows all the branches available.
     branch)
       command git branch --all ;;
+
+    # opens the repository in the default browser
+    "open")
+      url=$(command git remote get-url origin | sed 's/\(\.git\)*$\|git@github.com:/https:\/\/github.com\//g')
+      case "$os" in
+        Darwin)
+          open "$url"
+          ;;
+        Linux)
+          xdg-open "$url"
+          ;;
+      esac
+      ;;
 
     # run the default command, if none of the above are applicable.
     *)
