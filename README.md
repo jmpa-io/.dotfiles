@@ -19,7 +19,12 @@ mkdir -p $HOME/.local/bin
 
 3. [Setup the `gh` cli as a credential helper](https://cli.github.com/manual/gh_auth_setup-git).
 
-4. Auth to your AWS account.
+4. Auth to your AWS account:
+```sh
+aws sso login --profile <your-profile>
+# or if using SSO via the browser:
+aws configure sso
+```
 
 5. Clone this repo.
 

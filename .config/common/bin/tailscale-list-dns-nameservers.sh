@@ -2,7 +2,7 @@
 # This script lists all the DNS entries in Tailscale.
 
 # funcs.
-die() { echo "$1"; exit "${2:-1}"; }
+die() { echo "$1" >&2; exit "${2:-1}"; }
 
 # check deps.
 deps=("aws" "curl")
