@@ -2,6 +2,12 @@
 
 add_newline = false
 
+# Explicitly define the prompt format - anything not listed here won't show.
+# This is cleaner than disabling every language module individually.
+format = """
+$directory$git_branch$git_commit$git_status$cmd_duration
+$time$character"""
+
 [character]
 success_symbol = "[->](green)"
 error_symbol = "[-X](red)"
@@ -14,48 +20,8 @@ truncation_symbol = ""
 home_symbol = "~"
 format = "[$path]($style)[$read_only]($read_only_style) "
 
-# Explicitly disable modules that are on by default but unwanted.
-[battery]
-disabled = true
-
-[aws]
-disabled = true
-
-[gcloud]
-disabled = true
-
-[kubernetes]
-disabled = true
-
-[git_state]
-disabled = true
-
-[git_metrics]
-disabled = true
-
-[hostname]
-disabled = true
-
-[username]
-disabled = true
-
 [time]
-disabled = true
-
-[jobs]
-disabled = true
-
-[status]
-disabled = true
-
-[shlvl]
-disabled = true
-
-[shell]
-disabled = true
-
-[memory_usage]
-disabled = true
-
-[env_var]
-disabled = true
+disabled = false
+format = "[$time]($style) "
+time_format = "%H:%M:%S"
+style = "dimmed white"

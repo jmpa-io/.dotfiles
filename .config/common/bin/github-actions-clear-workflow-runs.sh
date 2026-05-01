@@ -6,12 +6,12 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
 usage() { echo "usage: $0 <org/repo>"; exit 64; }
 
 # check deps.
-deps=(curl)
+deps=(curl jq)
 for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
 if [[ ${#missing[@]} -ne 0 ]]; then
-  s=""; [[ ${#missing[@]} -gt 1 ]] && { s="s"; }
+  s=""; [[ ${#missing[@]} -gt 1 ]] && s="s"
   die "missing dep${s}: ${missing[*]}"
 fi
 
@@ -32,49 +32,26 @@ fi
 [[ -z "$token" ]] \
   && die "missing \$GITHUB_TOKEN"
 
-# retrieve ALL action runs.
-resp=$(curl -s "https://api.github.com/repos/$repo/actions/runs" \
-  -H "Accept: application/vnd.github.v3+json" \
-  -H "Authorization: bearer $token") \
-  || die "failed curl to retrieve $repo action runs"
-ids=$(<<< "$resp" jq '.workflow_runs[].id') \
-  || die "failed to parse response when retrieving $repo action runs"
+# retrieve and delete ALL action runs, handling pagination.
+page=1
+while true; do
+  resp=$(curl -s "https://api.github.com/repos/$repo/actions/runs?per_page=100&page=$page" \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: bearer $token") \
+    || die "failed to retrieve $repo action runs (page $page)"
 
-# clear ALL workflow runs.
-for id in $ids; do
-  curl -X DELETE -s "https://api.github.com/repos/$repo/actions/runs/$id" \
-    -H "Accept: application/vnd.github.v3+json" \
-    -H "Authorization: bearer $token" \
-    || die "failed curl to delete $repo action run $id"
+  ids=$(jq -r '.workflow_runs[].id' <<< "$resp") \
+    || die "failed to parse response for $repo action runs (page $page)"
+
+  # no more runs — done.
+  [[ -z "$ids" ]] && break
+
+  for id in $ids; do
+    curl -X DELETE -s "https://api.github.com/repos/$repo/actions/runs/$id" \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: bearer $token" \
+      || die "failed to delete $repo action run $id"
+  done
+
+  (( page++ ))
 done
-
-# # clear ALL workflows runs extra.
-# for a in $(curl -s "https://api.github.com/repos/$repo/actions/runs"|jq -r .workflow_runs[].id); do
-#   curl   -X DELETE   -H "Accept: application/vnd.github.v3+json"  \
-#   -H "Authorization: token TOKEN " \
-#   "https://api.github.com/repos/OWNER/REPO/actions/runs/$a";
-# done
-
-# # list workflows.
-# resp=$(curl -s "https://api.github.com/repos/$repo/actions/workflows" \
-#   -H "Accept: application/vnd.github.v3+json" \
-#   -H "Authorization: bearer $token") \
-#   || die "failed curl to retrieve $repo workflows"
-# ids=$(<<< "$resp" jq -r '.workflows[].id') \
-#   || die "failed to parse response when retrieving $repo workflows"
-
-# # clear workflow runs.
-# for id in $ids; do
-#   resp=$(curl -s "https://api.github.com/repos/$repo/actions/workflows/$id/runs" \
-#     -H "Accept: application/vnd.github.v3+json" \
-#     -H "Authorization: bearer $token") \
-#     || die "failed curl to retrieve $repo workflow $id"
-#   runIds=$(<<< "$resp" jq '.workflow_runs[].id') \
-#     || die "failed to parse response when retrieving $repo workflow $id"
-#   for runId in $runIds; do
-#     curl -X DELETE -s "https://api.github.com/repos/$repo/actions/runs/$runId" \
-#       -H "Accept: application/vnd.github.v3+json" \
-#       -H "Authorization: bearer $token" \
-#       || die "failed curl to delete $repo workflow $id run $runId"
-#   done
-# done

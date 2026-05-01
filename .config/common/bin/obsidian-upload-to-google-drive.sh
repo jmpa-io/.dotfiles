@@ -2,7 +2,7 @@
 # This script uploads obsidian files to Google Drive, using rclone.
 
 # funcs.
-die() { echo "$1"; exit "${2:-1}"; }
+die() { echo "$1" >&2; exit "${2:-1}"; }
 
 # check deps.
 deps=("rclone")
