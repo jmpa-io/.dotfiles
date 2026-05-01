@@ -20,7 +20,7 @@ repo="$1"
 [[ -z "$repo" ]] && usage
 
 # retrieve GitHub token.
-token="$GITHUB_TOKEN"
+token="${ADMIN_GITHUB_TOKEN:-$GITHUB_TOKEN}"
 if [[ -z "$token" && -z "$GITHUB_ACTION" ]]; then
   aws sts get-caller-identity &>/dev/null \
     || die "unable to connect to AWS; are you authed?"

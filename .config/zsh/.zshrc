@@ -111,3 +111,6 @@ case "$os" in
   "Darwin") imgcat "$HOME/tree-v2.png" ;;
 esac
 echo; echo
+
+# browser-manager: launch Firefox with Marionette enabled (no red bar in main profile)
+alias firefox='/Applications/Firefox.app/Contents/MacOS/firefox --marionette -remote-allow-system-access'
