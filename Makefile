@@ -44,6 +44,7 @@ configure: \
 	configure-polybar \
 	configure-picom \
 	configure-i3 \
+	configure-opencode \
 	configure-common
 
 setup: ## ** Installs AND configures ALL tools available for the operating system of this machine.
@@ -65,6 +66,7 @@ setup: \
 	setup-wezterm \
 	setup-btop \
 	setup-picom \
+	setup-opencode \
 	setup-common \
 	setup-i3
 
@@ -458,6 +460,28 @@ install-docker: ## Install 'docker'.
 
 setup-docker: ## Install 'docker' (no configuration needed).
 setup-docker: install-docker
+
+define install-opencode-linux
+	curl -fsSL https://opencode.ai/install | bash
+endef
+
+define install-opencode-darwin
+	curl -fsSL https://opencode.ai/install | bash
+endef
+
+define install-opencode-for-os
+	$(call install-opencode-$1)
+endef
+
+install-opencode: ## Install 'opencode'.
+	$(call install-opencode-for-os,$(OS))
+
+configure-opencode: ## Configure 'opencode'.
+configure-opencode: .config/opencode $(HOME)/.config
+	ln -sfn $(PWD)/$< $(HOME)/.config/
+
+setup-opencode: ## Install AND configure 'opencode'.
+setup-opencode: install-opencode configure-opencode
 
 # ----------------------
 
