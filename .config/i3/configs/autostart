@@ -13,16 +13,13 @@
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
 # run nitrogen, to setup the background wallpaper.
-exec --no-startup-id nitrogen --restore; sleep 1; picom -b
+exec --no-startup-id nitrogen --restore
 
 # run clipip, a clipboard manager.
 exec --no-startup-id clipit -d
 
-# run xfce4-power-manager, a way to manage brightness controls on keyboard.
-exec --no-startup-id xfce4-power-manager
-
 # setup autolock mechanism.
-exec --no-startup-id "$HOME/bin/system/launch-autolock.sh"
+exec --no-startup-id "$HOME/bin/system/xautolock-start.sh"
 
 # run fix_xcursor, a script to automatically set the theme of a cursor in i3.
 exec_always --no-startup-id fix_xcursor

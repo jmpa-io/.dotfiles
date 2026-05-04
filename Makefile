@@ -41,6 +41,7 @@ configure: \
 	configure-neovim \
 	configure-wezterm \
 	configure-btop \
+	configure-polybar \
 	configure-i3 \
 	configure-common
 
@@ -219,7 +220,7 @@ install-starship: dist/starship
 # NOTE: starship is also being configured in the `.zshenv` file.
 configure-starship: ## Configure 'starship'.
 configure-starship: .config/starship $(HOME)/.config
-	ln -sf $(PWD)/$< $(HOME)/.config/
+	ln -sfn $(PWD)/$< $(HOME)/.config/
 
 setup-starship: ## Install AND configure 'starship'.
 setup-starship: install-starship configure-starship
@@ -241,8 +242,17 @@ endef
 install-polybar: ## Install 'polybar' (Linux only).
 	$(call install-polybar-for-os,$(OS))
 
-setup-polybar: ## Install 'polybar' (no configuration needed).
-setup-polybar: install-polybar
+configure-polybar: ## Configure 'polybar' (Linux only).
+ifeq ($(OS),linux)
+configure-polybar: .config/polybar $(HOME)/.config
+	ln -sfn $(PWD)/$< $(HOME)/.config/
+else
+configure-polybar:
+	@echo "Skipping polybar configuration (not supported on $(OS))."
+endif
+
+setup-polybar: ## Install AND configure 'polybar'.
+setup-polybar: install-polybar configure-polybar
 
 # ---------- neovim ----------
 
@@ -263,6 +273,7 @@ install-neovim: ## Install 'neovim'.
 
 configure-neovim: ## Configure 'neovim'.
 configure-neovim: .config/neovim $(HOME)/.config
+	git submodule update --init --recursive
 	ln -sf $(PWD)/$</ $(HOME)/.config/nvim
 
 setup-neovim: ## Install AND configure 'neovim'.
@@ -298,7 +309,7 @@ setup-wezterm: install-wezterm configure-wezterm
 
 configure-btop: ## Configure 'btop'.
 configure-btop: .config/btop $(HOME)/.config
-	ln -sf $(PWD)/$< $(HOME)/.config/
+	ln -sfn $(PWD)/$< $(HOME)/.config/
 
 setup-btop: ## Configure 'btop' (no installation needed, assumed present).
 setup-btop: configure-btop
@@ -310,7 +321,7 @@ setup-btop: configure-btop
 configure-i3: ## Configure 'i3' (Linux only).
 ifeq ($(OS),linux)
 configure-i3: .config/i3
-	ln -sf $(PWD)/$< $(HOME)/.i3
+	ln -sfn $(PWD)/$< $(HOME)/.i3
 else
 configure-i3:
 	@echo "Skipping i3 configuration (not supported on $(OS))."

@@ -15,10 +15,6 @@
 # funcs.
 die() { echo "$1" >&2; }
 
-# determine os.
-os=$(uname) \
-  || die "failed to get operating system"
-
 # enable for tab-completion.
 autoload -U compinit; compinit -u
 
@@ -33,7 +29,8 @@ setopt CDABLE_VARS            # change directory to a path stored in a variable.
 setopt EXTENDED_GLOB          # use extended globbing syntax.
 setopt AUTO_PUSHD             # push the current directory visited on the stack.
 setopt PUSHD_IGNORE_DUPS      # do not store duplicates in the stack.
-setopt PUSHD_SILENT           # do not print the directory stack after pushd or popd
+setopt NO_NOTIFY               # suppress background job completion notifications.
+setopt NO_MONITOR              # suppress background job status reporting entirely.
 
 # history.
 setopt EXTENDED_HISTORY       # write the history file in the ':start:elapsed;command' format.
@@ -105,12 +102,17 @@ if command -v fzf &>/dev/null; then
   esac
 fi
 
-# load opener image + quote.
+# load opener image.
 case "$os" in
-  "Linux") cat "$HOME/tree-v2.png" | wezterm imgcat ;;
+  "Linux") wezterm imgcat "$HOME/tree-v2.png" ;;
   "Darwin") imgcat "$HOME/tree-v2.png" ;;
 esac
 echo; echo
 
-# browser-manager: launch Firefox with Marionette enabled (no red bar in main profile)
-alias firefox='/Applications/Firefox.app/Contents/MacOS/firefox --marionette -remote-allow-system-access'
+# browser-manager: launch Firefox with Marionette enabled (no red bar in main profile).
+# macOS only — Linux uses system Firefox directly.
+case "$os" in
+  "Darwin")
+    alias firefox='/Applications/Firefox.app/Contents/MacOS/firefox --marionette -remote-allow-system-access'
+    ;;
+esac

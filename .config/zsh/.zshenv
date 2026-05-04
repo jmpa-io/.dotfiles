@@ -11,11 +11,14 @@ export BROWSER="firefox"
 
 # zsh.
 export HISTFILE="$HOME/.zhistory" # history filepath.
-export HISTSIZE=10000             # maximum events for internal history.
-export SAVEHIST=10000             # maximum events in history file.
+export HISTSIZE=100000            # maximum events for internal history.
+export SAVEHIST=100000            # maximum events in history file.
 
 # starship.
 export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
+
+# github.
+export GH_TOKEN=$(gh auth token --hostname github.com 2>/dev/null)
 
 # go.
 export PATH="$PATH:/usr/local/go/bin"
@@ -31,6 +34,9 @@ export AWS_REGION="$AWS_DEFAULT_REGION"
 # grep.
 export GREP_COLOR='mt=01;34'
 
+# mason (neovim lsp tool installer) - same path on all platforms.
+export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
+
 # os-specific configurations.
 case "$os" in
   "Darwin")
@@ -44,9 +50,6 @@ case "$os" in
   "Linux")
     # gtk (Linux specific).
     export GTK_THEME="Adwaita:dark"
-
-    # mason (neovim lsp tool installer).
-    export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
     ;;
 
 esac
