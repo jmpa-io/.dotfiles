@@ -1,0 +1,85 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "enabled_providers": ["ollama", "llama.cpp", "github-copilot", "GenAIStudio", "portkey"],
+  "share": "disabled",
+  "model": "GenAIStudio/aipe-bedrock-claude-sonnet-4-6",
+  "provider": {
+    "GenAIStudio": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "GenAI Studio",
+      "options": {
+        "baseURL": "https://api.studio.genai.cba",
+        "apiKey": "{env:GENAI_API_KEY}"
+      },
+      "models": {
+        "aipe-bedrock-claude-sonnet-4-6": {
+          "name": "Bedrock Claude Sonnet 4.6"
+        }
+      }
+    }
+  },
+  "mcp": {
+    "atlassian-mcp": {
+      "type": "remote",
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "enabled": true,
+      "timeout": 600000
+    },
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {env:GH_TOKEN}"
+      },
+      "timeout": 600000
+    },
+    "ceb": {
+      "type": "remote",
+      "url": "https://ceb.cba/mcp/",
+      "timeout": 600000
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "timeout": 600000
+    },
+    "sequentialthinking": {
+      "type": "local",
+      "command": ["npx", "--yes", "@modelcontextprotocol/server-sequential-thinking"],
+      "timeout": 600000
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "--yes", "@playwright/mcp@latest"],
+      "timeout": 600000
+    },
+    "email-manager": {
+      "type": "local",
+      "command": ["{env:HOME}/go/src/github.com/CBA-General/email-manager/.venv/bin/python3", "{env:HOME}/go/src/github.com/CBA-General/email-manager/server.py"],
+      "enabled": true,
+      "timeout": 60000
+    },
+    "browser-manager": {
+      "type": "local",
+      "command": ["{env:HOME}/go/bin/browser-manager", "mcp"],
+      "enabled": true,
+      "timeout": 60000
+    },
+    "pocketsmith": {
+      "type": "local",
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/pocketsmith-mcp/dist/pocketsmith-mcp"],
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "POCKETSMITH_TOKEN": "{env:POCKETSMITH_TOKEN}"
+      }
+    },
+    "gdrive": {
+      "type": "local",
+      "command": ["npx", "--yes", "@modelcontextprotocol/server-gdrive"],
+      "enabled": false,
+      "timeout": 60000
+    }
+  }
+}
