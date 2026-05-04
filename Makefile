@@ -42,6 +42,7 @@ configure: \
 	configure-wezterm \
 	configure-btop \
 	configure-polybar \
+	configure-picom \
 	configure-i3 \
 	configure-common
 
@@ -63,6 +64,7 @@ setup: \
 	setup-docker \
 	setup-wezterm \
 	setup-btop \
+	setup-picom \
 	setup-common \
 	setup-i3
 
@@ -313,6 +315,22 @@ configure-btop: .config/btop $(HOME)/.config
 
 setup-btop: ## Configure 'btop' (no installation needed, assumed present).
 setup-btop: configure-btop
+
+# ---------- picom ----------
+
+# NOTE: picom is assumed installed on Linux. Skipped on other platforms.
+
+configure-picom: ## Configure 'picom' (Linux only).
+ifeq ($(OS),linux)
+configure-picom: .config/picom $(HOME)/.config
+	ln -sfn $(PWD)/$< $(HOME)/.config/
+else
+configure-picom:
+	@echo "Skipping picom configuration (not supported on $(OS))."
+endif
+
+setup-picom: ## Configure 'picom' (Linux only).
+setup-picom: configure-picom
 
 # ---------- i3 ----------
 
