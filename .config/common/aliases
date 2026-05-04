@@ -4,9 +4,7 @@
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
 
-# determine os.
-os=$(uname) \
-  || die "failed to get operating system"
+# $os is exported from .zshenv — no need to re-detect here.
 
 # setup aliases to autojump to previously visited directories.
 alias d="dirs -v"

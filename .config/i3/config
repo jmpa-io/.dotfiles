@@ -104,7 +104,7 @@ floating_modifier $mod
 # hide borders <none|vertical|horizontal|both|smart|smart_no_gaps>; default=none.
 hide_edge_borders smart
 
-# forces focus to only be changable bhttps://startpage.jcleal.me/y bindings.
+# forces focus to only be changeable by bindings.
 # focus_follows_mouse no
 
 # workspace back and forth (with/without active container).

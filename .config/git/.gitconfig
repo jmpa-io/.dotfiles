@@ -9,16 +9,27 @@
   # The [includeIf] blocks below will pick it up automatically for repos
   # inside the configured work directories.
 
+# Work identity — CBA repos.
 [includeIf "gitdir:~/go/src/github.com/CBA-General/"]
   path = ~/.gitconfig-work
 [includeIf "gitdir:~/go/src/github.com/CBA-GroupSecurity-RSTD/"]
   path = ~/.gitconfig-work
 [includeIf "gitdir:~/go/src/github.com/CBA-QTN-PublicCloudLZExceptions/"]
   path = ~/.gitconfig-work
+
+# Personal identity — personal repos and dotfiles.
 [includeIf "gitdir:~/go/src/github.com/jcleal/"]
-  path = ~/.gitconfig-work
+  path = ~/.gitconfig-personal
+[includeIf "gitdir:~/go/src/github.com/jmpa-io/"]
+  path = ~/.gitconfig-personal
 [includeIf "gitdir:~/.dotfiles/"]
-  path = ~/.gitconfig-work
+  path = ~/.gitconfig-personal
+[includeIf "gitdir:~/.dotfiles/.config/neovim/"]
+  path = ~/.gitconfig-personal
+
+[safe]
+  directory = /mnt/nfs/My_Music/downloading-music
+  directory = ~/.dotfiles
 
 [init]
   defaultBranch = main
