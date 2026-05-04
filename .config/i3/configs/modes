@@ -22,9 +22,9 @@ mode "resize" {
 
   # allow resize gap.
   bindsym $smod+$wm_key_left    gaps horizontal minus 5
-  bindsym $smod+$wm_key_right   gaps vertical plus 5
+  bindsym $smod+$wm_key_right   gaps horizontal plus 5
   bindsym $smod+$wm_key_up      gaps vertical minus 5
-  bindsym $smod+$wm_key_down    gaps horizontal plus 5
+  bindsym $smod+$wm_key_down    gaps vertical plus 5
 
   # allow us to escape resize mode.
   bindsym Return mode "default"

@@ -16,7 +16,7 @@ bindsym $mod+Return exec $wm_terminal
 bindsym $mod+$smod+Return exec $wm_browser
 
 # application launcher.
-bindsym $mod+d exec $wm_app_launcher -show window
+bindsym $mod+d exec $wm_app_launcher -show drun
 
 # enter fullscreen mode on the focused window.
 bindsym $mod+f fullscreen toggle

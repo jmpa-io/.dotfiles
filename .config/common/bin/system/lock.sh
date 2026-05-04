@@ -50,8 +50,6 @@ i3lock \
   --inside-color="$grey" \
   --ringver-color="$green" \
   --ringwrong-color="$red" \
-  --ringver-color="$green" \
-  --ringwrong-color="$red" \
   --ring-color="$blue" \
   --keyhl-color="$magenta" \
   --bshl-color="$orange" \
