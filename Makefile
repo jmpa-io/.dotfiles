@@ -1,22 +1,40 @@
-# NOTES:
-# - The way things are installed and configured and setup has a lot of duplicate code - this can be refactored and simplified.
-# - A configure isn't run by OS, so tools are being configured that don't really need to be configured.
-
-# The shell to use for executing commands.
 SHELL = /bin/bash
 
-# The operating system the Makefile is being executed on.
+# Detected OS: darwin or linux.
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 
-# The default command executed when running `make`.
-.DEFAULT_GOAL:=	help
+# Package manager per OS.
+PKG_DARWIN  = brew install
+PKG_LINUX   = sudo pacman -S --noconfirm
 
-# Targets.
-create-directories: ## ** Creates ALL directories required by any 'install-*' targets.
-create-directories: \
-	$(HOME)/.config
+# Generic install macro: $(call pkg,<darwin-pkg>,<linux-pkg>)
+# Falls back to darwin pkg if linux pkg not specified.
+define pkg
+	$(if $(filter darwin,$(OS)), \
+		$(PKG_DARWIN) $1, \
+		$(PKG_LINUX) $(or $2,$1))
+endef
 
-install: ## ** Installs ALL tools available for the operating system of this machine.
+# Symlink a config directory into ~/.config/.
+define cfg
+	ln -sfn $(PWD)/$1 $(HOME)/.config/
+endef
+
+# Symlink files from a directory directly into $HOME/.
+define cfg-home
+	for f in $$(find $1 -mindepth 1 -maxdepth 1 -type f); do \
+		ln -sf $(PWD)/$$f $(HOME)/; \
+	done
+endef
+
+.DEFAULT_GOAL := help
+
+# ---------------------------------------------------------------
+# Aggregate targets
+# ---------------------------------------------------------------
+
+.PHONY: install
+install: ## Install ALL tools.
 install: \
 	create-directories \
 	install-go \
@@ -29,9 +47,14 @@ install: \
 	install-starship \
 	install-polybar \
 	install-jq \
-	install-docker
+	install-docker \
+	install-deno \
+	install-wezterm \
+	install-github-cli \
+	install-opencode
 
-configure: ## ** Configures ALL tools available for the operating system of this machine.
+.PHONY: configure
+configure: ## Configure ALL tools.
 configure: \
 	configure-git \
 	configure-github-cli \
@@ -44,10 +67,12 @@ configure: \
 	configure-polybar \
 	configure-picom \
 	configure-i3 \
+	configure-iterm2 \
 	configure-opencode \
 	configure-common
 
-setup: ## ** Installs AND configures ALL tools available for the operating system of this machine.
+.PHONY: setup
+setup: ## Install AND configure ALL tools.
 setup: \
 	create-directories \
 	setup-go \
@@ -63,434 +88,376 @@ setup: \
 	setup-polybar \
 	setup-jq \
 	setup-docker \
+	setup-deno \
 	setup-wezterm \
 	setup-btop \
 	setup-picom \
+	setup-pulsemixer \
 	setup-opencode \
 	setup-common \
 	setup-i3
 
----: ## ---
+.PHONY: update
+update: ## Update all brew/pacman packages.
+ifeq ($(OS),darwin)
+	brew update && brew upgrade
+else
+	sudo pacman -Syu --noconfirm
+endif
 
-# Creates directories under $HOME.
+# ---------------------------------------------------------------
+# Utilities
+# ---------------------------------------------------------------
+
+.PHONY: create-directories
+create-directories: ## Create required directories.
+create-directories: $(HOME)/.config
+
 $(HOME)/%:
 	@mkdir -p "$@"
 
-# Creates the root output directory.
 dist:
 	@mkdir -p dist
 
-# Creates the output directory, for a given service.
 dist/%: dist
 	@mkdir -p dist/$*
 
-# ---------- go ----------
+# ---------------------------------------------------------------
+# go
+# ---------------------------------------------------------------
 
-define install-go-linux
-	pacman -S golang
-endef
-
-define install-go-darwin
-	brew install go
-endef
-
-define install-go-for-os
-	$(call install-go-$1)
-endef
-
+.PHONY: install-go setup-go
 install-go: ## Install 'go'.
-	$(call install-go-for-os,$(OS))
+	$(call pkg,go,golang)
 
-# NOTE: go is also being configured in the `.zshenv` file.
-
-setup-go: ## Install 'go' (no configuration needed).
 setup-go: install-go
+# NOTE: go is also configured in .zshenv.
 
-# ---------- git ----------
+# ---------------------------------------------------------------
+# git (assumed installed)
+# ---------------------------------------------------------------
 
-# NOTE: git is assumed installed.
-
+.PHONY: configure-git setup-git
 configure-git: ## Configure 'git'.
 configure-git: .config/git
-	for file in $(shell find .config/git -mindepth 1 -type f); do \
-		ln -sf $(PWD)/$$file $(HOME)/; \
-	done
+	$(call cfg-home,.config/git)
 
-setup-git: ## Install AND configure 'git'.
 setup-git: configure-git
 
-# ----------- github-cli -----------
+# ---------------------------------------------------------------
+# github-cli
+# ---------------------------------------------------------------
 
-define install-github-cli-linux
-	pacman -S github-cli
-endef
-
-define install-github-cli-darwin
-	brew install gh
-endef
-
-define install-github-cli-for-os
-	$(call install-github-cli-$1)
-endef
-
+.PHONY: install-github-cli configure-github-cli setup-github-cli
 install-github-cli: ## Install 'github-cli'.
-	$(call install-github-cli-for-os,$(OS))
+	$(call pkg,gh,github-cli)
 
 configure-github-cli: ## Configure 'github-cli'.
-
-	# login, if required.
 	gh auth status &>/dev/null || gh auth login
-
-	# setup 'github-cli' as a credential helper.
 	gh auth setup-git
 
-setup-github-cli: ## Install AND configure 'github-cli'.
 setup-github-cli: install-github-cli configure-github-cli
 
-# ----------- awscli ----------
+# ---------------------------------------------------------------
+# awscli
+# ---------------------------------------------------------------
 
-define install-awscli-linux
-	curl -sSLo "dist/awscli/awscli.zip" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
-	unzip "dist/awscli/awscli.zip" -d "dist/awscli/"
-	dist/awscli/aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
-endef
-
-define install-awscli-darwin
-	brew install awscli
-endef
-
-define install-awscli-for-os
-	$(call install-awscli-$1)
-endef
-
+.PHONY: install-awscli configure-awscli setup-awscli
 install-awscli: ## Install 'awscli'.
 install-awscli: dist/awscli
-	$(call install-awscli-for-os,$(OS))
+ifeq ($(OS),darwin)
+	brew install awscli
+else
+	arch=$$(uname -m); \
+	if [[ "$$arch" == "aarch64" || "$$arch" == "arm64" ]]; then \
+		curl -sSLo dist/awscli/awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip; \
+	else \
+		curl -sSLo dist/awscli/awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip; \
+	fi
+	unzip dist/awscli/awscli.zip -d dist/awscli/
+	dist/awscli/aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
+endif
 
 configure-awscli: ## Configure 'awscli'.
-
-	# set default region.
 	aws configure set region ap-southeast-2
 
-setup-awscli: ## Install AND configure 'awscli'.
 setup-awscli: install-awscli configure-awscli
 
-# ----------- zsh ----------
+# ---------------------------------------------------------------
+# zsh
+# ---------------------------------------------------------------
 
-define install-zsh-linux
-	pacman -S zsh
-endef
-
-define install-zsh-darwin
-	brew install zsh
-endef
-
-define install-zsh-for-os
-	$(call install-zsh-$1)
-endef
-
+.PHONY: install-zsh configure-zsh setup-zsh
 install-zsh: ## Install 'zsh'.
-	$(call install-zsh-for-os,$(OS))
+	$(call pkg,zsh)
 
 configure-zsh: ## Configure 'zsh'.
 configure-zsh: .config/zsh
-	for file in $(shell find .config/zsh -mindepth 1 -type f); do \
-		ln -sf $(PWD)/$$file $(HOME)/; \
-	done
+	$(call cfg-home,.config/zsh)
 
-setup-zsh: ## Install AND configure 'zsh'.
 setup-zsh: install-zsh configure-zsh
 
-# ---------- starship ----------
+# ---------------------------------------------------------------
+# zsh-syntax-highlighting
+# ---------------------------------------------------------------
 
-define install-starship-linux
-	curl -sSLo "dist/starship/install.sh" "https://starship.rs/install.sh"
-	chmod +x dist/starship/install.sh
-	dist/starship/install.sh -V -y
-endef
+.PHONY: install-zsh-syntax-highlighting setup-zsh-syntax-highlighting
+install-zsh-syntax-highlighting: ## Install 'zsh-syntax-highlighting'.
+	$(call pkg,zsh-syntax-highlighting)
 
-define install-starship-darwin
-	brew install starship
-endef
+setup-zsh-syntax-highlighting: install-zsh-syntax-highlighting
 
-define install-starship-for-os
-	$(call install-starship-$1)
-endef
+# ---------------------------------------------------------------
+# fzf
+# ---------------------------------------------------------------
 
+.PHONY: install-fzf setup-fzf
+install-fzf: ## Install 'fzf'.
+	$(call pkg,fzf)
+
+setup-fzf: install-fzf
+
+# ---------------------------------------------------------------
+# bash
+# ---------------------------------------------------------------
+
+.PHONY: install-bash setup-bash
+install-bash: ## Install 'bash'.
+	$(call pkg,bash)
+
+setup-bash: install-bash
+
+# ---------------------------------------------------------------
+# starship
+# ---------------------------------------------------------------
+
+.PHONY: install-starship configure-starship setup-starship
 install-starship: ## Install 'starship'.
 install-starship: dist/starship
-	$(call install-starship-for-os,$(OS))
-
-# NOTE: starship is also being configured in the `.zshenv` file.
-configure-starship: ## Configure 'starship'.
-configure-starship: .config/starship $(HOME)/.config
-	ln -sfn $(PWD)/$< $(HOME)/.config/
-
-setup-starship: ## Install AND configure 'starship'.
-setup-starship: install-starship configure-starship
-
-# ---------- polybar ----------
-
-define install-polybar-linux
-	pacman -S polybar
-endef
-
-define install-polybar-darwin
-	# polybar is Linux-only; nothing to do on macOS.
-endef
-
-define install-polybar-for-os
-	$(call install-polybar-$1)
-endef
-
-install-polybar: ## Install 'polybar' (Linux only).
-	$(call install-polybar-for-os,$(OS))
-
-configure-polybar: ## Configure 'polybar' (Linux only).
-ifeq ($(OS),linux)
-configure-polybar: .config/polybar $(HOME)/.config
-	ln -sfn $(PWD)/$< $(HOME)/.config/
+ifeq ($(OS),darwin)
+	brew install starship
 else
-configure-polybar:
-	@echo "Skipping polybar configuration (not supported on $(OS))."
+	curl -sSLo dist/starship/install.sh https://starship.rs/install.sh
+	chmod +x dist/starship/install.sh
+	dist/starship/install.sh -V -y
 endif
 
-setup-polybar: ## Install AND configure 'polybar'.
-setup-polybar: install-polybar configure-polybar
+configure-starship: ## Configure 'starship'.
+configure-starship: .config/starship $(HOME)/.config
+	$(call cfg,.config/starship)
 
-# ---------- neovim ----------
+setup-starship: install-starship configure-starship
 
-define install-neovim-linux
-	pacman -S neovim
-endef
+# ---------------------------------------------------------------
+# neovim
+# ---------------------------------------------------------------
 
-define install-neovim-darwin
-	brew install neovim
-endef
-
-define install-neovim-for-os
-	$(call install-neovim-$1)
-endef
-
+.PHONY: install-neovim configure-neovim setup-neovim
 install-neovim: ## Install 'neovim'.
-	$(call install-neovim-for-os,$(OS))
+	$(call pkg,neovim)
 
 configure-neovim: ## Configure 'neovim'.
 configure-neovim: .config/neovim $(HOME)/.config
 	git submodule update --init --recursive
-	ln -sf $(PWD)/$</ $(HOME)/.config/nvim
+	ln -sfn $(PWD)/.config/neovim/ $(HOME)/.config/nvim
 
-setup-neovim: ## Install AND configure 'neovim'.
 setup-neovim: install-neovim configure-neovim
 
-# ---------- wezterm ----------
+# ---------------------------------------------------------------
+# wezterm
+# ---------------------------------------------------------------
 
-define install-wezterm-linux
-	pacman -S wezterm
-endef
-
-define install-wezterm-darwin
-	brew install --cask wezterm
-endef
-
-define install-wezterm-for-os
-	$(call install-wezterm-$1)
-endef
-
+.PHONY: install-wezterm configure-wezterm setup-wezterm
 install-wezterm: ## Install 'wezterm'.
-	$(call install-wezterm-for-os,$(OS))
+ifeq ($(OS),darwin)
+	brew install --cask wezterm
+else
+	sudo pacman -S --noconfirm wezterm
+endif
 
 configure-wezterm: ## Configure 'wezterm'.
 configure-wezterm: .config/wezterm
-	for file in $(shell find .config/wezterm -mindepth 1 -type f); do \
-		ln -sf $(PWD)/$$file $(HOME)/; \
-	done
+	$(call cfg-home,.config/wezterm)
 
-setup-wezterm: ## Install AND configure 'wezterm'.
 setup-wezterm: install-wezterm configure-wezterm
 
-# ---------- btop ----------
+# ---------------------------------------------------------------
+# btop (assumed installed)
+# ---------------------------------------------------------------
 
+.PHONY: configure-btop setup-btop
 configure-btop: ## Configure 'btop'.
 configure-btop: .config/btop $(HOME)/.config
-	ln -sfn $(PWD)/$< $(HOME)/.config/
+	$(call cfg,.config/btop)
 
-setup-btop: ## Configure 'btop' (no installation needed, assumed present).
 setup-btop: configure-btop
 
-# ---------- picom ----------
+# ---------------------------------------------------------------
+# polybar (Linux only)
+# ---------------------------------------------------------------
 
-# NOTE: picom is assumed installed on Linux. Skipped on other platforms.
+.PHONY: install-polybar configure-polybar setup-polybar
+install-polybar: ## Install 'polybar' (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --noconfirm polybar
+else
+	@echo "Skipping polybar installation (Linux only)."
+endif
 
+configure-polybar: ## Configure 'polybar' (Linux only).
+ifeq ($(OS),linux)
+configure-polybar: .config/polybar $(HOME)/.config
+	$(call cfg,.config/polybar)
+else
+configure-polybar:
+	@echo "Skipping polybar configuration (Linux only)."
+endif
+
+setup-polybar: install-polybar configure-polybar
+
+# ---------------------------------------------------------------
+# picom (Linux only, assumed installed)
+# ---------------------------------------------------------------
+
+.PHONY: configure-picom setup-picom
 configure-picom: ## Configure 'picom' (Linux only).
 ifeq ($(OS),linux)
 configure-picom: .config/picom $(HOME)/.config
-	ln -sfn $(PWD)/$< $(HOME)/.config/
+	$(call cfg,.config/picom)
 else
 configure-picom:
-	@echo "Skipping picom configuration (not supported on $(OS))."
+	@echo "Skipping picom configuration (Linux only)."
 endif
 
-setup-picom: ## Configure 'picom' (Linux only).
 setup-picom: configure-picom
 
-# ---------- i3 ----------
+# ---------------------------------------------------------------
+# pulsemixer (Linux only — TUI audio control, works with PipeWire)
+# ---------------------------------------------------------------
 
-# NOTE: i3 is assumed installed on Linux. Skipped on other platforms.
+.PHONY: install-pulsemixer setup-pulsemixer
+install-pulsemixer: ## Install 'pulsemixer' (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --noconfirm pulsemixer
+else
+	@echo "Skipping pulsemixer installation (Linux only)."
+endif
 
+setup-pulsemixer: install-pulsemixer
+
+# ---------------------------------------------------------------
+# i3 (Linux only, assumed installed)
+# ---------------------------------------------------------------
+
+.PHONY: configure-i3 setup-i3
 configure-i3: ## Configure 'i3' (Linux only).
 ifeq ($(OS),linux)
 configure-i3: .config/i3
-	ln -sfn $(PWD)/$< $(HOME)/.i3
+	ln -sfn $(PWD)/.config/i3 $(HOME)/.i3
 else
 configure-i3:
-	@echo "Skipping i3 configuration (not supported on $(OS))."
+	@echo "Skipping i3 configuration (Linux only)."
 endif
 
-setup-i3: ## Configure 'i3' (Linux only).
 setup-i3: configure-i3
 
-# ---------- common ----------
+# ---------------------------------------------------------------
+# jq
+# ---------------------------------------------------------------
 
-configure-common: ## Configure common files used across multiple tools.
-configure-common: .config/common
-	for file in $(shell find .config/common -mindepth 1 -maxdepth 1); do \
-		ln -sf $(PWD)/$$file $(HOME)/; \
-	done
-
-setup-common: ## Install 'common' (no configuration needed).
-setup-common: configure-common
-
-# ---------- jq ----------
-
-define install-jq-linux
-	pacman -S jq
-endef
-
-define install-jq-darwin
-	brew install jq
-endef
-
-define install-jq-for-os
-	$(call install-jq-$1)
-endef
-
+.PHONY: install-jq setup-jq
 install-jq: ## Install 'jq'.
-	$(call install-jq-for-os,$(OS))
+	$(call pkg,jq)
 
-setup-jq: ## Install 'jq' (no configuration needed).
 setup-jq: install-jq
 
-# ---------- zsh-syntax-highlighting ----------
+# ---------------------------------------------------------------
+# docker
+# ---------------------------------------------------------------
 
-define install-zsh-syntax-highlighting-linux
-	pacman -S zsh-syntax-highlighting
-endef
-
-define install-zsh-syntax-highlighting-darwin
-	brew install zsh-syntax-highlighting
-endef
-
-define install-zsh-syntax-highlighting-for-os
-	$(call install-zsh-syntax-highlighting-$1)
-endef
-
-install-zsh-syntax-highlighting: ## Install 'zsh-syntax-highlighting'.
-	$(call install-zsh-syntax-highlighting-for-os,$(OS))
-
-setup-zsh-syntax-highlighting: ## Install 'zsh-syntax-highlighting' (no configuration needed).
-setup-zsh-syntax-highlighting: install-zsh-syntax-highlighting
-
-# ---------- fzf ----------
-
-define install-fzf-linux
-	pacman -S fzf
-endef
-
-define install-fzf-darwin
-	brew install fzf
-endef
-
-define install-fzf-for-os
-	$(call install-fzf-$1)
-endef
-
-install-fzf: ## Install 'fzf'.
-	$(call install-fzf-for-os,$(OS))
-
-setup-fzf: ## Install 'fzf' (no configuration needed).
-setup-fzf: install-fzf
-
-# ---------- bash ----------
-
-define install-bash-linux
-	pacman -S bash
-endef
-
-define install-bash-darwin
-	brew install bash
-endef
-
-define install-bash-for-os
-	$(call install-bash-$1)
-endef
-
-install-bash: ## Install 'bash'.
-	$(call install-bash-for-os,$(OS))
-
-setup-bash: ## Install 'bash' (no configuration needed).
-setup-bash: install-bash
-
-# ---------- docker ----------
-
-define install-docker-linux
-	pacman -S docker docker-compose
-endef
-
-define install-docker-darwin
-	brew install docker
-endef
-
-define install-docker-for-os
-	$(call install-docker-$1)
-endef
-
+.PHONY: install-docker setup-docker
 install-docker: ## Install 'docker'.
-	$(call install-docker-for-os,$(OS))
+ifeq ($(OS),darwin)
+	brew install docker
+else
+	sudo pacman -S --noconfirm docker docker-compose
+endif
 
-setup-docker: ## Install 'docker' (no configuration needed).
 setup-docker: install-docker
 
-define install-opencode-linux
-	curl -fsSL https://opencode.ai/install | bash
-endef
+# ---------------------------------------------------------------
+# deno (required for peek.nvim markdown preview)
+# ---------------------------------------------------------------
 
-define install-opencode-darwin
-	curl -fsSL https://opencode.ai/install | bash
-endef
+.PHONY: install-deno setup-deno
+install-deno: ## Install 'deno'.
+ifeq ($(OS),darwin)
+	brew install deno
+else
+	curl -fsSL https://deno.land/install.sh | sh
+endif
 
-define install-opencode-for-os
-	$(call install-opencode-$1)
-endef
+setup-deno: install-deno
 
+# ---------------------------------------------------------------
+# iterm2 (macOS only)
+# ---------------------------------------------------------------
+
+.PHONY: configure-iterm2 setup-iterm2
+configure-iterm2: ## Configure 'iTerm2' profile (macOS only).
+ifeq ($(OS),darwin)
+	mkdir -p "$(HOME)/Library/Application Support/iTerm2/DynamicProfiles"
+	ln -sfn $(PWD)/.config/iterm2/Default.json \
+		"$(HOME)/Library/Application Support/iTerm2/DynamicProfiles/Default.json"
+else
+configure-iterm2:
+	@echo "Skipping iTerm2 configuration (macOS only)."
+endif
+
+setup-iterm2: ## Install font and configure iTerm2 (macOS only).
+ifeq ($(OS),darwin)
+setup-iterm2: configure-iterm2
+	brew install --cask font-fira-code-nerd-font
+else
+setup-iterm2:
+	@echo "Skipping iTerm2 setup (macOS only)."
+endif
+
+# ---------------------------------------------------------------
+# opencode
+# ---------------------------------------------------------------
+
+.PHONY: install-opencode configure-opencode setup-opencode
 install-opencode: ## Install 'opencode'.
-	$(call install-opencode-for-os,$(OS))
+	curl -fsSL https://opencode.ai/install | bash
 
 configure-opencode: ## Configure 'opencode'.
 configure-opencode: .config/opencode $(HOME)/.config
-	ln -sfn $(PWD)/$< $(HOME)/.config/
+	$(call cfg,.config/opencode)
 
-setup-opencode: ## Install AND configure 'opencode'.
 setup-opencode: install-opencode configure-opencode
 
-# ----------------------
+# ---------------------------------------------------------------
+# common
+# ---------------------------------------------------------------
+
+.PHONY: configure-common setup-common
+configure-common: ## Configure common shell files.
+configure-common: .config/common
+	$(call cfg-home,.config/common)
+
+setup-common: configure-common
+
+# ---------------------------------------------------------------
+# Housekeeping
+# ---------------------------------------------------------------
 
 .PHONY: clean
-clean: ## Removes generated files and folders, resetting this repository back to its initial clone state.
+clean: ## Remove generated files.
 	rm -rf dist
 
 .PHONY: help
-help: ## Prints this help page.
+help: ## Print this help page.
 	@echo "Available targets:"
 	@awk_script='\
 		/^[a-zA-Z\-\\_0-9%\/$$]+:/ { \
