@@ -39,7 +39,11 @@ case "$os" in
 esac
 
 # opens the last screenshot taken in Firefox (resolved at invocation time, not source time).
-olss() { firefox "$(ls "$HOME/Pictures" | sort -r | head -n1)"; }
+olss() {
+  local f
+  f=$(ls "$HOME/Pictures" | sort -r | head -n1)
+  [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
+}
 
 # aws overrides.
 aws() {
@@ -143,11 +147,10 @@ host=github.com" 2>/dev/null || true
 
     # runs 'git clone' and then changes into the directory cloned.
     "clone "*)
-      # last arg is either the destination dir or derived from the URL.
       local args=("${@:2}")
       local dest="${args[-1]}"
-      # if only one arg (the URL), derive the dir name from it.
-      [[ "${#args[@]}" -eq 1 ]] && dest="$(basename "$dest" .git)"
+      # derive dir name from URL (handles extra flags like --depth 1).
+      [[ "$dest" == *"://"* || "$dest" == *"@"* ]] && dest="$(basename "$dest" .git)"
       command git clone "${args[@]}" && cd "$dest" ;;
 
     # shows all the branches available.
