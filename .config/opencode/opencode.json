@@ -37,11 +37,13 @@
     "ceb": {
       "type": "remote",
       "url": "https://ceb.cba/mcp/",
+      "enabled": true,
       "timeout": 600000
     },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
+      "enabled": true,
       "timeout": 600000
     },
     "sequentialthinking": {

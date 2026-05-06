@@ -29,8 +29,8 @@ setopt CDABLE_VARS            # change directory to a path stored in a variable.
 setopt EXTENDED_GLOB          # use extended globbing syntax.
 setopt AUTO_PUSHD             # push the current directory visited on the stack.
 setopt PUSHD_IGNORE_DUPS      # do not store duplicates in the stack.
-setopt NO_NOTIFY               # suppress background job completion notifications.
-setopt NO_MONITOR              # suppress background job status reporting entirely.
+setopt NO_NOTIFY              # suppress background job completion notifications.
+setopt NO_MONITOR             # suppress background job status reporting entirely.
 
 # history.
 setopt EXTENDED_HISTORY       # write the history file in the ':start:elapsed;command' format.
@@ -104,8 +104,12 @@ fi
 
 # load opener image.
 case "$os" in
-  "Linux") wezterm imgcat "$HOME/tree-v2.png" ;;
-  "Darwin") imgcat "$HOME/tree-v2.png" ;;
+  "Linux")
+    [[ -f "$HOME/tree-v2.png" ]] && command -v wezterm &>/dev/null && wezterm imgcat "$HOME/tree-v2.png"
+    ;;
+  "Darwin")
+    [[ -f "$HOME/tree-v2.png" ]] && command -v imgcat &>/dev/null && imgcat "$HOME/tree-v2.png"
+    ;;
 esac
 echo; echo
 

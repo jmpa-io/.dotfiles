@@ -35,7 +35,7 @@ set $wm_app_launcher      rofi
 set $wm_compositor        picom
 
 set $wm_audio_control_gui pavucontrol
-set $wm_audio_control_tui ncpamixer
+set $wm_audio_control_tui pulsemixer
 
 set $wm_file_browser_gui  pcmanfm
 set $wm_file_browser_tui  ranger

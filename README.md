@@ -45,7 +45,7 @@ git config --global user.name "Your Name"
 git config --global user.email "your@email.com"
 ```
 
-For work machines, create `~/.gitconfig-work` instead — it will be picked up automatically for any repo inside `~/work/`:
+For work machines, create `~/.gitconfig-work` instead — it will be picked up automatically for any repo inside the configured work directories (e.g. `~/go/src/github.com/CBA-General/`):
 
 ```ini
 [user]
