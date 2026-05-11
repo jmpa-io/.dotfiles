@@ -51,6 +51,7 @@ install: \
 	install-deno \
 	install-wezterm \
 	install-github-cli \
+	install-fonts \
 	install-opencode
 
 .PHONY: configure
@@ -93,6 +94,7 @@ setup: \
 	setup-btop \
 	setup-picom \
 	setup-pulsemixer \
+	setup-fonts \
 	setup-opencode \
 	setup-common \
 	setup-i3
@@ -422,6 +424,23 @@ else
 setup-iterm2:
 	@echo "Skipping iTerm2 setup (macOS only)."
 endif
+
+# ---------------------------------------------------------------
+# fonts (Linux only)
+# ---------------------------------------------------------------
+
+.PHONY: install-fonts setup-fonts
+install-fonts: ## Install fonts (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --noconfirm noto-fonts-emoji
+	mkdir -p $(HOME)/.local/share/fonts
+	cp $(PWD)/fonts/*.ttf $(PWD)/fonts/*.otf $(HOME)/.local/share/fonts/ 2>/dev/null || true
+	fc-cache -fv
+else
+	@echo "Skipping font installation (Linux only — macOS uses brew cask)."
+endif
+
+setup-fonts: install-fonts
 
 # ---------------------------------------------------------------
 # opencode
