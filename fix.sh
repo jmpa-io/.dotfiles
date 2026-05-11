@@ -151,8 +151,27 @@ mkdir -p "$DOTFILES/dist"
   ls -la "$HOME/.config/picom" 2>/dev/null || echo "DIR NOT FOUND"
   echo ""
 
-  echo "--- polybar/fonts.ini ---"
-  cat "$POLYBAR_FONTS" 2>/dev/null || echo "NOT FOUND"
+  echo "--- polybar rendered output (xprop on polybar window) ---"
+  xprop -name "polybar-top_jmpa" 2>/dev/null | head -20 || echo "xprop failed"
+  echo ""
+
+  echo "--- polybar font rendering test ---"
+  echo "font-0 (FiraCode Nerd Font) sample glyphs:"
+  python3 -c "print('NF glyphs: \ue000 \uf000 \uf179 \uf109 \uf011')" 2>/dev/null || true
+  echo "font-1/2 (FA6) sample glyphs:"
+  python3 -c "print('FA6 glyphs: \uf026 \uf027 \uf028 \uf240 \uf241 \uf242')" 2>/dev/null || true
+  echo ""
+
+  echo "--- polybar fonts.ini (with hex dump of glyph lines) ---"
+  cat "$POLYBAR_FONTS"
+  echo ""
+  python3 -c "
+import sys
+with open('$POLYBAR_FONTS', 'rb') as f:
+    for i, line in enumerate(f, 1):
+        if b'font' in line:
+            print(f'line {i}: {line!r}')
+  " 2>/dev/null || true
   echo ""
 
   echo "--- polybar/modules/pulseaudio.ini ---"
