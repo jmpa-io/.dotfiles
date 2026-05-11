@@ -189,7 +189,8 @@ echo
 # Done
 # ─────────────────────────────────────────────────────────────────────────────
 echo "==> all fixes applied."
-echo "    Restart polybar and picom:"
-echo "      pkill -x picom; sleep 1; picom -b"
+echo "    Restarting picom..."
+pkill -x picom 2>/dev/null; sleep 1; picom -b 2>/dev/null && ok "picom restarted" || warn "picom restart failed — run manually: pkill -x picom; picom -b"
+echo "    Restart polybar to pick up font/module changes:"
 echo "      ~/.config/polybar/launch.sh"
 echo
