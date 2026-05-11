@@ -1,0 +1,228 @@
+=== diagnostics: Mon 11 May 2026 20:02:28 AEST ===
+=== hostname: jmpa ===
+
+--- picom.conf (live) ---
+# picom configuration
+# Modern syntax for picom (Manjaro/Arch).
+
+#################################
+# Backend
+#################################
+
+backend = "glx";
+vsync = true;
+use-damage = true;
+
+#################################
+# Shadows
+#################################
+
+shadow = true;
+shadow-radius = 5;
+shadow-offset-x = 1;
+shadow-offset-y = 1;
+shadow-opacity = 0.3;
+
+shadow-exclude = [
+    "! name~=''",
+    "name = 'Notification'",
+    "name = 'Plank'",
+    "name = 'Docky'",
+    "name = 'Kupfer'",
+    "name = 'xfce4-notifyd'",
+    "name *= 'VLC'",
+    "name *= 'compton'",
+    "name *= 'picom'",
+    "name *= 'Chromium'",
+    "name *= 'Chrome'",
+    "class_g = 'Firefox' && argb",
+    "class_g = 'Conky'",
+    "class_g = 'Kupfer'",
+    "class_g = 'Synapse'",
+    "class_g ?= 'Notify-osd'",
+    "class_g ?= 'Cairo-dock'",
+    "class_g ?= 'Xfce4-notifyd'",
+    "class_g ?= 'Xfce4-power-manager'",
+    "class_g ?= 'Dmenu'",
+    "class_g ?= 'i3-frame'",
+    "_GTK_FRAME_EXTENTS@:c",
+    "_NET_WM_STATE@:32a *= '_NET_WM_STATE_HIDDEN'"
+];
+
+#################################
+# Opacity
+#################################
+
+inactive-opacity = 1;
+active-opacity = 1;
+frame-opacity = 1;
+inactive-opacity-override = false;
+
+blur-background-fixed = false;
+blur-background-exclude = [
+    "window_type = 'dock'",
+    "window_type = 'desktop'"
+];
+
+#################################
+# Fading
+#################################
+
+fading = false;
+fade-delta = 1;
+fade-in-step = 0.03;
+fade-out-step = 0.03;
+fade-exclude = [ ];
+
+#################################
+# Other
+#################################
+
+mark-wmwin-focused = true;
+mark-ovredir-focused = true;
+use-ewmh-active-win = true;
+detect-rounded-corners = true;
+detect-client-opacity = true;
+unredir-if-possible = true;
+focus-exclude = [ "class_g = 'Cairo-clock'" ];
+detect-transient = true;
+detect-client-leader = true;
+
+# Use X Sync fence — needed on nvidia GLX backend for some users.
+xrender-sync-fence = true;
+
+#################################
+# Window type settings
+#################################
+
+wintypes = {
+    tooltip = {
+        fade = true;
+        shadow = false;
+        opacity = 0.85;
+        focus = true;
+    };
+    fullscreen = {
+        fade = true;
+        shadow = false;
+        opacity = 1;
+        focus = true;
+    };
+};
+
+--- picom.conf symlink info ---
+-rw-r--r-- 1 me me 2298 May 11 19:56 /home/me/.config/picom/picom.conf
+lrwxrwxrwx 1 me me 32 May 11 19:49 /home/me/.config/picom -> /home/me/.dotfiles/.config/picom
+
+--- polybar/fonts.ini ---
+# fira-code.
+font-0 = "FiraCode Nerd Font:pixelsize=9;2"
+
+# font-awesome.
+font-1 = "Font Awesome 6 Free:style=Regular:pixelsize=10;2"
+font-2 = "Font Awesome 6 Free Solid:style=Solid:pixelsize=10;2"
+font-3 = "Font Awesome 6 Brands:style=Regular:pixelsize=10;2"
+
+# emoji fallback — same offset as other fonts to keep baseline consistent.
+font-4 = "Noto Color Emoji:scale=10;2"
+
+
+--- polybar/modules/pulseaudio.ini ---
+[module/volume]
+type = internal/alsa
+
+# use default sink — works with both PulseAudio and PipeWire.
+master-soundcard = default
+master-mixer = Master
+
+; scroll up/down to change volume.
+interval = 5
+
+# unmuted — uses Font Awesome speaker icons (font-2 = FA Solid).
+format-volume = <ramp-volume> <bar-volume>
+format-volume-padding = 1
+
+# muted.
+format-muted = <label-muted>
+label-muted = " muted"
+format-muted-padding = 1
+format-muted-background = ${colors.disabled}
+
+# right-click opens pavucontrol.
+click-right = pavucontrol &
+
+# ramp — Font Awesome solid volume icons.
+# %{T3} selects font-2 (0-indexed = font-3 in polybar's 1-indexed system).
+ramp-volume-0 = %{T3}%{T-}
+ramp-volume-1 = %{T3}%{T-}
+ramp-volume-2 = %{T3}%{T-}
+
+# bar.
+bar-volume-width = 8
+bar-volume-foreground-0 = ${colors.primary}
+bar-volume-gradient = false
+bar-volume-indicator = |
+bar-volume-fill = ─
+bar-volume-empty = ─
+bar-volume-empty-foreground = ${colors.disabled}
+
+--- installed fonts (nerd/fira/awesome/noto) ---
+/home/me/.local/share/fonts/FiraCode-Bold.ttf: Fira Code:style=Bold
+/home/me/.local/share/fonts/FiraCode-Light.ttf: Fira Code,Fira Code Light:style=Light,Regular
+/home/me/.local/share/fonts/FiraCode-Medium.ttf: Fira Code,Fira Code Medium:style=Medium,Regular
+/home/me/.local/share/fonts/FiraCode-Regular.ttf: Fira Code:style=Regular
+/home/me/.local/share/fonts/FiraCode-Retina.ttf: Fira Code,Fira Code Retina:style=Retina,Regular
+/home/me/.local/share/fonts/FiraCode-SemiBold.ttf: Fira Code,Fira Code SemiBold:style=SemiBold,Regular
+/home/me/.local/share/fonts/Font Awesome 6 Brands-Regular-400.otf: Font Awesome 6 Brands,Font Awesome 6 Brands Regular:style=Regular
+/home/me/.local/share/fonts/Font Awesome 6 Free-Regular-400.otf: Font Awesome 6 Free,Font Awesome 6 Free Regular:style=Regular
+/home/me/.local/share/fonts/Font Awesome 6 Free-Solid-900.otf: Font Awesome 6 Free,Font Awesome 6 Free Solid:style=Solid
+/usr/share/fonts/noto/NotoColorEmoji.ttf: Noto Color Emoji:style=Regular
+/usr/share/fonts/TTF/FiraCode-Bold.ttf: Fira Code:style=Bold
+/usr/share/fonts/TTF/FiraCode-Light.ttf: Fira Code,Fira Code Light:style=Light,Regular
+/usr/share/fonts/TTF/FiraCode-Medium.ttf: Fira Code,Fira Code Medium:style=Medium,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFont-Bold.ttf: FiraCode Nerd Font:style=Bold
+/usr/share/fonts/TTF/FiraCodeNerdFont-Light.ttf: FiraCode Nerd Font,FiraCode Nerd Font Light:style=Light,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFont-Medium.ttf: FiraCode Nerd Font,FiraCode Nerd Font Med:style=Medium,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontMono-Bold.ttf: FiraCode Nerd Font Mono:style=Bold
+/usr/share/fonts/TTF/FiraCodeNerdFontMono-Light.ttf: FiraCode Nerd Font Mono,FiraCode Nerd Font Mono Light:style=Light,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontMono-Medium.ttf: FiraCode Nerd Font Mono,FiraCode Nerd Font Mono Med:style=Medium,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontMono-Regular.ttf: FiraCode Nerd Font Mono:style=Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontMono-Retina.ttf: FiraCode Nerd Font Mono,FiraCode Nerd Font Mono Ret:style=Retina,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontMono-SemiBold.ttf: FiraCode Nerd Font Mono,FiraCode Nerd Font Mono SemBd:style=SemiBold,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontPropo-Bold.ttf: FiraCode Nerd Font Propo:style=Bold
+/usr/share/fonts/TTF/FiraCodeNerdFontPropo-Light.ttf: FiraCode Nerd Font Propo,FiraCode Nerd Font Propo Light:style=Light,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontPropo-Medium.ttf: FiraCode Nerd Font Propo,FiraCode Nerd Font Propo Med:style=Medium,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontPropo-Regular.ttf: FiraCode Nerd Font Propo:style=Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontPropo-Retina.ttf: FiraCode Nerd Font Propo,FiraCode Nerd Font Propo Ret:style=Retina,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFontPropo-SemiBold.ttf: FiraCode Nerd Font Propo,FiraCode Nerd Font Propo SemBd:style=SemiBold,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFont-Regular.ttf: FiraCode Nerd Font:style=Regular
+/usr/share/fonts/TTF/FiraCodeNerdFont-Retina.ttf: FiraCode Nerd Font,FiraCode Nerd Font Ret:style=Retina,Regular
+/usr/share/fonts/TTF/FiraCodeNerdFont-SemiBold.ttf: FiraCode Nerd Font,FiraCode Nerd Font SemBd:style=SemiBold,Regular
+/usr/share/fonts/TTF/FiraCode-Regular.ttf: Fira Code:style=Regular
+/usr/share/fonts/TTF/FiraCode-Retina.ttf: Fira Code,Fira Code Retina:style=Retina,Regular
+/usr/share/fonts/TTF/FiraCode-SemiBold.ttf: Fira Code,Fira Code SemiBold:style=SemiBold,Regular
+/usr/share/fonts/TTF/TerminessNerdFont-BoldItalic.ttf: Terminess Nerd Font:style=Bold Italic
+/usr/share/fonts/TTF/TerminessNerdFont-Bold.ttf: Terminess Nerd Font:style=Bold
+/usr/share/fonts/TTF/TerminessNerdFont-Italic.ttf: Terminess Nerd Font:style=Italic
+/usr/share/fonts/TTF/TerminessNerdFontMono-BoldItalic.ttf: Terminess Nerd Font Mono:style=Bold Italic
+/usr/share/fonts/TTF/TerminessNerdFontMono-Bold.ttf: Terminess Nerd Font Mono:style=Bold
+/usr/share/fonts/TTF/TerminessNerdFontMono-Italic.ttf: Terminess Nerd Font Mono:style=Italic
+/usr/share/fonts/TTF/TerminessNerdFontMono-Regular.ttf: Terminess Nerd Font Mono:style=Regular
+/usr/share/fonts/TTF/TerminessNerdFontPropo-BoldItalic.ttf: Terminess Nerd Font Propo:style=Bold Italic
+/usr/share/fonts/TTF/TerminessNerdFontPropo-Bold.ttf: Terminess Nerd Font Propo:style=Bold
+/usr/share/fonts/TTF/TerminessNerdFontPropo-Italic.ttf: Terminess Nerd Font Propo:style=Italic
+/usr/share/fonts/TTF/TerminessNerdFontPropo-Regular.ttf: Terminess Nerd Font Propo:style=Regular
+/usr/share/fonts/TTF/TerminessNerdFont-Regular.ttf: Terminess Nerd Font:style=Regular
+/usr/share/fonts/WOFF2/fa-brands-400.woff2: Font Awesome 7 Brands:style=Regular
+/usr/share/fonts/WOFF2/fa-regular-400.woff2: Font Awesome 7 Free:style=Regular
+/usr/share/fonts/WOFF2/fa-solid-900.woff2: Font Awesome 7 Free,Font Awesome 7 Free Solid:style=Solid,Regular
+/usr/share/fonts/WOFF2/fa-v4compatibility.woff2: Font Awesome v4 Compatibility:style=Regular
+
+--- picom version ---
+v13 (/srcdest/picom revision d87a5ba)
+
+--- polybar version ---
+polybar 3.7.2
+
+Features: +alsa +curl +i3 +mpd +network(libnl) +pulseaudio +xkeyboard
+
