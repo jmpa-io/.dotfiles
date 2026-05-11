@@ -159,9 +159,8 @@ mkdir -p "$DOTFILES/dist"
 
   echo "--- picom log (last 30 lines) ---"
   journalctl --user -u picom -n 30 --no-pager 2>/dev/null \
+    || cat /tmp/picom-fix.log 2>/dev/null \
     || cat "$HOME/.local/share/picom.log" 2>/dev/null \
-    || cat /tmp/picom.log 2>/dev/null \
-    || picom --log-level=warn 2>&1 | head -30 \
     || echo "no picom log found"
   echo ""
 
@@ -190,7 +189,10 @@ echo
 # ─────────────────────────────────────────────────────────────────────────────
 echo "==> all fixes applied."
 echo "    Restarting picom..."
-pkill -x picom 2>/dev/null; sleep 1; picom -b 2>/dev/null && ok "picom restarted" || warn "picom restart failed — run manually: pkill -x picom; picom -b"
+pkill -x picom 2>/dev/null || true
+sleep 1
+picom -b --log-level=warn --log-file=/tmp/picom-fix.log 2>/dev/null
+ok "picom restarted — log at /tmp/picom-fix.log"
 echo "    Restart polybar to pick up font/module changes:"
 echo "      ~/.config/polybar/launch.sh"
 echo
