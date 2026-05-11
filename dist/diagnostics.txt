@@ -1,4 +1,4 @@
-=== diagnostics: Mon 11 May 2026 20:02:28 AEST ===
+=== diagnostics: Mon 11 May 2026 20:07:53 AEST ===
 === hostname: jmpa ===
 
 --- picom.conf (live) ---
@@ -118,13 +118,15 @@ lrwxrwxrwx 1 me me 32 May 11 19:49 /home/me/.config/picom -> /home/me/.dotfiles/
 # fira-code.
 font-0 = "FiraCode Nerd Font:pixelsize=9;2"
 
-# font-awesome.
+# font-awesome — FA6 OTF files installed in ~/.local/share/fonts/.
 font-1 = "Font Awesome 6 Free:style=Regular:pixelsize=10;2"
 font-2 = "Font Awesome 6 Free Solid:style=Solid:pixelsize=10;2"
 font-3 = "Font Awesome 6 Brands:style=Regular:pixelsize=10;2"
 
 # emoji fallback — same offset as other fonts to keep baseline consistent.
 font-4 = "Noto Color Emoji:scale=10;2"
+
+
 
 
 --- polybar/modules/pulseaudio.ini ---
@@ -138,21 +140,20 @@ master-mixer = Master
 ; scroll up/down to change volume.
 interval = 5
 
-# unmuted — uses Font Awesome speaker icons (font-2 = FA Solid).
+# unmuted — FA6 Solid speaker glyphs via font-2 (T3 in polybar 1-based index).
 format-volume = <ramp-volume> <bar-volume>
 format-volume-padding = 1
 
-# muted.
+# muted — FA6 Solid volume-xmark ().
 format-muted = <label-muted>
-label-muted = " muted"
+label-muted = %{T3}%{T-} muted
 format-muted-padding = 1
 format-muted-background = ${colors.disabled}
 
 # right-click opens pavucontrol.
 click-right = pavucontrol &
 
-# ramp — Font Awesome solid volume icons.
-# %{T3} selects font-2 (0-indexed = font-3 in polybar's 1-indexed system).
+# ramp — low / medium / high volume (FA6 Solid: , , ).
 ramp-volume-0 = %{T3}%{T-}
 ramp-volume-1 = %{T3}%{T-}
 ramp-volume-2 = %{T3}%{T-}
@@ -225,4 +226,270 @@ v13 (/srcdest/picom revision d87a5ba)
 polybar 3.7.2
 
 Features: +alsa +curl +i3 +mpd +network(libnl) +pulseaudio +xkeyboard
+
+--- picom log (last 30 lines) ---
+-- No entries --
+
+--- polybar log (last 30 lines) ---
+-- No entries --
+
+--- all polybar module files ---
+=== battery.ini ===
+[module/battery]
+type = internal/battery
+battery = BAT0
+adapter = ADP1
+
+# full.
+label-full = %percentage%%
+format-full =  <label-full>
+format-full-padding = 1
+
+# charging.
+label-charging = %percentage%%
+format-charging = <animation-charging> <label-charging>
+format-charging-background = ${colors.background}
+format-charging-padding = 1
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-3 = 
+animation-charging-4 = 
+animation-charging-foreground = ${colors.foreground-alt}
+animation-charging-framerate = 750
+
+# discharging.
+label-discharging = %percentage%%
+format-discharging = <ramp-capacity> <label-discharging>
+format-discharging-background = ${colors.background}
+format-discharging-padding = 1
+ramp-capacity-0 = 
+ramp-capacity-0-foreground = ${colors.alert}
+ramp-capacity-1 = 
+ramp-capacity-1-foreground = ${colors.warning-alt}
+ramp-capacity-2 = 
+ramp-capacity-2-foreground = ${colors.warning}
+ramp-capacity-3 = 
+ramp-capacity-4 = 
+ramp-capacity-foreground = ${colors.foreground-alt}
+
+
+=== cpu.ini ===
+[module/cpu]
+type = internal/cpu
+label = " %percentage:2%%"
+format = <label> [<ramp-coreload>]
+format-background = ${colors.background}
+format-padding = 1
+
+# ramp.
+ramp-coreload-spacing = 0.5
+ramp-coreload-0 = ▁
+ramp-coreload-1 = ▂
+ramp-coreload-2 = ▃
+ramp-coreload-3 = ▄
+ramp-coreload-4 = ▅
+ramp-coreload-5 = ▆
+ramp-coreload-6 = ▇
+ramp-coreload-7 = █
+
+
+=== date-and-time.ini ===
+[module/date]
+type = internal/date
+label = " %date% %time%"
+format = <label>
+format-padding = 1
+date = %Y-%m-%d
+date-alt = %A, %B %d %Y 
+time = %I:%M %p
+time-alt = %I:%M %p
+
+
+=== filesystem.ini ===
+[module/filesystem]
+type = internal/fs
+label-mounted = " %percentage_used%% [%free:3%/%total:3%]"
+format-mounted = "<label-mounted>"
+format-mounted-background = ${colors.background}
+format-mounted-padding = 1
+
+=== i3.ini ===
+[module/i3]
+type = internal/i3
+format = <label-state> <label-mode>
+show-urgent = true
+
+# mode.
+label-mode = %mode%
+label-mode-padding = 2
+label-mode-foreground = ${colors.background}
+label-mode-background = ${colors.secondary}
+
+# focused.
+label-focused = %index%
+label-focused-padding = 1
+label-focused-foreground = ${colors.background}
+label-focused-background = ${colors.primary}
+
+# unfocused.
+label-unfocused = %index%
+label-unfocused-padding = 1
+label-unfocused-foreground = ${colors.foreground}
+label-unfocused-background = ${colors.background}
+
+# visible.
+label-visible = %index%
+label-visible-padding = 1
+label-visible-foreground = ${colors.foreground}
+label-visible-background = ${colors.background}
+
+# urgent.
+label-urgent = %index%
+label-urgent-padding = 1
+label-urgent-foreground = ${colors.background-alt}
+label-urgent-background = ${colors.alert}
+
+
+=== internet.ini ===
+[module/internet]
+type = internal/network
+interface = wlp2s0
+interface-type = wireless
+
+# disconnected.
+label-disconnected = "no internet"
+format-disconnected = <label-disconnected>
+format-disconnected-background = ${colors.disabled}
+format-disconnected-padding = 1
+
+# connected.
+label-connected = " %downspeed:8%   %upspeed:8%   %essid%"
+format-connected = <label-connected>
+format-connected-background = ${colors.background}
+format-connected-padding = 1
+
+
+=== memory.ini ===
+[module/memory]
+type = internal/memory
+label = " %percentage_used:2%%"
+format = <label> [<ramp-used><ramp-free>] [<ramp-swap-used><ramp-swap-free>]
+format-background = ${colors.background}
+format-padding = 1
+
+# ramp used.
+ramp-used-0 = ▁
+ramp-used-1 = ▂
+ramp-used-2 = ▃
+ramp-used-3 = ▄
+ramp-used-4 = ▅
+ramp-used-5 = ▆
+ramp-used-6 = ▇
+ramp-used-7 = █
+
+# ramp free.
+ramp-free-0 = ▁
+ramp-free-1 = ▂
+ramp-free-2 = ▃
+ramp-free-3 = ▄
+ramp-free-4 = ▅
+ramp-free-5 = ▆
+ramp-free-6 = ▇
+ramp-free-7 = █
+
+# ramp swap used.
+ramp-swap-used-0 = ▁
+ramp-swap-used-1 = ▂
+ramp-swap-used-2 = ▃
+ramp-swap-used-3 = ▄
+ramp-swap-used-4 = ▅
+ramp-swap-used-5 = ▆
+ramp-swap-used-6 = ▇
+ramp-swap-used-7 = █
+
+# ramp swap free.
+ramp-swap-free-0 = ▁
+ramp-swap-free-1 = ▂
+ramp-swap-free-2 = ▃
+ramp-swap-free-3 = ▄
+ramp-swap-free-4 = ▅
+ramp-swap-free-5 = ▆
+ramp-swap-free-6 = ▇
+ramp-swap-free-7 = █
+
+
+=== pulseaudio.ini ===
+[module/volume]
+type = internal/alsa
+
+# use default sink — works with both PulseAudio and PipeWire.
+master-soundcard = default
+master-mixer = Master
+
+; scroll up/down to change volume.
+interval = 5
+
+# unmuted — FA6 Solid speaker glyphs via font-2 (T3 in polybar 1-based index).
+format-volume = <ramp-volume> <bar-volume>
+format-volume-padding = 1
+
+# muted — FA6 Solid volume-xmark ().
+format-muted = <label-muted>
+label-muted = %{T3}%{T-} muted
+format-muted-padding = 1
+format-muted-background = ${colors.disabled}
+
+# right-click opens pavucontrol.
+click-right = pavucontrol &
+
+# ramp — low / medium / high volume (FA6 Solid: , , ).
+ramp-volume-0 = %{T3}%{T-}
+ramp-volume-1 = %{T3}%{T-}
+ramp-volume-2 = %{T3}%{T-}
+
+# bar.
+bar-volume-width = 8
+bar-volume-foreground-0 = ${colors.primary}
+bar-volume-gradient = false
+bar-volume-indicator = |
+bar-volume-fill = ─
+bar-volume-empty = ─
+bar-volume-empty-foreground = ${colors.disabled}
+
+=== separator.ini ===
+[module/separator]
+type = custom/text
+label = "  "
+
+=== temperature.ini ===
+[module/temperature]
+type = internal/temperature
+base-temperature = 30
+label = "%temperature-c%"
+format = <ramp> <label>
+format-padding = 1
+
+# warn.
+warn-temperature = 55
+label-warn = "%temperature-c%"
+format-warn = <ramp> <label-warn>
+format-warn-foreground = ${colors.warning}
+format-warn-padding = 1
+
+# ramp.
+ramp-0 = 
+ramp-1 =  
+ramp-2 = 
+ramp-3 = 
+ramp-4 = 
+
+=== xautolock.ini ===
+[module/xautolock]
+type = custom/script
+exec = "$HOME/bin/system/polybar-xautolock-status.sh"
+interval = 0 ; prevent regular polling.
+signal = 10
+label = %output%
+click-left = "$HOME/bin/system/polybar-xautolock-toggle.sh"
 
