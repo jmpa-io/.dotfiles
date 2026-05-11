@@ -1,4 +1,4 @@
-=== diagnostics: Mon 11 May 2026 20:10:24 AEST ===
+=== diagnostics: Mon 11 May 2026 20:23:19 AEST ===
 === hostname: jmpa ===
 
 --- picom.conf (live) ---
@@ -229,6 +229,56 @@ Features: +alsa +curl +i3 +mpd +network(libnl) +pulseaudio +xkeyboard
 
 --- picom log (last 30 lines) ---
 -- No entries --
+
+--- picom config search path ---
+~/.config/picom/picom.conf:
+-rw-r--r-- 1 me me 2298 May 11 19:56 /home/me/.config/picom/picom.conf
+~/.config/picom.conf:
+-rw-r--r-- 1 me me 8649 Sep 14  2023 /home/me/.config/picom.conf
+/etc/xdg/picom.conf:
+-rw-r--r-- 1 root root 9569 Apr  4 01:23 /etc/xdg/picom.conf
+
+--- picom stderr (run directly to capture warnings) ---
+picom: unrecognized option '--no-daemon'
+picom v13 (/srcdest/picom revision d87a5ba)
+Standalone X11 compositor
+Please report bugs to https://github.com/yshui/picom
+
+Usage: picom [OPTION]...
+
+OPTIONS:
+    -D, --fade-delta               The time between steps in a fade in 
+                                   milliseconds. (default 10)
+    -I, --fade-in-step             Opacity change between steps while fading 
+                                   in. (default 0.028)
+    -O, --fade-out-step            Opacity change between steps while fading 
+                                   out. (default 0.03)
+    -b, --daemon                   Daemonize process.
+    -c, --shadow                   Enabled client-side shadows on windows.
+    -e, --frame-opacity            Opacity of window titlebars and borders. 
+                                   (0.0 - 1.0)
+    -f, --fading                   Fade windows in/out when opening/closing and 
+                                   when opacity changes, unless 
+                                   --no-fading-openclose is used.
+    -h, --help                     Print this help message and exit.
+    -i, --inactive-opacity         Opacity of inactive windows. (0.0 - 1.0)
+    -l, --shadow-offset-x          The left offset for shadows. (default -15)
+    -o, --shadow-opacity           The translucency for shadows. (default .75)
+    -r, --shadow-radius            The blur radius for shadows. (default 12)
+    -t, --shadow-offset-y          The top offset for shadows. (default -15)
+        --config                   Path to the configuration file.
+        --shadow-red               Red color value of shadow (0.0 - 1.0, 
+                                   defaults to 0).
+        --shadow-green             Green color value of shadow (0.0 - 1.0, 
+                                   defaults to 0).
+        --shadow-blue              Blue color value of shadow (0.0 - 1.0, 
+                                   defaults to 0).
+        --inactive-opacity-override  
+                                   Inactive opacity set by -i overrides value 
+                                   of _NET_WM_WINDOW_OPACITY.
+        --inactive-dim             Dim inactive windows. (0.0 - 1.0, defaults 
+                                   to 0)
+        --mark-wmwin-focused       Try to detect WM windows and mark them as 
 
 --- polybar log (last 30 lines) ---
 -- No entries --
