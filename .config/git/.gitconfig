@@ -51,7 +51,8 @@
 [credential "https://github.com/"]
   helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-  helper = !gh auth git-credential
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
 
 [alias]
   # makes it easier to determine if the branch is main or master.
@@ -61,3 +62,6 @@
 [diff]
   colormoved = "default"
   colormovedws = "allow-indentation-change"
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
