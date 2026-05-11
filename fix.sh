@@ -67,13 +67,27 @@ fi
 echo
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fix 3: picom — strip deprecated options + enable vsync
+# Fix 3: picom — remove stale config files + ensure vsync is enabled
 #
-# Reads via cat into /tmp (avoids "too many symbolic links" errors from
-# sed/grep trying to resolve the symlinked config directory).
-# Writes the cleaned content back to the dotfiles source file directly.
+# Picom searches for config in this order:
+#   1. ~/.config/picom/picom.conf  (dotfiles — correct)
+#   2. ~/.config/picom.conf        (stale old file — REMOVE THIS)
+#   3. /etc/xdg/picom.conf         (system default — ignore)
+#
+# The stale ~/.config/picom.conf is what causes deprecated option warnings
+# when running picom bare from the terminal.
 # ─────────────────────────────────────────────────────────────────────────────
-echo "--> Fix 3: picom — deprecated options + vsync"
+echo "--> Fix 3: picom — remove stale config + deprecated options + vsync"
+
+# Remove stale ~/.config/picom.conf if it exists (not a directory/symlink).
+STALE_PICOM="$HOME/.config/picom.conf"
+if [[ -f "$STALE_PICOM" ]] && [[ ! -L "$STALE_PICOM" ]]; then
+  backup "$STALE_PICOM"
+  rm "$STALE_PICOM"
+  ok "removed stale ~/.config/picom.conf"
+elif [[ ! -e "$STALE_PICOM" ]]; then
+  ok "no stale ~/.config/picom.conf found"
+fi
 
 LIVE_PICOM="$HOME/.config/picom/picom.conf"
 
