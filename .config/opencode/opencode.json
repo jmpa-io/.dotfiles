@@ -56,12 +56,52 @@
     },
     "gdrive": {
       "type": "local",
-      "command": ["npx", "--yes", "@modelcontextprotocol/server-gdrive"],
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/google-mcp/dist/gdrive"],
       "enabled": true,
       "timeout": 60000,
       "environment": {
-        "GDRIVE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
-        "GDRIVE_CREDENTIALS_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
+        "GOOGLE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
+        "GOOGLE_CREDENTIALS_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
+      }
+    },
+    "gmail": {
+      "type": "local",
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/google-mcp/dist/gmail"],
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "GOOGLE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
+        "GOOGLE_CREDENTIALS_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
+      }
+    },
+    "sheets": {
+      "type": "local",
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/google-mcp/dist/sheets"],
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "GOOGLE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
+        "GOOGLE_CREDENTIALS_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
+      }
+    },
+    "calendar": {
+      "type": "local",
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/google-mcp/dist/calendar"],
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "GOOGLE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
+        "GOOGLE_CREDENTIALS_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
+      }
+    },
+    "photos": {
+      "type": "local",
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/google-mcp/dist/photos"],
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "GOOGLE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
+        "GOOGLE_CREDENTIALS_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
       }
     }
   }
