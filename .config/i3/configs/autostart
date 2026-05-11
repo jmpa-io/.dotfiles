@@ -25,7 +25,8 @@ exec --no-startup-id "$HOME/bin/system/xautolock-start.sh"
 exec_always --no-startup-id fix_xcursor
 
 # run compositor, for window effects.
-exec_always --no-startup-id $wm_compositor
+# Kill any existing instance first to avoid stacking on i3 reload.
+exec_always --no-startup-id pkill -x picom; sleep 0.5; $wm_compositor
 
 # run volumeicon, for bindings to change volume on keyboard.
 exec --no-startup-id volumeicon
