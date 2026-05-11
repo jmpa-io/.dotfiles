@@ -14,7 +14,7 @@ for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 alias zsrc='for f in "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/work"; do [[ -f "$f" ]] && source "$f"; done'
 
 # email.
-alias sort-mail='$HOME/bin/sort-mail.sh'
+alias sort-mail='bash "$DOTFILES/.config/common/bin/sort-mail.sh"'
 
 # general.
 case "$os" in
