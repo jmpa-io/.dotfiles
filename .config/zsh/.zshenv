@@ -52,6 +52,12 @@ case "$os" in
 
 esac
 
+# email-manager.
+if [[ -d "$GOPATH/src/github.com/jmpa-io/email-manager" ]]; then
+  export EMAIL_MANAGER_BIN="$GOPATH/src/github.com/jmpa-io/email-manager/email-manager"
+  export EMAIL_FOLDERS_CONFIG="$GOPATH/src/github.com/jmpa-io/email-manager/folders.json"
+fi
+
 # github — set after os-specific PATH so gh is guaranteed to be found.
 # silently empty if gh is not installed or not authenticated.
 export GH_TOKEN=$(gh auth token --hostname github.com 2>/dev/null || true)

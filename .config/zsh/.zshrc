@@ -120,3 +120,4 @@ case "$os" in
     alias firefox='/Applications/Firefox.app/Contents/MacOS/firefox --marionette -remote-allow-system-access'
     ;;
 esac
+

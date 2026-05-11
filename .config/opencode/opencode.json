@@ -56,9 +56,9 @@
       "command": ["npx", "--yes", "@playwright/mcp@latest"],
       "timeout": 600000
     },
-    "email-manager": {
+    "email_manager": {
       "type": "local",
-      "command": ["{env:HOME}/go/src/github.com/CBA-General/email-manager/.venv/bin/python3", "{env:HOME}/go/src/github.com/CBA-General/email-manager/server.py"],
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/email-manager/email-manager"],
       "enabled": true,
       "timeout": 60000
     },
@@ -74,7 +74,8 @@
       "enabled": true,
       "timeout": 60000,
       "environment": {
-        "POCKETSMITH_TOKEN": "{env:POCKETSMITH_TOKEN}"
+        "POCKETSMITH_TOKEN": "{env:POCKETSMITH_TOKEN}",
+        "POCKETSMITH_SESSION": "{env:POCKETSMITH_SESSION}"
       }
     },
     "gdrive": {
@@ -82,6 +83,96 @@
       "command": ["npx", "--yes", "@modelcontextprotocol/server-gdrive"],
       "enabled": false,
       "timeout": 60000
+    },
+    "up": {
+      "type": "local",
+      "command": ["{env:HOME}/go/src/github.com/jmpa-io/up-mcp/dist/up-mcp"],
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "UP_TOKEN": "{env:UP_TOKEN}"
+      }
+    },
+    "lumen": {
+      "type": "remote",
+      "url": "https://tools.lumen.cba/mcp",
+      "timeout": 600000
+    },
+    "wiz": {
+      "type": "remote",
+      "url": "https://mcp.app.wiz.io",
+      "timeout": 600000,
+      "environment": {
+        "HTTP_PROXY": "{env:HTTP_PROXY}",
+        "HTTPS_PROXY": "{env:HTTPS_PROXY}",
+        "NO_PROXY": ".app.wiz.io"
+      }
+    },
+    "snyk": {
+      "type": "local",
+      "command": ["npx", "-y", "snyk@latest", "mcp", "-t", "stdio"],
+      "timeout": 600000
+    },
+    "sonarqube": {
+      "type": "local",
+      "command": [
+        "docker", "run", "-i", "--rm",
+        "-v", "{env:SSL_CERT_FILE}:/etc/ssl/certs/ca-certificates.crt",
+        "-e", "SONARQUBE_URL",
+        "-e", "SONARQUBE_TOKEN",
+        "-e", "HTTP_PROXY",
+        "-e", "HTTPS_PROXY",
+        "mcp/sonarqube"
+      ],
+      "timeout": 600000,
+      "environment": {
+        "SONARQUBE_URL": "https://sonarqube.internal.cba",
+        "SONARQUBE_TOKEN": "{env:SONARQUBE_TOKEN}",
+        "SSL_CERT_FILE": "{env:SSL_CERT_FILE}",
+        "HTTP_PROXY": "http://host.docker.internal:3128",
+        "HTTPS_PROXY": "http://host.docker.internal:3128"
+      }
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "--yes", "chrome-devtools-mcp@latest"],
+      "timeout": 600000
+    },
+    "aws-pricing": {
+      "type": "local",
+      "command": ["uvx", "awslabs.aws-pricing-mcp-server@latest"],
+      "timeout": 600000,
+      "environment": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AWS_PROFILE": "{env:AWS_PROFILE}",
+        "AWS_REGION": "{env:AWS_REGION}"
+      }
+    },
+    "aws-developer-chatbot": {
+      "type": "local",
+      "command": [
+        "npx", "mcp-remote",
+        "https://pacman.cenepacmandev01.aws.test.au.internal.cba/mcp",
+        "--transport", "http-first",
+        "--static-oauth-client-metadata", "{\"scope\": \"openid profile\"}"
+      ],
+      "timeout": 600000
+    },
+    "cbp-server": {
+      "type": "local",
+      "command": ["python3", "{env:STENCILS_REPO_PATH}/MCP/cbp-server/server.py"],
+      "timeout": 600000,
+      "environment": {
+        "STENCILS_REPO_PATH": "{env:STENCILS_REPO_PATH}"
+      }
+    },
+    "octopus-deploy-server": {
+      "type": "local",
+      "command": ["node", "{env:BB_AI_BETA_JI_REPO_PATH}/bb-Octopus/octopus-deploy-server/build/index.js"],
+      "timeout": 600000,
+      "environment": {
+        "OCTOPUS_API_KEY": "{env:OCTOPUS_API_KEY}"
+      }
     }
   }
 }
