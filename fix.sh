@@ -84,34 +84,35 @@ echo
 #   refresh-rate, glx-no-stencil, glx-copy-from-front, glx-swap-method,
 #   dbe, sw-opti
 #
-# ~/.config/picom is a symlink to the dotfiles directory, so we operate
-# directly on the dotfiles source file.
+# ~/.config/picom is a symlink to the dotfiles directory. We write via a
+# temp file in /tmp to avoid any "too many levels of symbolic links" errors
+# that occur when tools try to resolve the path before writing.
 # ─────────────────────────────────────────────────────────────────────────────
 echo "--> Fix 3: picom — deprecated options + vsync"
 
-if [[ ! -f "$PICOM_CONFIG" ]]; then
-  warn "picom config not found at $PICOM_CONFIG — skipping"
+LIVE_PICOM="$HOME/.config/picom/picom.conf"
+
+if [[ ! -e "$LIVE_PICOM" ]]; then
+  warn "picom config not found at $LIVE_PICOM — skipping"
 else
-  # Resolve to the real file to avoid any symlink issues.
-  PICOM_REAL="$(realpath "$PICOM_CONFIG")"
-
-  # Strip deprecated options.
   DEPRECATED_PATTERN='^\s*(refresh-rate|glx-no-stencil|glx-copy-from-front|glx-swap-method|dbe|sw-opti)\s*='
-  if grep -Eq "$DEPRECATED_PATTERN" "$PICOM_REAL"; then
-    backup "$PICOM_REAL"
-    grep -Ev "$DEPRECATED_PATTERN" "$PICOM_REAL" > "${PICOM_REAL}.tmp" && mv "${PICOM_REAL}.tmp" "$PICOM_REAL"
-    ok "removed deprecated options from picom.conf"
+  TMP="$(mktemp /tmp/picom.conf.XXXXXX)"
+
+  # Read via cat (follows symlinks safely), write to tmp, then copy back.
+  cat "$LIVE_PICOM" | grep -Ev "$DEPRECATED_PATTERN" > "$TMP"
+
+  # Enable vsync in the tmp file.
+  sed -i 's/^vsync = false;/vsync = true;/' "$TMP"
+
+  # Compare and only write back if something changed.
+  if ! diff -q "$LIVE_PICOM" "$TMP" > /dev/null 2>&1; then
+    cp "$TMP" "$PICOM_CONFIG"
+    ok "picom.conf updated — deprecated options removed, vsync enabled"
   else
-    ok "picom.conf has no deprecated options"
+    ok "picom.conf already clean"
   fi
 
-  # Ensure vsync is enabled.
-  if grep -q "^vsync = true" "$PICOM_REAL"; then
-    ok "vsync already enabled"
-  else
-    sed -i 's/^vsync = false;/vsync = true;/' "$PICOM_REAL"
-    ok "set vsync = true"
-  fi
+  rm -f "$TMP"
 fi
 echo
 
