@@ -157,6 +157,28 @@ mkdir -p "$DOTFILES/dist"
   polybar --version 2>/dev/null || echo "polybar not found"
   echo ""
 
+  echo "--- picom log (last 30 lines) ---"
+  journalctl --user -u picom -n 30 --no-pager 2>/dev/null \
+    || cat "$HOME/.local/share/picom.log" 2>/dev/null \
+    || cat /tmp/picom.log 2>/dev/null \
+    || picom --log-level=warn 2>&1 | head -30 \
+    || echo "no picom log found"
+  echo ""
+
+  echo "--- polybar log (last 30 lines) ---"
+  journalctl --user -u polybar -n 30 --no-pager 2>/dev/null \
+    || cat "$HOME/.local/share/polybar/polybar.log" 2>/dev/null \
+    || cat /tmp/polybar.log 2>/dev/null \
+    || echo "no polybar log found"
+  echo ""
+
+  echo "--- all polybar module files ---"
+  for f in "$DOTFILES/.config/polybar/modules/"*.ini; do
+    echo "=== $(basename "$f") ==="
+    cat "$f"
+    echo ""
+  done
+
 } > "$DIAG"
 
 ok "diagnostics written to dist/diagnostics.txt"
