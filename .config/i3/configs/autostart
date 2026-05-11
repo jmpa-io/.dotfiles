@@ -26,7 +26,8 @@ exec_always --no-startup-id fix_xcursor
 
 # run compositor, for window effects.
 # Kill any existing instance first to avoid stacking on i3 reload.
-exec_always --no-startup-id pkill -x picom; sleep 0.5; $wm_compositor
+# Explicitly pass config path to avoid picking up /etc/xdg/picom.conf.
+exec_always --no-startup-id /bin/sh -c 'pkill -x picom; sleep 0.5; picom --config "$HOME/.config/picom/picom.conf" -b'
 
 # run volumeicon, for bindings to change volume on keyboard.
 exec --no-startup-id volumeicon
