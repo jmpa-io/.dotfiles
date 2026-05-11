@@ -1,4 +1,4 @@
-=== diagnostics: Mon 11 May 2026 20:07:53 AEST ===
+=== diagnostics: Mon 11 May 2026 20:10:24 AEST ===
 === hostname: jmpa ===
 
 --- picom.conf (live) ---
@@ -140,23 +140,23 @@ master-mixer = Master
 ; scroll up/down to change volume.
 interval = 5
 
-# unmuted — FA6 Solid speaker glyphs via font-2 (T3 in polybar 1-based index).
+# unmuted.
 format-volume = <ramp-volume> <bar-volume>
 format-volume-padding = 1
 
-# muted — FA6 Solid volume-xmark ().
+# muted.
 format-muted = <label-muted>
-label-muted = %{T3}%{T-} muted
+label-muted =  muted
 format-muted-padding = 1
 format-muted-background = ${colors.disabled}
 
 # right-click opens pavucontrol.
 click-right = pavucontrol &
 
-# ramp — low / medium / high volume (FA6 Solid: , , ).
-ramp-volume-0 = %{T3}%{T-}
-ramp-volume-1 = %{T3}%{T-}
-ramp-volume-2 = %{T3}%{T-}
+# ramp — FA6 Solid: volume-off, volume-low, volume-high.
+ramp-volume-0 = 
+ramp-volume-1 = 
+ramp-volume-2 = 
 
 # bar.
 bar-volume-width = 8
@@ -430,23 +430,23 @@ master-mixer = Master
 ; scroll up/down to change volume.
 interval = 5
 
-# unmuted — FA6 Solid speaker glyphs via font-2 (T3 in polybar 1-based index).
+# unmuted.
 format-volume = <ramp-volume> <bar-volume>
 format-volume-padding = 1
 
-# muted — FA6 Solid volume-xmark ().
+# muted.
 format-muted = <label-muted>
-label-muted = %{T3}%{T-} muted
+label-muted =  muted
 format-muted-padding = 1
 format-muted-background = ${colors.disabled}
 
 # right-click opens pavucontrol.
 click-right = pavucontrol &
 
-# ramp — low / medium / high volume (FA6 Solid: , , ).
-ramp-volume-0 = %{T3}%{T-}
-ramp-volume-1 = %{T3}%{T-}
-ramp-volume-2 = %{T3}%{T-}
+# ramp — FA6 Solid: volume-off, volume-low, volume-high.
+ramp-volume-0 = 
+ramp-volume-1 = 
+ramp-volume-2 = 
 
 # bar.
 bar-volume-width = 8
