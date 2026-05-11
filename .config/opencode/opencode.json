@@ -57,8 +57,12 @@
     "gdrive": {
       "type": "local",
       "command": ["npx", "--yes", "@modelcontextprotocol/server-gdrive"],
-      "enabled": false,
-      "timeout": 60000
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "GDRIVE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
+        "GDRIVE_TOKEN_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
+      }
     }
   }
 }
