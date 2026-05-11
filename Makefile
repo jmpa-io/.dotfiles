@@ -464,6 +464,11 @@ setup-opencode: install-opencode configure-opencode
 configure-common: ## Configure common shell files.
 configure-common: .config/common
 	$(call cfg-home,.config/common)
+	@mkdir -p $(HOME)/bin
+	@for f in $$(find .config/common/bin -maxdepth 1 -type f -name "*.sh"); do \
+		ln -sf $(PWD)/$$f $(HOME)/bin/$$(basename $$f .sh); \
+		echo "  linked $$f -> $(HOME)/bin/$$(basename $$f .sh)"; \
+	done
 
 setup-common: configure-common
 
