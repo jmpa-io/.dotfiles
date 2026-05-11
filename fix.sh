@@ -164,6 +164,15 @@ mkdir -p "$DOTFILES/dist"
     || echo "no picom log found"
   echo ""
 
+  echo "--- picom config search path ---"
+  echo "~/.config/picom/picom.conf:"
+  ls -la "$HOME/.config/picom/picom.conf" 2>/dev/null || echo "NOT FOUND"
+  echo "~/.config/picom.conf:"
+  ls -la "$HOME/.config/picom.conf" 2>/dev/null || echo "NOT FOUND"
+  echo "/etc/xdg/picom.conf:"
+  ls -la /etc/xdg/picom.conf 2>/dev/null || echo "NOT FOUND"
+  echo ""
+
   echo "--- picom stderr (run directly to capture warnings) ---"
   timeout 3 picom --no-daemon 2>&1 | head -40 || true
   echo ""
