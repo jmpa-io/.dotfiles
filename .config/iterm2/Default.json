@@ -122,7 +122,7 @@
       },
       "Custom Command": "No",
       "ASCII Anti Aliased": true,
-      "Non Ascii Font": "Monaco 12",
+      "Non Ascii Font": "FiraCodeNFM-Ret 12",
       "Vertical Spacing": 1,
       "Use Bold Font": true,
       "Option Key Sends": 0,
@@ -456,7 +456,7 @@
         "Alpha Component": 1,
         "Green Component": 0.35074537992477417
       },
-      "Use Non-ASCII Font": false,
+      "Use Non-ASCII Font": true,
       "Right Option Key Sends": 0,
       "Normal Font": "FiraCodeNFM-Ret 12",
       "Ansi 6 Color": {
