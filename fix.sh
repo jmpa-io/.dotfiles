@@ -6,7 +6,6 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 WEZTERM_CONFIG="$DOTFILES/.config/wezterm/.wezterm.lua"
 PICOM_CONFIG="$DOTFILES/.config/picom/picom.conf"
-LIVE_PICOM_CONFIG="$HOME/.config/picom/picom.conf"
 
 ok()   { printf '\033[32m  ok\033[0m  %s\n' "$*"; }
 info() { printf '\033[34minfo\033[0m  %s\n' "$*"; }
@@ -79,64 +78,38 @@ fi
 echo
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fix 3: picom — remove deprecated options + ensure symlink is correct
+# Fix 3: picom — remove deprecated options + ensure vsync is enabled
 #
-# Modern picom (Manjaro/Arch) removed several compton-era options that now
-# produce warnings or errors:
+# Modern picom (Manjaro/Arch) removed several compton-era options:
 #   refresh-rate, glx-no-stencil, glx-copy-from-front, glx-swap-method,
 #   dbe, sw-opti
 #
-# This fix:
-#   1. Ensures ~/.config/picom/picom.conf is symlinked to the dotfiles version
-#      (which is already clean). If a stale non-symlink file exists, it is
-#      backed up and replaced with the symlink.
-#   2. As a belt-and-braces measure, also strips any remaining deprecated
-#      option lines from the dotfiles source file itself.
+# ~/.config/picom is a symlink to the dotfiles directory, so we operate
+# directly on the dotfiles source file.
 # ─────────────────────────────────────────────────────────────────────────────
-echo "--> Fix 3: picom — deprecated options + symlink"
+echo "--> Fix 3: picom — deprecated options + vsync"
 
 if [[ ! -f "$PICOM_CONFIG" ]]; then
-  warn "dotfiles picom.conf not found at $PICOM_CONFIG — skipping"
+  warn "picom config not found at $PICOM_CONFIG — skipping"
 else
-  # Step 3a: ensure ~/.config/picom/picom.conf is a symlink to dotfiles.
-  # Resolve PICOM_CONFIG to its real absolute path to avoid symlink loops.
-  PICOM_CONFIG_REAL="$(realpath "$PICOM_CONFIG")"
-  mkdir -p "$HOME/.config/picom"
-  if [[ -L "$LIVE_PICOM_CONFIG" ]]; then
-    LIVE_REAL="$(realpath "$LIVE_PICOM_CONFIG" 2>/dev/null || echo "")"
-    if [[ "$LIVE_REAL" == "$PICOM_CONFIG_REAL" ]]; then
-      ok "~/.config/picom/picom.conf is already symlinked to dotfiles"
-    else
-      info "symlink points to wrong target ($LIVE_REAL) — fixing"
-      rm "$LIVE_PICOM_CONFIG"
-      ln -sf "$PICOM_CONFIG_REAL" "$LIVE_PICOM_CONFIG"
-      ok "symlinked ~/.config/picom/picom.conf -> dotfiles"
-    fi
-  elif [[ -f "$LIVE_PICOM_CONFIG" ]]; then
-    backup "$LIVE_PICOM_CONFIG"
-    rm "$LIVE_PICOM_CONFIG"
-    ln -sf "$PICOM_CONFIG_REAL" "$LIVE_PICOM_CONFIG"
-    ok "replaced stale file with symlink -> dotfiles"
-  else
-    ln -sf "$PICOM_CONFIG_REAL" "$LIVE_PICOM_CONFIG"
-    ok "symlinked ~/.config/picom/picom.conf -> dotfiles"
-  fi
+  # Resolve to the real file to avoid any symlink issues.
+  PICOM_REAL="$(realpath "$PICOM_CONFIG")"
 
-  # Step 3b: strip any remaining deprecated options from the real dotfiles source.
+  # Strip deprecated options.
   DEPRECATED_PATTERN='^\s*(refresh-rate|glx-no-stencil|glx-copy-from-front|glx-swap-method|dbe|sw-opti)\s*='
-  if grep -Eq "$DEPRECATED_PATTERN" "$PICOM_CONFIG_REAL"; then
-    backup "$PICOM_CONFIG_REAL"
-    grep -Ev "$DEPRECATED_PATTERN" "$PICOM_CONFIG_REAL" > "$PICOM_CONFIG_REAL.tmp" && mv "$PICOM_CONFIG_REAL.tmp" "$PICOM_CONFIG_REAL"
+  if grep -Eq "$DEPRECATED_PATTERN" "$PICOM_REAL"; then
+    backup "$PICOM_REAL"
+    grep -Ev "$DEPRECATED_PATTERN" "$PICOM_REAL" > "${PICOM_REAL}.tmp" && mv "${PICOM_REAL}.tmp" "$PICOM_REAL"
     ok "removed deprecated options from picom.conf"
   else
     ok "picom.conf has no deprecated options"
   fi
 
-  # Step 3c: ensure vsync is enabled.
-  if grep -q "^vsync = true" "$PICOM_CONFIG_REAL"; then
+  # Ensure vsync is enabled.
+  if grep -q "^vsync = true" "$PICOM_REAL"; then
     ok "vsync already enabled"
   else
-    sed -i 's/^vsync = false;/vsync = true;/' "$PICOM_CONFIG_REAL"
+    sed -i 's/^vsync = false;/vsync = true;/' "$PICOM_REAL"
     ok "set vsync = true"
   fi
 fi
