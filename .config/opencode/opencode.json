@@ -61,7 +61,7 @@
       "timeout": 60000,
       "environment": {
         "GDRIVE_OAUTH_PATH": "{env:HOME}/.config/gcloud/client_secret.json",
-        "GDRIVE_TOKEN_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
+        "GDRIVE_CREDENTIALS_PATH": "{env:HOME}/.config/gcloud/gdrivetoken.json"
       }
     }
   }
