@@ -1,0 +1,1 @@
+/Users/jordan.cleal/go/src/github.com/jmpa-io/email-manager/bin/sort-mail.sh
