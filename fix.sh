@@ -106,6 +106,30 @@ fi
 echo
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Fix 4: polybar — emoji/icon vertical spacing
+#
+# Font Awesome glyphs and Nerd Font symbols render with offset ;3 to align
+# vertically with the FiraCode text. However emoji (Unicode codepoints not
+# covered by the above) fall through to the system emoji font and inherit the
+# wrong offset, causing them to appear too high or too low relative to text.
+# Adding Noto Color Emoji as font-4 with offset ;0 fixes this.
+# This is now baked into fonts.ini — this step just verifies it landed.
+# ─────────────────────────────────────────────────────────────────────────────
+echo "--> Fix 4: polybar emoji vertical spacing (Noto Color Emoji font-4)"
+
+POLYBAR_FONTS="$DOTFILES/.config/polybar/fonts.ini"
+if [[ ! -f "$POLYBAR_FONTS" ]]; then
+  warn "polybar fonts.ini not found at $POLYBAR_FONTS — skipping"
+elif grep -q "Noto Color Emoji" "$POLYBAR_FONTS"; then
+  ok "Noto Color Emoji already present in fonts.ini"
+else
+  backup "$POLYBAR_FONTS"
+  printf '\n# emoji fallback — offset 0 prevents vertical misalignment with text.\nfont-4 = "Noto Color Emoji:scale=10;0"\n' >> "$POLYBAR_FONTS"
+  ok "added Noto Color Emoji as font-4 in fonts.ini"
+fi
+echo
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Done
 # ─────────────────────────────────────────────────────────────────────────────
 echo "==> all fixes applied."
