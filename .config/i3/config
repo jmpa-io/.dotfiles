@@ -32,7 +32,7 @@ set $wm_key_down    Down
 set $wm_terminal          wezterm
 set $wm_browser           firefox
 set $wm_app_launcher      rofi
-set $wm_compositor        picom
+set $wm_compositor        picom --config ~/.config/picom/picom.conf
 
 set $wm_audio_control_gui pavucontrol
 set $wm_audio_control_tui pulsemixer
