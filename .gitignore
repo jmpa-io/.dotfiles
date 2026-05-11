@@ -3,3 +3,6 @@
 /AWSCLIV2.pkg
 /aws
 **/.DS_Store
+
+# Work-specific opencode config — contains internal CBA URLs, not for public repos.
+.config/opencode/opencode.work.json
