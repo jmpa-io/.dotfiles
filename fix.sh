@@ -164,6 +164,10 @@ mkdir -p "$DOTFILES/dist"
     || echo "no picom log found"
   echo ""
 
+  echo "--- picom stderr (run directly to capture warnings) ---"
+  timeout 3 picom --no-daemon 2>&1 | head -40 || true
+  echo ""
+
   echo "--- polybar log (last 30 lines) ---"
   journalctl --user -u polybar -n 30 --no-pager 2>/dev/null \
     || cat "$HOME/.local/share/polybar/polybar.log" 2>/dev/null \
