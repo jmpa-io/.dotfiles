@@ -122,14 +122,3 @@ case "$os" in
     ;;
 esac
 
-# opencode: wrap to auto-start opencode-oauth-watcher in the background.
-# This watches opencode logs for MCP OAuth redirect URLs and opens them automatically.
-if command -v opencode-oauth-watcher &>/dev/null; then
-  opencode() {
-    opencode-oauth-watcher &
-    local watcher_pid=$!
-    command opencode "$@"
-    kill $watcher_pid 2>/dev/null
-  }
-fi
-
