@@ -10,7 +10,6 @@ export EDITOR="nvim"
 export BROWSER="firefox"
 
 # zsh.
-export HISTFILE="$HOME/.zhistory" # history filepath.
 export HISTSIZE=100000            # maximum events for internal history.
 export SAVEHIST=100000            # maximum events in history file.
 

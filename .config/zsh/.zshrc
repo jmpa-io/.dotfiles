@@ -33,6 +33,7 @@ setopt NO_NOTIFY              # suppress background job completion notifications
 setopt NO_MONITOR             # suppress background job status reporting entirely.
 
 # history.
+export HISTFILE="$HOME/.zhistory" # set here so it's applied after pyenv init (in ~/work) doesn't clobber it.
 setopt EXTENDED_HISTORY       # write the history file in the ':start:elapsed;command' format.
 setopt SHARE_HISTORY          # share history between all sessions.
 setopt HIST_EXPIRE_DUPS_FIRST # expire a duplicate event first when trimming history.

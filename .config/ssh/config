@@ -1,0 +1,75 @@
+# GitHub configuration.
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+
+# ---
+
+# Common for all environments.
+Host *
+  User clealj1
+  ServerAliveInterval 25
+
+# GA/CLAB.
+Host 192.168.*.* 10.211.196.* 10.211.197.* 10.211.198.* 10.211.199.*
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+
+# NonProduction DPG.
+Host 10.32.72.* 10.32.73.* 10.32.74.* 10.32.75.*
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+
+# NonProduction 10.8 range.
+Host 10.8.128.* 10.8.129.* 10.8.13?.* 10.8.14?.* 10.8.15?.* 10.8.16?.* 10.8.17?.* 10.8.18?.* 10.8.19?.* 10.8.2??.*
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+
+# NonProduction 10.10 range.
+Host 10.10.128.* 10.10.129.* 10.10.13?.* 10.10.14?.* 10.10.15?.* 10.10.16?.* 10.10.17?.* 10.10.18?.* 10.10.19?.* 10.10.2??.*
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+
+# NonProduction 10.3 range.
+Host 10.3.*.*
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+
+# NonProduction legacy.
+Host 10.211.128.* 10.211.129.* 10.211.13?.* 10.211.140.* 10.211.141.* 10.211.142.* 10.211.143.*
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+
+# Production DPG.
+Host 10.32.76.* 10.32.77.* 10.32.78.* 10.32.79.*
+  ProxyJump cba-ssh-proxy.ocga.aws.prod.au.internal.cba
+
+# PLEASE NOTE:
+# The order is important - more specific ranges above override broader ones below.
+
+# Production new ranges.
+Host 10.15.*.* 10.10.*.* 10.8.*.*
+  ProxyJump cba-ssh-proxy.ocga.aws.prod.au.internal.cba
+
+# NonProduction legacy (with exclusions).
+Host 10.211.19?.* !10.211.191.* !10.211.190.* 10.211.2??.*
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cbai
+
+# Jump host (NonProd)
+Host cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+  User clealj1
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+  ServerAliveInterval 25
+  GSSAPIAuthentication no
+
+# PTA subnet (10.33.*) via NonProd jump
+Host 10.33.*.*
+  User clealj1
+  ProxyJump cba-ssh-proxy.cnsga.aws.test.au.internal.cba
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+  ServerAliveInterval 25
+  GSSAPIAuthentication no
+
+# Common fallback
+Host *
+  User clealj1
+  ServerAliveInterval 25
