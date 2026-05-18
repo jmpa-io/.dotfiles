@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── Detect which paths changed ───────────────────────────────────────────────
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      shell: ${{ steps.filter.outputs.shell }}
+      makefile: ${{ steps.filter.outputs.makefile }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shell:
+              - '**/*.sh'
+              - '.config/zsh/**'
+              - '.config/common/bin/**'
+              - 'scripts/**'
+            makefile:
+              - 'Makefile'
+
+  # ── shellcheck ───────────────────────────────────────────────────────────────
+  shellcheck:
+    needs: changes
+    if: needs.changes.outputs.shell == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: Lint shell scripts
+        run: |
+          find . -name '*.sh' -not -path './.git/*' | xargs shellcheck
+      - name: Lint zsh configs
+        run: |
+          find .config/zsh -type f | xargs shellcheck --shell=bash
+
+  # ── makefile ─────────────────────────────────────────────────────────────────
+  makefile:
+    needs: changes
+    if: needs.changes.outputs.makefile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Makefile targets parse correctly
+        run: make --dry-run help
