@@ -59,6 +59,7 @@ configure: ## Configure ALL tools.
 configure: \
 	configure-git \
 	configure-github-cli \
+	configure-ssh \
 	configure-awscli \
 	configure-zsh \
 	configure-starship \
@@ -79,6 +80,7 @@ setup: \
 	setup-go \
 	setup-git \
 	setup-github-cli \
+	setup-ssh \
 	setup-awscli \
 	setup-zsh \
 	setup-zsh-syntax-highlighting \
@@ -155,10 +157,25 @@ install-github-cli: ## Install 'github-cli'.
 	$(call pkg,gh,github-cli)
 
 configure-github-cli: ## Configure 'github-cli'.
+configure-github-cli: .config/gh
+	mkdir -p $(HOME)/.config/gh
+	ln -sf $(PWD)/.config/gh/config.yml $(HOME)/.config/gh/config.yml
 	gh auth status &>/dev/null || gh auth login
 	gh auth setup-git
 
 setup-github-cli: install-github-cli configure-github-cli
+
+# ---------------------------------------------------------------
+# ssh (assumed installed)
+# ---------------------------------------------------------------
+
+.PHONY: configure-ssh setup-ssh
+configure-ssh: ## Configure 'ssh'.
+configure-ssh: .config/ssh
+	mkdir -p $(HOME)/.ssh
+	ln -sf $(PWD)/.config/ssh/config $(HOME)/.ssh/config
+
+setup-ssh: configure-ssh
 
 # ---------------------------------------------------------------
 # awscli
