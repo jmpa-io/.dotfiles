@@ -35,7 +35,6 @@ export GREP_COLOR='mt=01;34'
 export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
 
 # os-specific configurations.
-# NOTE: Darwin block must come before GH_TOKEN so brew-installed gh is on PATH.
 case "$os" in
   "Darwin")
     # homebrew — prepend so brew tools take precedence.
@@ -58,6 +57,3 @@ if [[ -d "$GOPATH/src/github.com/jmpa-io/email-manager" ]]; then
   export EMAIL_FOLDERS_CONFIG="$GOPATH/src/github.com/jmpa-io/email-manager/folders.json"
 fi
 
-# github — set after os-specific PATH so gh is guaranteed to be found.
-# silently empty if gh is not installed or not authenticated.
-export GH_TOKEN=$(gh auth token --hostname github.com 2>/dev/null || true)
