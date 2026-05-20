@@ -1,3 +1,6 @@
+# Dotfiles — install and configure tools on macOS and Linux.
+
+
 SHELL = /bin/bash
 
 # Detected OS: darwin or linux.
@@ -429,18 +432,12 @@ ifeq ($(OS),darwin)
 	ln -sfn $(PWD)/.config/iterm2/Default.json \
 		"$(HOME)/Library/Application Support/iTerm2/DynamicProfiles/Default.json"
 else
-configure-iterm2:
 	@echo "Skipping iTerm2 configuration (macOS only)."
 endif
 
 setup-iterm2: ## Install font and configure iTerm2 (macOS only).
-ifeq ($(OS),darwin)
 setup-iterm2: configure-iterm2
-	brew install --cask font-fira-code-nerd-font
-else
-setup-iterm2:
-	@echo "Skipping iTerm2 setup (macOS only)."
-endif
+	@[ "$(OS)" = "darwin" ] && brew install --cask font-fira-code-nerd-font || true
 
 # ---------------------------------------------------------------
 # fonts (Linux only)

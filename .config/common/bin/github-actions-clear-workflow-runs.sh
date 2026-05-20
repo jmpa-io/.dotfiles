@@ -21,7 +21,7 @@ repo="$1"
 
 # retrieve GitHub token.
 token="${ADMIN_GITHUB_TOKEN:-$GITHUB_TOKEN}"
-if [[ -z "$token" && -z "$GITHUB_ACTION" ]]; then
+if [[ -z "$token" && -z "$GITHUB_ACTIONS" ]]; then
   aws sts get-caller-identity &>/dev/null \
     || die "unable to connect to AWS; are you authed?"
   token=$(aws ssm get-parameter --name "/tokens/github" \

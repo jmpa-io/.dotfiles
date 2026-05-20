@@ -1,6 +1,7 @@
 
 # determine os (export so it's available in .zshrc).
-export os=$(uname) || { echo "failed to get operating system" >&2; exit 1; }
+os=$(uname) || { echo "failed to get operating system" >&2; exit 1; }
+export os
 
 # general (cross-platform).
 export DOTFILES="$HOME/.dotfiles"

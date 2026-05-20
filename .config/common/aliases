@@ -44,7 +44,7 @@ esac
 # opens the last screenshot taken in Firefox (resolved at invocation time, not source time).
 olss() {
   local f
-  f=$(ls "$HOME/Pictures" | sort -r | head -n1)
+  f=$(ls -1t "$HOME/Pictures" | head -n1)
   [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
 }
 

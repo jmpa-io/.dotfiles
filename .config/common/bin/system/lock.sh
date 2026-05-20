@@ -17,7 +17,7 @@ grey="#44475a"
 # lock screen.
 i3lock \
   \
-  --time-str="%H:%M %p" \
+  --time-str="%H:%M" \
   --date-str="%A, %e %B %Y" \
   --screen 1 \
   --blur 10 \

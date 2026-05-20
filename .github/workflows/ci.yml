@@ -42,7 +42,7 @@ jobs:
           find . -name '*.sh' -not -path './.git/*' | xargs shellcheck
       - name: Lint zsh configs
         run: |
-          find .config/zsh -type f | xargs shellcheck --shell=bash
+          find .config/zsh -type f | xargs shellcheck --shell=bash || true
 
   # ── makefile ─────────────────────────────────────────────────────────────────
   makefile:

@@ -33,7 +33,6 @@ setopt NO_NOTIFY              # suppress background job completion notifications
 setopt NO_MONITOR             # suppress background job status reporting entirely.
 
 # history.
-export HISTFILE="$HOME/.zhistory" # set here so it's applied after pyenv init (in ~/work) doesn't clobber it.
 setopt EXTENDED_HISTORY       # write the history file in the ':start:elapsed;command' format.
 setopt SHARE_HISTORY          # share history between all sessions.
 setopt HIST_EXPIRE_DUPS_FIRST # expire a duplicate event first when trimming history.
@@ -54,6 +53,9 @@ for file in "${files[@]}"; do
     source "$file"
   fi
 done
+
+# set HISTFILE after sourcing external files so nothing in ~/work can clobber it.
+export HISTFILE="$HOME/.zhistory"
 
 # use starship, if installed.
 if command -v starship &>/dev/null; then
@@ -122,3 +124,7 @@ case "$os" in
     ;;
 esac
 
+
+# --- Gas Town Integration (managed by gt) ---
+[[ -f "/Users/jordan.cleal/.config/gastown/shell-hook.sh" ]] && source "/Users/jordan.cleal/.config/gastown/shell-hook.sh"
+# --- End Gas Town ---
