@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# invalidates files in the CloudFront cache, for the repostitory this script is
-# execututed in - best to be run in a website repository.
+# invalidates files in the CloudFront cache, for the repository this script is
+# executed in - best to be run in a website repository.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
@@ -31,7 +31,7 @@ repo="$(basename "$PWD")" \
 data=$(aws cloudfront list-distributions --query 'DistributionList.Items[]') \
   || die "failed to list cloudfront distributions"
 distributionId=$(<<< "$data" jq -r --arg name "$repo" '.[] | select(.Comment==$name) | .Id') \
-  || die "failed to parse response from listing cloudfront distbutions"
+  || die "failed to parse response from listing cloudfront distributions"
 [[ -z "$distributionId" ]] \
   && die "failed to find distribution id for $repo"
 

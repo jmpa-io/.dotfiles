@@ -6,9 +6,9 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
 
 # check deps.
 deps=("rclone")
-for dep in "${deps[@]}"; do hash "$dep" || missing+=("$dep"); done
-if [[ "${#missing[*]}" -gt 0 ]]; then
-  [[ "${#missing}" -gt 1 ]] && s="s"
+for dep in "${deps[@]}"; do hash "$dep" 2>/dev/null || missing+=("$dep"); done
+if [[ "${#missing[@]}" -gt 0 ]]; then
+  s=""; [[ "${#missing[@]}" -gt 1 ]] && s="s"
   die "missing dep${s}: ${missing[*]}"
 fi
 

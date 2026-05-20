@@ -7,10 +7,12 @@ if [[ -f "$pidFile" ]]; then
   pid=$(<"$pidFile")
   if ps -p "$pid" >/dev/null 2>&1; then
     kill "$pid" && rm -f "$pidFile"
+    pkill -USR1 -x polybar
     exit 0
   fi
 fi
 
 # Start xautolock.
 "$HOME/bin/system/xautolock-start.sh"
+pkill -USR1 -x polybar
 
