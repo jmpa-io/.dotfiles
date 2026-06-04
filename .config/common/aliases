@@ -48,6 +48,20 @@ olss() {
   [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
 }
 
+# Writes the active AWS_PROFILE to ~/work so it persists across new terminals.
+# Only writes if ~/work exists — no-op otherwise.
+_aws_write_profile_to_work() {
+  local profile="$1"
+  local work="$HOME/work"
+  [[ -f "$work" ]] || return 0
+  # Replace existing AWS_PROFILE line or append if not present.
+  if grep -q "^export AWS_PROFILE=" "$work"; then
+    sed -i '' "s|^export AWS_PROFILE=.*|export AWS_PROFILE=\"$profile\"|" "$work"
+  else
+    echo "export AWS_PROFILE=\"$profile\"" >> "$work"
+  fi
+}
+
 # aws overrides.
 aws() {
   case $* in
@@ -73,9 +87,11 @@ aws() {
       done
       ;;
 
-    # resets the AWS_PROFILE to the default profile.
+     # resets the AWS_PROFILE to the default profile.
     "profile clear")
-      export AWS_PROFILE="default" ;;
+      export AWS_PROFILE="default"
+      _aws_write_profile_to_work "default"
+      ;;
 
     # logs into the AWS Account associated with the given profile.
     "login "*)
@@ -91,9 +107,11 @@ aws() {
       admin_profile="${profile}-admin"
       if command aws --no-cli-pager configure list-profiles | grep -q "^${admin_profile}$"; then
         export AWS_PROFILE="$admin_profile"
+        _aws_write_profile_to_work "$admin_profile"
         echo "Switched to admin profile: $admin_profile"
       else
         export AWS_PROFILE="$profile"
+        _aws_write_profile_to_work "$profile"
         echo "Using profile: $profile"
       fi
       ;;
