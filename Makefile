@@ -72,6 +72,7 @@ configure: \
 	configure-polybar \
 	configure-picom \
 	configure-i3 \
+	configure-i3lock \
 	configure-iterm2 \
 	configure-opencode \
 	configure-common
@@ -102,7 +103,8 @@ setup: \
 	setup-fonts \
 	setup-opencode \
 	setup-common \
-	setup-i3
+	setup-i3 \
+	setup-i3lock
 
 .PHONY: update
 update: ## Update all brew/pacman packages.
@@ -382,6 +384,26 @@ configure-i3:
 endif
 
 setup-i3: configure-i3
+
+# ---------------------------------------------------------------
+# i3lock (Linux only)
+# ---------------------------------------------------------------
+
+.PHONY: configure-i3lock setup-i3lock
+configure-i3lock: ## Configure 'i3lock' PAM auth (Linux only).
+ifeq ($(OS),linux)
+	@if [[ ! -f /etc/pam.d/i3lock ]]; then \
+		echo "auth include login" | sudo tee /etc/pam.d/i3lock > /dev/null; \
+		echo "  created /etc/pam.d/i3lock"; \
+	else \
+		echo "  /etc/pam.d/i3lock already exists — skipping"; \
+	fi
+else
+configure-i3lock:
+	@echo "Skipping i3lock configuration (Linux only)."
+endif
+
+setup-i3lock: configure-i3lock
 
 # ---------------------------------------------------------------
 # jq
