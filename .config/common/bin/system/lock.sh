@@ -2,7 +2,10 @@
 # uses i3lock to lock the screen on this machine.
 
 # check deps.
-hash i3lock || { echo "missing i3lock"; exit 1; }
+hash i3lock || {
+  echo "missing i3lock"
+  exit 1
+}
 
 # colors.
 yellow="#f1fa8c"
@@ -17,7 +20,7 @@ grey="#44475a"
 # lock screen.
 i3lock \
   \
-  --time-str="%H:%M" \
+  --time-str="%I:%M %p" \
   --date-str="%A, %e %B %Y" \
   --screen 1 \
   --blur 10 \
@@ -61,4 +64,3 @@ i3lock \
   --layout-color="$blue" \
   --date-color="$cyan" \
   --time-color="$magenta"
-
