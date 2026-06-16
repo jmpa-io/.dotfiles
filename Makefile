@@ -137,7 +137,7 @@ dist/%: dist
 
 .PHONY: install-go setup-go
 install-go: ## Install 'go'.
-	$(call pkg,go,golang)
+	$(call pkg,go)
 
 setup-go: install-go
 # NOTE: go is also configured in .zshenv.
