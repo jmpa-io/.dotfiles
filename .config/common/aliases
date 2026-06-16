@@ -94,14 +94,22 @@ aws() {
       ;;
 
     # logs into the AWS Account associated with the given profile.
+    # supports --no-browser flag for remote/headless login (prints URL instead of opening browser).
     "login "*)
       profile="$2"
+      no_browser=0
+      [[ "$*" == *"--no-browser"* ]] && no_browser=1
+
       if ! command aws --no-cli-pager configure list-profiles | grep -q "^${profile}$"; then
         echo "'$profile' is not a valid AWS profile; Run 'aws profiles' to see a list of profiles."
         return 1
       fi
 
-      command aws sso login --profile "$profile"
+      if [[ "$no_browser" == 1 ]]; then
+        command aws sso login --profile "$profile" --no-browser
+      else
+        command aws sso login --profile "$profile"
+      fi
 
       # Check if there's a corresponding -admin profile and use that instead
       admin_profile="${profile}-admin"
