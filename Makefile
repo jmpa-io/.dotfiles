@@ -104,7 +104,8 @@ setup: \
 	setup-opencode \
 	setup-common \
 	setup-i3 \
-	setup-i3lock
+	setup-i3lock \
+	setup-iterm2
 
 .PHONY: update
 update: ## Update all brew/pacman packages.
@@ -198,7 +199,7 @@ else
 	else \
 		curl -sSLo dist/awscli/awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip; \
 	fi
-	unzip dist/awscli/awscli.zip -d dist/awscli/
+	unzip -o dist/awscli/awscli.zip -d dist/awscli/
 	dist/awscli/aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
 endif
 
@@ -263,7 +264,7 @@ ifeq ($(OS),darwin)
 else
 	curl -sSLo dist/starship/install.sh https://starship.rs/install.sh
 	chmod +x dist/starship/install.sh
-	dist/starship/install.sh -V -y
+	dist/starship/install.sh -y
 endif
 
 configure-starship: ## Configure 'starship'.
@@ -422,7 +423,7 @@ setup-jq: install-jq
 .PHONY: install-docker setup-docker
 install-docker: ## Install 'docker'.
 ifeq ($(OS),darwin)
-	brew install docker
+	brew install --cask docker
 else
 	sudo pacman -S --noconfirm docker docker-compose
 endif
@@ -501,7 +502,7 @@ configure-common: ## Configure common shell files.
 configure-common: .config/common
 	$(call cfg-home,.config/common)
 	@mkdir -p $(HOME)/bin
-	@for f in $$(find .config/common/bin -maxdepth 1 -type f -name "*.sh"); do \
+	@for f in $$(find $(PWD)/.config/common/bin -maxdepth 1 -type f -name "*.sh"); do \
 		ln -sf $(PWD)/$$f $(HOME)/bin/$$(basename $$f .sh); \
 		echo "  linked $$f -> $(HOME)/bin/$$(basename $$f .sh)"; \
 	done
@@ -519,7 +520,7 @@ clean: ## Remove generated files.
 .PHONY: help
 help: ## Print this help page.
 	@echo "Available targets:"
-	@awk_script='\
+	@awk '\
 		/^[a-zA-Z\-\\_0-9%\/$$]+:/ { \
 			target = $$1; \
 			gsub("\\$$1", "%", target); \
@@ -528,7 +529,6 @@ help: ## Print this help page.
 				helpMessage = $$0; \
 				nb = sub(/^[^:]*:.* ## /, "", helpMessage); \
 			} \
-			if (nb) print "\033[33m" target "\033[0m" helpMessage; \
+			if (nb) printf "\033[33m%-35s\033[0m %s\n", target, helpMessage; \
 		} { helpMessage = $$0 } \
-	'; \
-	awk "$$awk_script" $(MAKEFILE_LIST) | column -ts:
+	' $(MAKEFILE_LIST)
