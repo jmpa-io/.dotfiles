@@ -56,7 +56,11 @@ _aws_write_profile_to_work() {
   [[ -f "$work" ]] || return 0
   # Replace existing AWS_PROFILE line or append if not present.
   if grep -q "^export AWS_PROFILE=" "$work"; then
-    sed -i '' "s|^export AWS_PROFILE=.*|export AWS_PROFILE=\"$profile\"|" "$work"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      sed -i '' "s|^export AWS_PROFILE=.*|export AWS_PROFILE=\"$profile\"|" "$work"
+    else
+      sed -i "s|^export AWS_PROFILE=.*|export AWS_PROFILE=\"$profile\"|" "$work"
+    fi
   else
     echo "export AWS_PROFILE=\"$profile\"" >> "$work"
   fi
