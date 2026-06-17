@@ -210,3 +210,51 @@ host=github.com" 2>/dev/null || true
       command git "$@" ;;
   esac
 }
+
+# homelab loop — starts (or re-attaches to) the homelab deployment loop in tmux.
+# Usage:
+#   homelab loop        — start/attach to the loop in a tmux session
+#   homelab loop-detach — start the loop detached (returns to shell immediately)
+#   homelab loop-logs   — tail the loop log
+#   homelab status      — show current loop state
+homelab() {
+  local HOMELAB_DIR="${HOME}/go/src/github.com/jmpa-io/homelab"
+  local SESSION="homelab-loop"
+
+  case "${1:-}" in
+    loop)
+      if tmux has-session -t "$SESSION" 2>/dev/null; then
+        echo "Attaching to existing homelab-loop session..."
+        tmux attach -t "$SESSION"
+      else
+        echo "Starting homelab loop in tmux session '$SESSION'..."
+        tmux new-session -s "$SESSION" -c "$HOMELAB_DIR" "make homelab-loop-resilient"
+      fi
+      ;;
+    loop-detach)
+      if tmux has-session -t "$SESSION" 2>/dev/null; then
+        echo "homelab-loop session already running."
+      else
+        echo "Starting homelab loop detached..."
+        tmux new-session -d -s "$SESSION" -c "$HOMELAB_DIR" "make homelab-loop-resilient"
+        echo "Loop started. Attach with: homelab loop"
+      fi
+      ;;
+    loop-logs)
+      tail -f "$HOMELAB_DIR/runs/$(ls -t "$HOMELAB_DIR/runs/" | head -1)"
+      ;;
+    status)
+      python3 -c "
+import json
+with open('$HOMELAB_DIR/loop-run-state.json') as f: r = json.load(f)
+print(f\"Status:    {r.get('status')}\")
+print(f\"Target:    {r.get('current_target')}\")
+print(f\"Attempt:   {r.get('current_attempt')}\")
+print(f\"Completed: {r.get('completed_targets')}\")
+"
+      ;;
+    *)
+      echo "Usage: homelab [loop|loop-detach|loop-logs|status]"
+      ;;
+  esac
+}
