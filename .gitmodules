@@ -1,3 +1,9 @@
 [submodule ".config/neovim"]
 	path = .config/neovim
 	url = https://github.com/jmpa-io/NvChad
+[submodule ".tmux/plugins/tpm"]
+	path = .tmux/plugins/tpm
+	url = https://github.com/tmux-plugins/tpm
+[submodule ".tmux/plugins/tmux"]
+	path = .tmux/plugins/tmux
+	url = https://github.com/dracula/tmux
