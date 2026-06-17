@@ -13,6 +13,35 @@ for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 # zsh.
 alias zsrc='for f in "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/work"; do [[ -f "$f" ]] && source "$f"; done'
 
+# Broadcast 'source ~/work' to all panes in the current tmux session.
+# Use after key rotation so all shells pick up the new PORTKEY_API_KEY immediately.
+alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {} "source $HOME/work" Enter'
+
+# tmux sessions — each creates or attaches to a named session with a fixed layout.
+# Use across multiple screens — attach from any window with the same alias.
+
+# work: 2x2 grid (4 panes) — CBA work session
+s-work() {
+  tmux new-session -d -s work 2>/dev/null
+  tmux split-window -h -t work
+  tmux split-window -v -t work:1.1
+  tmux split-window -v -t work:1.2
+  tmux select-pane -t work:1.1
+  tmux attach-session -t work
+}
+
+# homelab: main left + 2 stacked right (3 panes)
+s-homelab() {
+  tmux new-session -d -s homelab 2>/dev/null
+  tmux split-window -h -t homelab
+  tmux split-window -v -t homelab:1.2
+  tmux select-pane -t homelab:1.1
+  tmux attach-session -t homelab
+}
+
+# misc: single pane — clean shell for one-offs
+s-misc() { tmux new-session -A -s misc; }
+
 # email.
 alias sort-mail='bash "$DOTFILES/.config/common/bin/sort-mail.sh"'
 
