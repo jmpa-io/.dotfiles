@@ -55,7 +55,8 @@ install: \
 	install-wezterm \
 	install-github-cli \
 	install-fonts \
-	install-opencode
+	install-opencode \
+	install-tmux
 
 .PHONY: configure
 configure: ## Configure ALL tools.
@@ -75,7 +76,8 @@ configure: \
 	configure-i3lock \
 	configure-iterm2 \
 	configure-opencode \
-	configure-common
+	configure-common \
+	configure-tmux
 
 .PHONY: setup
 setup: ## Install AND configure ALL tools.
@@ -516,6 +518,18 @@ setup-common: configure-common
 .PHONY: clean
 clean: ## Remove generated files.
 	rm -rf dist
+
+# ── tmux ──────────────────────────────────────────────────────────────────────
+
+.PHONY: install-tmux configure-tmux setup-tmux
+install-tmux: ## Install 'tmux'.
+	$(call pkg,tmux)
+
+configure-tmux: ## Configure 'tmux'.
+configure-tmux: .config/tmux $(HOME)/.config
+	$(call cfg,.config/tmux)
+
+setup-tmux: install-tmux configure-tmux
 
 .PHONY: help
 help: ## Print this help page.
