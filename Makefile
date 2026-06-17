@@ -528,6 +528,7 @@ install-tmux: ## Install 'tmux'.
 configure-tmux: ## Configure 'tmux'.
 configure-tmux: .config/tmux $(HOME)/.config
 	$(call cfg,.config/tmux)
+	ln -sfn $(PWD)/.tmux $(HOME)/.tmux
 
 setup-tmux: install-tmux configure-tmux
 
