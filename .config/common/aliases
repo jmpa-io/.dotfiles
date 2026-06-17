@@ -211,36 +211,44 @@ host=github.com" 2>/dev/null || true
   esac
 }
 
-# homelab loop — starts (or re-attaches to) the homelab deployment loop in tmux.
+# homelab — manage the homelab deployment loop.
 # Usage:
-#   homelab loop        — start/attach to the loop in a tmux session
-#   homelab loop-detach — start the loop detached (returns to shell immediately)
-#   homelab loop-logs   — tail the loop log
-#   homelab status      — show current loop state
+#   homelab          — start/attach to the resilient loop in tmux (default)
+#   homelab attach   — attach to existing tmux session
+#   homelab logs     — tail the latest run log
+#   homelab status   — show current loop state
+#   homelab ack      — acknowledge a needs-human state and resume
 homelab() {
   local HOMELAB_DIR="${HOME}/go/src/github.com/jmpa-io/homelab"
   local SESSION="homelab-loop"
 
-  case "${1:-}" in
-    loop)
+  case "${1:-start}" in
+    start|"")
       if tmux has-session -t "$SESSION" 2>/dev/null; then
-        echo "Attaching to existing homelab-loop session..."
+        echo "homelab-loop already running — attaching..."
         tmux attach -t "$SESSION"
       else
-        echo "Starting homelab loop in tmux session '$SESSION'..."
-        tmux new-session -s "$SESSION" -c "$HOMELAB_DIR" "make homelab-loop-resilient"
-      fi
-      ;;
-    loop-detach)
-      if tmux has-session -t "$SESSION" 2>/dev/null; then
-        echo "homelab-loop session already running."
-      else
-        echo "Starting homelab loop detached..."
+        echo "Starting homelab resilient loop..."
         tmux new-session -d -s "$SESSION" -c "$HOMELAB_DIR" "make homelab-loop-resilient"
-        echo "Loop started. Attach with: homelab loop"
+        echo "Loop started. Run 'homelab attach' to watch it."
       fi
       ;;
-    loop-logs)
+    attach)
+      if tmux has-session -t "$SESSION" 2>/dev/null; then
+        tmux attach -t "$SESSION"
+      else
+        echo "No homelab-loop session running. Run 'homelab' to start it."
+      fi
+      ;;
+    stop)
+      if tmux has-session -t "$SESSION" 2>/dev/null; then
+        tmux kill-session -t "$SESSION"
+        echo "homelab-loop stopped."
+      else
+        echo "No homelab-loop session running."
+      fi
+      ;;
+    logs)
       tail -f "$HOMELAB_DIR/runs/$(ls -t "$HOMELAB_DIR/runs/" | head -1)"
       ;;
     status)
@@ -253,8 +261,11 @@ print(f\"Attempt:   {r.get('current_attempt')}\")
 print(f\"Completed: {r.get('completed_targets')}\")
 "
       ;;
+    ack)
+      make -C "$HOMELAB_DIR" loop-ack
+      ;;
     *)
-      echo "Usage: homelab [loop|loop-detach|loop-logs|status]"
+      echo "Usage: homelab [start|attach|stop|logs|status|ack]"
       ;;
   esac
 }
