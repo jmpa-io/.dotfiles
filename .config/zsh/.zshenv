@@ -20,9 +20,9 @@ export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
 # go.
 export PATH="$PATH:/usr/local/go/bin"
 export GOPATH="$ROOT/go"
-export GOPRIVATE="github.com/jmpa-io,github.com/jcleal"
-export CDPATH="$GOPATH/src/github.com/jmpa-io"
 export PATH="$PATH:$GOPATH/bin"
+# NOTE: GOPRIVATE and CDPATH are set in ~/work — they include CBA orgs and are
+# machine-specific so they live outside dotfiles.
 
 # aws.
 export AWS_DEFAULT_REGION="ap-southeast-2"
