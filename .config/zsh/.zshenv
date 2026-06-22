@@ -5,8 +5,8 @@ export os
 
 # general (cross-platform).
 export DOTFILES="$HOME/.dotfiles"
-export ROOT="$HOME"
-export PATH="$PATH:$ROOT/bin"
+export ROOT="$HOME/go/src/github.com"
+export PATH="$PATH:$HOME/bin"
 export EDITOR="nvim"
 export BROWSER="firefox"
 
@@ -19,10 +19,13 @@ export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
 
 # go.
 export PATH="$PATH:/usr/local/go/bin"
-export GOPATH="$ROOT/go"
+export GOPATH="$HOME/go"
 export PATH="$PATH:$GOPATH/bin"
 # NOTE: GOPRIVATE and CDPATH are set in ~/work — they include CBA orgs and are
 # machine-specific so they live outside dotfiles.
+
+# cdpath — jump directly into any repo by name.
+export CDPATH=".:$ROOT/jmpa-io:$ROOT/jcleal"
 
 # aws.
 export AWS_DEFAULT_REGION="ap-southeast-2"
