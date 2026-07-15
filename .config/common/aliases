@@ -20,30 +20,108 @@ alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {
 # tmux sessions — each creates or attaches to a named session with a fixed layout.
 # Use across multiple screens — attach from any window with the same alias.
 
-# work: 2x2 grid (4 panes) — CBA work session
-s-work() {
-  tmux new-session -d -s work 2>/dev/null
-  tmux split-window -h -t work
-  tmux split-window -v -t work:1.1
-  tmux split-window -v -t work:1.2
-  tmux select-pane -t work:1.1
-  tmux attach-session -t work
+# work-1: wide left + 2 stacked right (3 panes) — CBA work session
+t-work-1() {
+  if ! tmux has-session -t work-1 2>/dev/null; then
+    tmux new-session -d -s work-1
+    tmux split-window -h -t work-1
+    tmux split-window -v -t work-1:1.2
+    tmux select-pane -t work-1:1.1
+  fi
+  tmux attach-session -t work-1
+}
+
+# work-2: 2 stacked left + wide right (3 panes) — opposite of work-1
+t-work-2() {
+  if ! tmux has-session -t work-2 2>/dev/null; then
+    tmux new-session -d -s work-2
+    tmux split-window -h -t work-2
+    tmux split-window -v -t work-2:1.1
+    tmux select-pane -t work-2:1.2
+  fi
+  tmux attach-session -t work-2
+}
+
+# work-3: 2 terminals side by side (2 panes) — CBA work session
+t-work-3() {
+  if ! tmux has-session -t work-3 2>/dev/null; then
+    tmux new-session -d -s work-3
+    tmux split-window -h -t work-3
+    tmux select-pane -t work-3:1.1
+  fi
+  tmux attach-session -t work-3
+}
+
+# work-4: 2 terminals side by side (2 panes) — same as work-3
+t-work-4() {
+  if ! tmux has-session -t work-4 2>/dev/null; then
+    tmux new-session -d -s work-4
+    tmux split-window -h -t work-4
+    tmux select-pane -t work-4:1.1
+  fi
+  tmux attach-session -t work-4
+}
+
+# work-5: single terminal — clean session
+t-work-5() {
+  tmux new-session -A -s work-5
 }
 
 # homelab: main left + 2 stacked right (3 panes)
-s-homelab() {
-  tmux new-session -d -s homelab 2>/dev/null
-  tmux split-window -h -t homelab
-  tmux split-window -v -t homelab:1.2
-  tmux select-pane -t homelab:1.1
+t-homelab() {
+  if ! tmux has-session -t homelab 2>/dev/null; then
+    tmux new-session -d -s homelab
+    tmux split-window -h -t homelab
+    tmux split-window -v -t homelab:1.2
+    tmux select-pane -t homelab:1.1
+  fi
   tmux attach-session -t homelab
 }
 
 # misc: single pane — clean shell for one-offs
-s-misc() { tmux new-session -A -s misc; }
+t-misc() { tmux new-session -A -s misc; }
 
-# email.
-alias sort-mail='bash "$DOTFILES/.config/common/bin/sort-mail.sh"'
+# list running tmux sessions
+alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
+
+# print a summary of all tmux aliases and how sessions work
+t-help() {
+  cat <<'EOF'
+
+  Sessions
+  ────────
+  t-work-1    work session 1  (3 panes: wide left + 2 stacked right)
+  t-work-2    work session 2  (3 panes: 2 stacked left + wide right)
+  t-work-3    work session 3  (2 panes: side by side)
+  t-work-4    work session 4  (2 panes: side by side)
+  t-work-5    work session 5  (single pane)
+  t-homelab   homelab         (3 panes: main left + 2 right)
+  t-misc      misc            (single pane)
+
+  Utility
+  ───────
+  t-ls        list running sessions
+  t-help      show this help
+  b-src       broadcast 'source ~/work' to all panes
+
+  Recovery
+  ────────
+  Sessions auto-save every 15 mins via tmux-continuum.
+  After a crash or reboot, just run the alias again — it restores.
+
+  Key bindings
+  ────────────
+  Ctrl+B r          reload tmux config
+  Ctrl+B t          floating scratchpad terminal
+  Ctrl+B s          fuzzy session switcher (fzf)
+  Ctrl+B y          toggle pane sync (types to all panes)
+  Ctrl+\            split right
+  Ctrl+G            split down
+  Shift+Left/Right  previous/next window
+  Alt+Arrow         move between panes
+
+EOF
+}
 
 # general.
 case "$os" in
@@ -85,7 +163,7 @@ _aws_write_profile_to_work() {
   [[ -f "$work" ]] || return 0
   # Replace existing AWS_PROFILE line or append if not present.
   if grep -q "^export AWS_PROFILE=" "$work"; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [[ "$os" == "Darwin" ]]; then
       sed -i '' "s|^export AWS_PROFILE=.*|export AWS_PROFILE=\"$profile\"|" "$work"
     else
       sed -i "s|^export AWS_PROFILE=.*|export AWS_PROFILE=\"$profile\"|" "$work"
@@ -159,7 +237,7 @@ aws() {
 
     # a quick way to auth to the given AWS ECR repository, using the ARN.
     "ecr "*.dkr.ecr.*.amazonaws.com*)
-      command aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin "$2" ;;
+      command aws ecr get-login-password --region "${AWS_DEFAULT_REGION:-ap-southeast-2}" | docker login --username AWS --password-stdin "$2" ;;
 
     # run the default command, if none of the above are applicable.
     *)
@@ -237,5 +315,283 @@ host=github.com" 2>/dev/null || true
     # run the default command, if none of the above are applicable.
     *)
       command git "$@" ;;
+  esac
+}
+
+# _worktree_pick — shared worktree picker used by opencode() and claude().
+# Prints the selected worktree path to stdout, or nothing if cancelled/unavailable.
+# $1 = prompt label (e.g. "opencode" or "claude")
+_worktree_pick() {
+  local prompt="${1:-opencode}"
+
+  local root
+  root=$(git rev-parse --show-toplevel 2>/dev/null)
+  [[ -z "$root" ]] && return 0
+
+  local wt_count
+  wt_count=$(git -C "$root" worktree list --porcelain | grep -c '^worktree ') || true
+  [[ "$wt_count" -le 1 ]] && return 0
+
+  command -v fzf &>/dev/null || return 0
+
+  local worktree_lines
+  worktree_lines=$(git -C "$root" worktree list --porcelain | awk -v root="$root" '
+    /^worktree / { path=$2; branch=""; sha="" }
+    /^HEAD /     { sha=substr($2,1,7) }
+    /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
+    /^$/ {
+      if (path != "") {
+        if (branch != "") {
+          marker = (path == root) ? "* " : "  "
+          printf "%s%s\n", marker, branch
+        } else if (sha != "") {
+          marker = (path == root) ? "* " : "  "
+          printf "%s(detached @ %s)\n", marker, sha
+        }
+        path=""; branch=""; sha=""
+      }
+    }
+  ')
+
+  local selected
+  selected=$(echo "$worktree_lines" | fzf \
+    --prompt="$prompt > " \
+    --height=40% \
+    --border \
+    --header="Select a worktree  (* = current)" \
+    --no-sort)
+
+  [[ -z "$selected" ]] && return 0
+
+  local branch_name="${selected#\* }"
+  branch_name="${branch_name#  }"
+  git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch_name" '
+    /^worktree / { path=$2 }
+    /^branch /   { if ($2 == branch) print path }
+  '
+}
+
+# opencode — worktree-aware launcher.
+# If args are given, forwards them directly (e.g. 'opencode run "fix bug"').
+# Use 'wt' to create or remove worktrees.
+opencode() {
+  if [[ $# -gt 0 ]]; then
+    command opencode "$@"
+    return
+  fi
+  local target_path
+  target_path=$(_worktree_pick "opencode")
+  if [[ -n "$target_path" ]]; then
+    command opencode "$target_path"
+  else
+    command opencode
+  fi
+}
+
+# claude — worktree-aware launcher.
+# If args are given, forwards them directly (e.g. 'claude -p "..."').
+# Use 'wt' to create or remove worktrees.
+claude() {
+  if [[ $# -gt 0 ]]; then
+    command claude "$@"
+    return
+  fi
+  local target_path
+  target_path=$(_worktree_pick "claude")
+  if [[ -n "$target_path" ]]; then
+    (cd "$target_path" && command claude)
+  else
+    command claude
+  fi
+}
+
+# wt — git worktree manager.
+# Usage:
+#   wt          interactive picker: add, switch, or remove a worktree
+#   wt cd       interactive fzf picker: cd into an existing worktree
+#   wt switch   alias for wt cd
+#   wt add      create a new worktree
+#   wt rm       remove a worktree
+#   wt ls       list worktrees
+wt() {
+  local root
+  root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$root" ]]; then
+    echo "wt: not inside a git repo" >&2
+    return 1
+  fi
+
+  # ensure .worktrees/ is gitignored.
+  if ! grep -qxF '.worktrees/' "$root/.gitignore" 2>/dev/null; then
+    echo '.worktrees/' >> "$root/.gitignore"
+  fi
+
+  # helper: build a worktree from a branch name.
+  _wt_add() {
+    local branch="$1"
+    local worktree_path="$root/.worktrees/$branch"
+    mkdir -p "$(dirname "$worktree_path")"
+    if git -C "$root" branch --list "$branch" | grep -q "$branch"; then
+      git -C "$root" worktree add "$worktree_path" "$branch"
+    else
+      git -C "$root" worktree add "$worktree_path" -b "$branch"
+    fi
+  }
+
+  # helper: pick a branch to add (existing local branches without a worktree,
+  # plus a prompt for a brand new name).
+  _wt_pick_add() {
+    local active
+    active=$(git -C "$root" worktree list --porcelain | awk '
+      /^branch / { gsub("refs/heads/","",$2); print $2 }
+    ')
+    local available
+    available=$(git -C "$root" branch --format='%(refname:short)' | while read -r b; do
+      echo "$active" | grep -qxF "$b" || echo "$b"
+    done)
+
+    local branch
+    read "branch?Branch name (new or existing): "
+    [[ -z "$branch" ]] && return 1
+    echo "$branch"
+  }
+
+  # helper: pick an existing worktree (excluding current) and cd into it.
+  _wt_pick_cd() {
+    local current
+    current=$(pwd -P)
+    local entries
+    entries=$(git -C "$root" worktree list --porcelain | awk -v cur="$current" '
+      /^worktree / { path=$2; branch=""; sha="" }
+      /^HEAD /     { sha=substr($2,1,7) }
+      /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
+      /^$/ {
+        if (path != "" && path != cur) {
+          if (branch != "") printf "%s  (%s)\n", path, branch
+          else if (sha != "") printf "%s  (detached @ %s)\n", path, sha
+        }
+        path=""; branch=""; sha=""
+      }
+    ')
+    if [[ -z "$entries" ]]; then
+      echo "wt: no other worktrees to switch to" >&2
+      return 1
+    fi
+    local selected
+    if command -v fzf &>/dev/null; then
+      selected=$(echo "$entries" | fzf --prompt="switch > " --height=40% --border --header="Switch to worktree")
+    else
+      echo "$entries"
+      read "selected?Path to switch to: "
+    fi
+    [[ -z "$selected" ]] && return 1
+    # extract path (first field before the two-space separator)
+    local target_path
+    target_path=$(echo "$selected" | awk '{ print $1 }')
+    echo "$target_path"
+  }
+
+  # helper: pick an existing non-current worktree to remove.
+  _wt_pick_rm() {
+    local removable
+    removable=$(git -C "$root" worktree list --porcelain | awk -v root="$root" '
+      /^worktree / { path=$2; branch=""; sha="" }
+      /^HEAD /     { sha=substr($2,1,7) }
+      /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
+      /^$/ {
+        if (path != "" && path != root) {
+          if (branch != "") printf "%s\n", branch
+          else if (sha != "") printf "(detached @ %s)\n", sha
+        }
+        path=""; branch=""; sha=""
+      }
+    ')
+    if [[ -z "$removable" ]]; then
+      echo "wt: no worktrees to remove" >&2
+      return 1
+    fi
+    if command -v fzf &>/dev/null; then
+      echo "$removable" | fzf --prompt="remove > " --height=40% --border --header="Select worktree to remove"
+    else
+      echo "$removable"
+      local branch
+      read "branch?Branch to remove: "
+      echo "$branch"
+    fi
+  }
+
+  case "${1:-}" in
+
+    cd|switch)
+      local target_path
+      target_path=$(_wt_pick_cd) || return 0
+      cd "$target_path" || return 1
+      ;;
+
+    ls)
+      git -C "$root" worktree list
+      ;;
+
+    add)
+      local branch="${2:-}"
+      if [[ -z "$branch" ]]; then
+        read "branch?Branch name (new or existing): "
+        [[ -z "$branch" ]] && return 0
+      fi
+      _wt_add "$branch"
+      ;;
+
+    rm)
+      local branch="${2:-}"
+      if [[ -z "$branch" ]]; then
+        branch=$(_wt_pick_rm) || return 0
+      fi
+      local remove_path
+      remove_path=$(git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch" '
+        /^worktree / { path=$2 }
+        /^branch /   { if ($2 == branch) print path }
+      ')
+      if [[ -z "$remove_path" ]]; then
+        echo "wt: no worktree found for branch '$branch'" >&2
+        return 1
+      fi
+      git -C "$root" worktree remove "$remove_path"
+      echo "wt: removed worktree for '$branch'"
+      # offer to delete the local branch too
+      local reply
+      read "reply?Delete local branch '$branch'? [y/N] "
+      if [[ "$reply" =~ ^[Yy]$ ]]; then
+        if git -C "$root" branch -d "$branch" 2>/dev/null; then
+          echo "wt: deleted branch '$branch'"
+        else
+          echo "wt: branch '$branch' not fully merged — use 'git branch -D $branch' to force delete" >&2
+        fi
+      fi
+      ;;
+
+    "")
+      # no args — interactive picker: add or remove.
+      if ! command -v fzf &>/dev/null; then
+        echo "wt: fzf not available, use 'wt add' or 'wt rm'" >&2
+        return 1
+      fi
+      local action
+      action=$(printf 'switch\nadd\nremove' | fzf \
+        --prompt="wt > " \
+        --height=20% \
+        --border \
+        --header="Worktree action")
+      [[ -z "$action" ]] && return 0
+      case "$action" in
+        switch) wt cd  ;;
+        add)    wt add ;;
+        remove) wt rm  ;;
+      esac
+      ;;
+
+    *)
+      echo "usage: wt [ls | cd | switch | add [branch] | rm [branch]]" >&2
+      return 1
+      ;;
   esac
 }
