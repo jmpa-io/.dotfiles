@@ -213,7 +213,10 @@ aws() {
         [[ "$arg" == "--no-browser" ]] && no_browser=1 || profile="$arg"
       done
 
-      if ! command aws --no-cli-pager configure list-profiles | grep -q "^${profile}$"; then
+      local profiles_list
+      profiles_list=$(command aws --no-cli-pager configure list-profiles)
+
+      if ! printf '%s\n' "$profiles_list" | grep -q "^${profile}$"; then
         echo "'$profile' is not a valid AWS profile; Run 'aws profiles' to see a list of profiles."
         return 1
       fi
@@ -226,7 +229,7 @@ aws() {
 
       # Check if there's a corresponding -admin profile and use that instead
       admin_profile="${profile}-admin"
-      if command aws --no-cli-pager configure list-profiles | grep -q "^${admin_profile}$"; then
+      if printf '%s\n' "$profiles_list" | grep -q "^${admin_profile}$"; then
         export AWS_PROFILE="$admin_profile"
         _aws_write_profile_to_work "$admin_profile"
         echo "Switched to admin profile: $admin_profile"
@@ -256,8 +259,10 @@ git() {
       local gh_user gh_protocol name email name_src email_src y r
       y=$'\033[1;33m'
       r=$'\033[0m'
-      gh_user=$(command gh auth status --active --json hosts --jq '.hosts."github.com"[0].login' 2>/dev/null || echo "(not logged in)")
-      gh_protocol=$(command gh auth status --active --json hosts --jq '.hosts."github.com"[0].gitProtocol' 2>/dev/null || echo "(unknown)")
+      local gh_json
+      gh_json=$(command gh auth status --active --json hosts 2>/dev/null)
+      gh_user=$(printf '%s' "$gh_json" | jq -r '.hosts."github.com"[0].login // "(not logged in)"')
+      gh_protocol=$(printf '%s' "$gh_json" | jq -r '.hosts."github.com"[0].gitProtocol // "(unknown)"')
       name=$(command git config user.name 2>/dev/null || echo "(not set)")
       email=$(command git config user.email 2>/dev/null || echo "(not set)")
       name_src=$(command git config --show-origin user.name 2>/dev/null | cut -f1 | sed 's|file:||' | sed "s|$HOME|~|" || echo "(not set)")
@@ -330,14 +335,17 @@ _worktree_pick() {
   root=$(git rev-parse --show-toplevel 2>/dev/null)
   [[ -z "$root" ]] && return 0
 
+  local raw_list
+  raw_list=$(git -C "$root" worktree list --porcelain)
+
   local wt_count
-  wt_count=$(git -C "$root" worktree list --porcelain | grep -c '^worktree ') || true
+  wt_count=$(printf '%s\n' "$raw_list" | grep -c '^worktree ') || true
   [[ "$wt_count" -le 1 ]] && return 0
 
   command -v fzf &>/dev/null || return 0
 
   local worktree_lines
-  worktree_lines=$(git -C "$root" worktree list --porcelain | awk -v root="$root" '
+  worktree_lines=$(printf '%s\n' "$raw_list" | awk -v root="$root" '
     /^worktree / { path=$2; branch=""; sha="" }
     /^HEAD /     { sha=substr($2,1,7) }
     /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
@@ -409,11 +417,13 @@ claude() {
   bin=$(whence -p claude)
 
   local ver_file="$HOME/.claude/.last-xattr-version"
-  local cur_ver
-  cur_ver=$("$bin" --version 2>/dev/null | awk '{print $1}')
-  if [[ "$(cat "$ver_file" 2>/dev/null)" != "$cur_ver" ]]; then
-    xattr -d com.apple.quarantine "$bin" 2>/dev/null
-    echo "$cur_ver" > "$ver_file"
+  if [[ "$bin" -nt "$ver_file" ]]; then
+    local cur_ver
+    cur_ver=$("$bin" --version 2>/dev/null | awk '{print $1}')
+    if [[ "$(<"$ver_file" 2>/dev/null)" != "$cur_ver" ]]; then
+      xattr -d com.apple.quarantine "$bin" 2>/dev/null
+      echo "$cur_ver" > "$ver_file"
+    fi
   fi
 
   [[ $# -gt 0 ]] && { command claude "$@"; return; }
@@ -505,6 +515,7 @@ wt() {
   }
 
   # helper: pick an existing non-current worktree to remove.
+  # prints "branch:path" to stdout so the caller doesn't need a second lookup.
   _wt_pick_rm() {
     local removable
     removable=$(git -C "$root" worktree list --porcelain | awk -v root="$root" '
@@ -513,8 +524,8 @@ wt() {
       /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
       /^$/ {
         if (path != "" && path != root) {
-          if (branch != "") printf "%s\n", branch
-          else if (sha != "") printf "(detached @ %s)\n", sha
+          if (branch != "") printf "%s\t%s\n", branch, path
+          else if (sha != "") printf "(detached @ %s)\t%s\n", sha, path
         }
         path=""; branch=""; sha=""
       }
@@ -523,14 +534,17 @@ wt() {
       echo "wt: no worktrees to remove" >&2
       return 1
     fi
+    local selected
     if command -v fzf &>/dev/null; then
-      echo "$removable" | fzf --prompt="remove > " --height=40% --border --header="Select worktree to remove"
+      selected=$(printf '%s\n' "$removable" | awk -F'\t' '{print $1}' | fzf --prompt="remove > " --height=40% --border --header="Select worktree to remove")
     else
-      echo "$removable"
+      printf '%s\n' "$removable" | awk -F'\t' '{print $1}'
       local branch
       read "branch?Branch to remove: "
-      echo "$branch"
+      selected="$branch"
     fi
+    [[ -z "$selected" ]] && return 1
+    printf '%s\n' "$removable" | awk -F'\t' -v sel="$selected" '$1 == sel { print $1 ":" $2 }'
   }
 
   case "${1:-}" in
@@ -556,14 +570,18 @@ wt() {
 
     rm)
       local branch="${2:-}"
-      if [[ -z "$branch" ]]; then
-        branch=$(_wt_pick_rm) || return 0
-      fi
       local remove_path
-      remove_path=$(git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch" '
-        /^worktree / { path=$2 }
-        /^branch /   { if ($2 == branch) print path }
-      ')
+      if [[ -z "$branch" ]]; then
+        local picked
+        picked=$(_wt_pick_rm) || return 0
+        branch="${picked%%:*}"
+        remove_path="${picked#*:}"
+      else
+        remove_path=$(git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch" '
+          /^worktree / { path=$2 }
+          /^branch /   { if ($2 == branch) print path }
+        ')
+      fi
       if [[ -z "$remove_path" ]]; then
         echo "wt: no worktree found for branch '$branch'" >&2
         return 1
