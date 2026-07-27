@@ -1,3 +1,4 @@
+.config/tmux/plugins/
 /starship.sh
 /awscliv2.zip
 /AWSCLIV2.pkg
@@ -9,3 +10,4 @@
 
 # Diagnostics dump from fix.sh — force-add with: git add -f dist/diagnostics.txt
 dist/diagnostics.txt
+.worktrees/
