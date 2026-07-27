@@ -11,7 +11,7 @@ alias d="dirs -v"
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
 # zsh.
-alias zsrc='for f in "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/work"; do [[ -f "$f" ]] && source "$f"; done'
+alias zsrc='for f in "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc"; do [[ -f "$f" ]] && source "$f"; done'
 
 # Broadcast 'source ~/work' to all panes in the current tmux session.
 # Use after key rotation so all shells pick up the new PORTKEY_API_KEY immediately.
