@@ -390,16 +390,26 @@ opencode() {
 
 # claude — worktree-aware launcher.
 # If args are given, forwards them directly (e.g. 'claude -p "..."').
+# Auto-removes macOS quarantine on version upgrade (cached to avoid re-running).
 # Use 'wt' to create or remove worktrees.
 claude() {
-  if [[ $# -gt 0 ]]; then
-    command claude "$@"
-    return
+  local bin
+  bin=$(whence -p claude)
+
+  local ver_file="$HOME/.claude/.last-xattr-version"
+  local cur_ver
+  cur_ver=$("$bin" --version 2>/dev/null | awk '{print $1}')
+  if [[ "$(cat "$ver_file" 2>/dev/null)" != "$cur_ver" ]]; then
+    xattr -d com.apple.quarantine "$bin" 2>/dev/null
+    echo "$cur_ver" > "$ver_file"
   fi
-  local target_path
-  target_path=$(_worktree_pick "claude")
-  if [[ -n "$target_path" ]]; then
-    (cd "$target_path" && command claude)
+
+  [[ $# -gt 0 ]] && { command claude "$@"; return; }
+
+  local p
+  p=$(_worktree_pick "claude")
+  if [[ -n "$p" ]]; then
+    (cd "$p" && command claude)
   else
     command claude
   fi
