@@ -16,6 +16,10 @@
   path = ~/.gitconfig-work
 [includeIf "gitdir:~/go/src/github.com/CBA-QTN-PublicCloudLZExceptions/"]
   path = ~/.gitconfig-work
+[includeIf "gitdir:~/go/src/github.com/CBA-Sandbox/"]
+  path = ~/.gitconfig-work
+[includeIf "gitdir:~/go/src/github.com/Jordan-Cleal_cba/"]
+  path = ~/.gitconfig-work
 
 # Personal identity — personal repos and dotfiles.
 [includeIf "gitdir:~/go/src/github.com/jcleal/"]
@@ -28,7 +32,6 @@
   path = ~/.gitconfig-personal
 
 [safe]
-  directory = /mnt/nfs/My_Music/downloading-music
   directory = ~/.dotfiles
 
 [init]

@@ -11,8 +11,7 @@ export EDITOR="nvim"
 export BROWSER="firefox"
 
 # zsh.
-export HISTSIZE=100000            # maximum events for internal history.
-export SAVEHIST=100000            # maximum events in history file.
+export HISTFILE="$HOME/.zhistory" # history file location.
 
 # starship.
 export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
@@ -23,9 +22,6 @@ export GOPATH="$HOME/go"
 export PATH="$PATH:$GOPATH/bin"
 # NOTE: GOPRIVATE and CDPATH are set in ~/work — they include CBA orgs and are
 # machine-specific so they live outside dotfiles.
-
-# cdpath — jump directly into any repo by name.
-export CDPATH=".:$ROOT/jmpa-io:$ROOT/jcleal"
 
 # aws.
 export AWS_DEFAULT_REGION="ap-southeast-2"
@@ -58,5 +54,11 @@ esac
 if [[ -d "$GOPATH/src/github.com/jmpa-io/email-manager" ]]; then
   export EMAIL_MANAGER_BIN="$GOPATH/src/github.com/jmpa-io/email-manager/email-manager"
   export EMAIL_FOLDERS_CONFIG="$GOPATH/src/github.com/jmpa-io/email-manager/folders.json"
+fi
+
+# source ~/work early so secrets (e.g. PORTKEY_API_KEY) are available to all
+# processes, including Claude Code which launches outside interactive shells.
+if [[ -f "$HOME/work" ]]; then
+  source "$HOME/work"
 fi
 

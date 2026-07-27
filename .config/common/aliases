@@ -207,9 +207,11 @@ aws() {
     # logs into the AWS Account associated with the given profile.
     # supports --no-browser flag for remote/headless login (prints URL instead of opening browser).
     "login "*)
-      profile="$2"
-      no_browser=0
-      [[ "$*" == *"--no-browser"* ]] && no_browser=1
+      local profile=""
+      local no_browser=0
+      for arg in "${@:2}"; do
+        [[ "$arg" == "--no-browser" ]] && no_browser=1 || profile="$arg"
+      done
 
       if ! command aws --no-cli-pager configure list-profiles | grep -q "^${profile}$"; then
         echo "'$profile' is not a valid AWS profile; Run 'aws profiles' to see a list of profiles."
@@ -365,10 +367,20 @@ _worktree_pick() {
 
   local branch_name="${selected#\* }"
   branch_name="${branch_name#  }"
-  git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch_name" '
-    /^worktree / { path=$2 }
-    /^branch /   { if ($2 == branch) print path }
-  '
+
+  if [[ "$branch_name" == "(detached @ "* ]]; then
+    local sha="${branch_name#(detached @ }"
+    sha="${sha%)}"
+    git -C "$root" worktree list --porcelain | awk -v sha="$sha" '
+      /^worktree / { path=$2 }
+      /^HEAD /     { if (substr($2,1,7) == sha) print path }
+    '
+  else
+    git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch_name" '
+      /^worktree / { path=$2 }
+      /^branch /   { if ($2 == branch) print path }
+    '
+  fi
 }
 
 # opencode — worktree-aware launcher.
@@ -451,15 +463,6 @@ wt() {
   # helper: pick a branch to add (existing local branches without a worktree,
   # plus a prompt for a brand new name).
   _wt_pick_add() {
-    local active
-    active=$(git -C "$root" worktree list --porcelain | awk '
-      /^branch / { gsub("refs/heads/","",$2); print $2 }
-    ')
-    local available
-    available=$(git -C "$root" branch --format='%(refname:short)' | while read -r b; do
-      echo "$active" | grep -qxF "$b" || echo "$b"
-    done)
-
     local branch
     read "branch?Branch name (new or existing): "
     [[ -z "$branch" ]] && return 1
