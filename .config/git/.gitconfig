@@ -16,6 +16,10 @@
   path = ~/.gitconfig-work
 [includeIf "gitdir:~/go/src/github.com/work-exceptions/"]
   path = ~/.gitconfig-work
+[includeIf "gitdir:~/go/src/github.com/work-sandbox/"]
+  path = ~/.gitconfig-work
+[includeIf "gitdir:~/go/src/github.com/jcleal/"]
+  path = ~/.gitconfig-work
 
 # Personal identity — personal repos and dotfiles.
 [includeIf "gitdir:~/go/src/github.com/jcleal/"]
@@ -28,7 +32,6 @@
   path = ~/.gitconfig-personal
 
 [safe]
-  directory = /mnt/nfs/My_Music/downloading-music
   directory = ~/.dotfiles
 
 [init]
