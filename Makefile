@@ -105,6 +105,7 @@ setup: \
 	setup-fonts \
 	setup-opencode \
 	setup-common \
+	setup-tmux \
 	setup-i3 \
 	setup-i3lock \
 	setup-iterm2
@@ -504,9 +505,12 @@ configure-common: ## Configure common shell files.
 configure-common: .config/common
 	$(call cfg-home,.config/common)
 	@mkdir -p $(HOME)/bin
-	@for f in $$(find $(PWD)/.config/common/bin -maxdepth 1 -type f -name "*.sh"); do \
-		ln -sf $(PWD)/$$f $(HOME)/bin/$$(basename $$f .sh); \
-		echo "  linked $$f -> $(HOME)/bin/$$(basename $$f .sh)"; \
+	@for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
+		rel=$$(realpath --relative-to=$(PWD)/.config/common/bin $$f); \
+		dest=$(HOME)/bin/$$(dirname $$rel)/$$(basename $$rel .sh); \
+		mkdir -p $$(dirname $$dest); \
+		ln -sf $(PWD)/$$f $$dest; \
+		echo "  linked $$f -> $$dest"; \
 	done
 
 setup-common: configure-common
@@ -521,16 +525,21 @@ clean: ## Remove generated files.
 
 # ── tmux ──────────────────────────────────────────────────────────────────────
 
-.PHONY: install-tmux configure-tmux setup-tmux
+.PHONY: install-tmux configure-tmux setup-tmux test-tmux
 install-tmux: ## Install 'tmux'.
 	$(call pkg,tmux)
 
 configure-tmux: ## Configure 'tmux'.
 configure-tmux: .config/tmux $(HOME)/.config
 	$(call cfg,.config/tmux)
-	ln -sfn $(PWD)/.tmux $(HOME)/.tmux
 
 setup-tmux: install-tmux configure-tmux
+
+test-tmux: ## Test tmux session functions (pane counts + idempotency).
+	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
+
+test-opencode: ## Test opencode() worktree picker function.
+	@zsh $(PWD)/.config/common/bin/.tests/test-opencode.sh
 
 .PHONY: help
 help: ## Print this help page.
