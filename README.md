@@ -40,6 +40,10 @@ make setup
 
 See [docs/tools.md](docs/tools.md) for a full inventory of every tool, CLI, plugin, and binary used in this repo — including a gap analysis of what's missing.
 
+## Standards
+
+See [docs/standards.md](docs/standards.md) for the design principles and conventions used in this repo — the two-layer install model, shell file responsibilities, Makefile conventions, and git workflow.
+
 ## Git identity
 
 This repo does not commit a name or email to `.gitconfig`. Set your identity locally on each machine:

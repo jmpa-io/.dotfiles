@@ -1,10 +1,10 @@
-# Dotfiles — Claude Code Standards
+# Dotfiles — Standards
 
 ## What this repo is
 
-Personal dotfiles for macOS (Apple Silicon) and Arch Linux. The job of this
-repo is to set up a machine cleanly and reproducibly. Simplicity is the
-primary design goal — every tool and layer should earn its place.
+Personal dotfiles for macOS (Apple Silicon) and Arch Linux. Sets up a machine
+cleanly and reproducibly. Simplicity is the primary design goal — every tool
+and layer should earn its place.
 
 ## Two-layer install model
 
@@ -45,9 +45,8 @@ without a specific reason.
 ## Shell standards
 
 - `.zshenv` — environment variables, PATH, exports. Sourced by every process
-  including non-interactive ones (Claude Code, cron, SSH). Keep it fast and
-  side-effect free. `~/work` is sourced here so secrets are available to all
-  processes.
+  including non-interactive ones (cron, SSH). Keep it fast and side-effect free.
+  `~/work` is sourced here so secrets are available to all processes.
 - `.zshrc` — interactive shell setup only (completions, plugins, prompt).
 - `aliases` — sourced by `.zshrc`. Contains all aliases and shell functions.
   Uses zsh-specific syntax throughout. shellcheck disables are in place at the
