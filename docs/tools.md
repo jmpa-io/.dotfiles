@@ -288,46 +288,6 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 
 ## Gap Analysis
 
-### Go debugger — missing entirely
-
-Go is the primary daily language but has no debug adapter configured. `delve` is not in `mason.lua`, there is no `nvim-dap-go` plugin, and no `dap.adapters` or `dap.configurations.go` entry. `<F5>` does nothing on a Go file. Every other major language (Python, C#, Java, JS/TS, C++, Rust) has a working debug adapter.
-
-**Fix:** Add `delve` to `mason.lua`, add [nvim-dap-go](https://github.com/leoluz/nvim-dap-go) to `plugins/init.lua`.
-
----
-
-### C/C++ formatter not wired
-
-`clang-format` is installed via Mason but `conform.lua` has no `c` or `cpp` entry. Format-on-save falls through to the LSP fallback rather than explicitly calling the formatter.
-
-**Fix:** Add `c = { "clang_format" }` and `cpp = { "clang_format" }` to `conform.lua`.
-
----
-
-### PowerShell has LSP but no formatter or linter
-
-`powershell_es` is fully configured. `conform.lua` has no `ps1` entry. `lint.lua` has no `ps1` entry. PSScriptAnalyzer ships inside the mason `powershell-editor-services` package already installed — it just isn't wired.
-
-**Fix:** Add `ps1 = { "psscriptanalyzer" }` to both `conform.lua` and `lint.lua`.
-
----
-
-### Rust uses `cargo check` instead of clippy
-
-`rust_analyzer` is in `simple_servers` with bare defaults. The LSP settings don't set `check.command = "clippy"`, so rust-analyzer only runs `cargo check`. Clippy catches substantially more issues. No standalone Rust linter entry in `lint.lua` either.
-
-**Fix:** Add `settings = { ["rust-analyzer"] = { check = { command = "clippy" } } }` to the rust_analyzer config in `nvim-lspconfig.lua`.
-
----
-
-### Generic YAML has no linter
-
-`yamlls` and `prettier` cover YAML. `lint.lua` only handles `yaml.ansible` (ansible_lint) and GitHub Actions (actionlint). Generic YAML files — CloudFormation, Kubernetes manifests, Helm values — get no linting.
-
-**Fix:** Add `yamllint` to `mason.lua` and `yaml = { "yamllint" }` to `lint.lua`.
-
----
-
 ### No test runner integration
 
 There is no test runner in Neovim at all. Tests across Go (`go test`), Python (`pytest`), TypeScript (`jest`/`vitest`), and Java (JUnit) have to be run from a terminal. `gopher.nvim` provides some Go helpers but not test running.
@@ -336,40 +296,17 @@ There is no test runner in Neovim at all. Tests across Go (`go test`), Python (`
 
 ---
 
-### `act` aliased but not installed
+### Previously fixed
 
-`aliases` has `alias act="act --container-architecture linux/amd64"` on Darwin. There is no `install-act` or `setup-act` Makefile target. The alias points at nothing on a fresh machine.
-
-**Fix:** Add `install-act` to the Makefile.
-
----
-
-### `terraform` CLI not in Makefile
-
-`conform.lua` explicitly calls `terraform_fmt` which invokes the Terraform CLI directly. There is no `install-terraform` Makefile target. Formatting silently fails until installed manually.
-
-**Fix:** Add `install-terraform` to the Makefile and include it in the `install` aggregate.
-
----
-
-### `ansible-lint` not in Makefile
-
-`conform.lua` uses `ansible_lint --fix` as a formatter. There is no `install-ansible-lint` Makefile target. It must be installed out-of-band.
-
-**Fix:** Add `install-ansible-lint` to the Makefile.
-
----
-
-### `kubectl` entirely absent
-
-No alias, no Makefile target, no shell function. Expected for a platform engineer working with AWS/EKS alongside `awscli`, `docker`, and `gh` which all have install targets.
-
-**Fix:** Add `install-kubectl` to the Makefile and a basic `k` alias.
-
----
-
-### `ripgrep` implicit dependency not tracked
-
-`nvim-spectre` and Telescope's `live_grep` both work best with `ripgrep` available. There is no `install-ripgrep` Makefile target. It is likely installed separately but has no path back to the repo.
-
-**Fix:** Add `install-ripgrep` to the Makefile.
+| Gap | Fix applied |
+|-----|-------------|
+| Go debugger missing | `delve` added to mason.lua; `nvim-dap-go` plugin added |
+| C/C++ formatter not wired | `c`/`cpp` entries added to conform.lua |
+| PowerShell no formatter/linter | `psscriptanalyzer` wired in mason.lua and lint.lua |
+| Rust using `cargo check` not clippy | `rust_analyzer` config updated with `check.command = "clippy"` |
+| Generic YAML no linter | `yamllint` added to mason.lua and lint.lua |
+| `act` aliased but not installed | `install-act` added to Makefile |
+| `terraform` CLI not in Makefile | `install-terraform` added to Makefile |
+| `ansible-lint` in Makefile | Removed — Mason owns it |
+| `kubectl` absent | `install-kubectl` added to Makefile; `k` alias added |
+| `ripgrep` not tracked | `install-ripgrep` added to Makefile |
