@@ -56,7 +56,12 @@ install: \
 	install-github-cli \
 	install-fonts \
 	install-opencode \
-	install-tmux
+	install-tmux \
+	install-terraform \
+	install-kubectl \
+	install-ripgrep \
+	install-act \
+	install-ansible-lint
 
 .PHONY: configure
 configure: ## Configure ALL tools.
@@ -108,7 +113,12 @@ setup: \
 	setup-tmux \
 	setup-i3 \
 	setup-i3lock \
-	setup-iterm2
+	setup-iterm2 \
+	install-terraform \
+	install-kubectl \
+	install-ripgrep \
+	install-act \
+	install-ansible-lint
 
 .PHONY: update
 update: ## Update all brew/pacman packages.
@@ -495,6 +505,58 @@ configure-opencode: .config/opencode $(HOME)/.config
 	$(call cfg,.config/opencode)
 
 setup-opencode: install-opencode configure-opencode
+
+# ---------------------------------------------------------------
+# terraform
+# ---------------------------------------------------------------
+
+.PHONY: install-terraform
+install-terraform: ## Install 'terraform'.
+ifeq ($(OS),darwin)
+	brew install hashicorp/tap/terraform
+else
+	sudo pacman -S --noconfirm terraform
+endif
+
+# ---------------------------------------------------------------
+# kubectl
+# ---------------------------------------------------------------
+
+.PHONY: install-kubectl
+install-kubectl: ## Install 'kubectl'.
+	$(call pkg,kubernetes-cli,kubectl)
+
+# ---------------------------------------------------------------
+# ripgrep
+# ---------------------------------------------------------------
+
+.PHONY: install-ripgrep
+install-ripgrep: ## Install 'ripgrep'.
+	$(call pkg,ripgrep)
+
+# ---------------------------------------------------------------
+# act
+# ---------------------------------------------------------------
+
+.PHONY: install-act
+install-act: ## Install 'act' (run GitHub Actions locally).
+ifeq ($(OS),darwin)
+	brew install act
+else
+	@echo "Install act manually on Linux: https://github.com/nektos/act"
+endif
+
+# ---------------------------------------------------------------
+# ansible-lint
+# ---------------------------------------------------------------
+
+.PHONY: install-ansible-lint
+install-ansible-lint: ## Install 'ansible-lint'.
+ifeq ($(OS),darwin)
+	brew install ansible-lint
+else
+	sudo pacman -S --noconfirm ansible-lint
+endif
 
 # ---------------------------------------------------------------
 # common

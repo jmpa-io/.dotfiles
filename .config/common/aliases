@@ -126,6 +126,9 @@ t-help() {
 EOF
 }
 
+# kubectl shorthand.
+alias k="kubectl"
+
 # general.
 case "$os" in
   Darwin)
