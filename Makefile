@@ -51,7 +51,6 @@ install: \
 	install-polybar \
 	install-jq \
 	install-docker \
-	install-deno \
 	install-wezterm \
 	install-github-cli \
 	install-fonts \
@@ -60,8 +59,10 @@ install: \
 	install-terraform \
 	install-kubectl \
 	install-ripgrep \
-	install-act \
-	install-ansible-lint
+	install-act
+# NOTE: deno and ansible-lint are intentionally omitted here — Mason installs
+# them automatically when Neovim first opens (they're in mason.lua ensure_installed).
+# Mason's bin dir (~/.local/share/nvim/mason/bin) is on PATH via .zshenv.
 
 .PHONY: configure
 configure: ## Configure ALL tools.
@@ -102,7 +103,6 @@ setup: \
 	setup-polybar \
 	setup-jq \
 	setup-docker \
-	setup-deno \
 	setup-wezterm \
 	setup-btop \
 	setup-picom \
@@ -117,8 +117,10 @@ setup: \
 	install-terraform \
 	install-kubectl \
 	install-ripgrep \
-	install-act \
-	install-ansible-lint
+	install-act
+# NOTE: deno and ansible-lint are intentionally omitted here — Mason installs
+# them automatically when Neovim first opens (they're in mason.lua ensure_installed).
+# Mason's bin dir (~/.local/share/nvim/mason/bin) is on PATH via .zshenv.
 
 .PHONY: update
 update: ## Update all brew/pacman packages.
@@ -444,20 +446,6 @@ endif
 setup-docker: install-docker
 
 # ---------------------------------------------------------------
-# deno (required for peek.nvim markdown preview)
-# ---------------------------------------------------------------
-
-.PHONY: install-deno setup-deno
-install-deno: ## Install 'deno'.
-ifeq ($(OS),darwin)
-	brew install deno
-else
-	curl -fsSL https://deno.land/install.sh | sh
-endif
-
-setup-deno: install-deno
-
-# ---------------------------------------------------------------
 # iterm2 (macOS only)
 # ---------------------------------------------------------------
 
@@ -546,17 +534,7 @@ else
 	@echo "Install act manually on Linux: https://github.com/nektos/act"
 endif
 
-# ---------------------------------------------------------------
-# ansible-lint
-# ---------------------------------------------------------------
-
-.PHONY: install-ansible-lint
-install-ansible-lint: ## Install 'ansible-lint'.
-ifeq ($(OS),darwin)
-	brew install ansible-lint
-else
-	sudo pacman -S --noconfirm ansible-lint
-endif
+# ansible-lint — installed by Mason (see .config/neovim/lua/configs/mason.lua).
 
 # ---------------------------------------------------------------
 # common
