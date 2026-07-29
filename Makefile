@@ -506,8 +506,9 @@ configure-common: .config/common
 	$(call cfg-home,.config/common)
 	@mkdir -p $(HOME)/bin
 	@for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
-		rel=$$(realpath --relative-to=$(PWD)/.config/common/bin $$f); \
-		dest=$(HOME)/bin/$$(dirname $$rel)/$$(basename $$rel .sh); \
+		rel=$${f#$(PWD)/.config/common/bin/}; \
+		dir=$$(dirname $$rel); \
+		dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
 		mkdir -p $$(dirname $$dest); \
 		ln -sf $(PWD)/$$f $$dest; \
 		echo "  linked $$f -> $$dest"; \
@@ -525,7 +526,7 @@ clean: ## Remove generated files.
 
 # ── tmux ──────────────────────────────────────────────────────────────────────
 
-.PHONY: install-tmux configure-tmux setup-tmux test-tmux
+.PHONY: install-tmux configure-tmux setup-tmux test-tmux test-opencode
 install-tmux: ## Install 'tmux'.
 	$(call pkg,tmux)
 

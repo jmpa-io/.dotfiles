@@ -63,10 +63,6 @@ for file in "${files[@]}"; do
   fi
 done
 
-# set HISTFILE after sourcing external files so nothing in ~/work can clobber it.
-# NOTE: HISTFILE is exported in .zshenv — the override here ensures ~/work cannot
-# change it after the fact.
-export HISTFILE="$HOME/.zhistory"
 
 # use starship, if installed.
 if command -v starship &>/dev/null; then

@@ -188,7 +188,7 @@ aws() {
     # list ALL the AWS profiles available, including which one is currently authed.
     profiles)
       profile="${AWS_PROFILE:-default}"
-      command aws --no-cli-pager configure list-profiles | while read p; do
+      command aws --no-cli-pager configure list-profiles | while IFS= read -r p; do
         # Skip -admin profiles as they're just for role assumption.
         [[ "$p" == *-admin ]] && continue
         # Show * for both the profile and its -admin variant
@@ -274,7 +274,8 @@ git() {
       printf "\n"
       ;;
 
-    "switch")
+    # switch between gh accounts (avoids colliding with `git switch` branch command).
+    "gh-switch")
       command gh auth switch
       case "$os" in
         Darwin)
