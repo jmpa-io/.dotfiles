@@ -36,6 +36,10 @@ make setup
 
 7. You should be good to go! 🎉
 
+## Tools
+
+See [docs/tools.md](docs/tools.md) for a full inventory of every tool, CLI, plugin, and binary used in this repo — including a gap analysis of what's missing.
+
 ## Git identity
 
 This repo does not commit a name or email to `.gitconfig`. Set your identity locally on each machine:
