@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # handles aliases and extensions to commands for our terminal.
+# shellcheck disable=SC2154  # $os is exported from .zshenv
+# shellcheck disable=SC2162  # read "var?prompt" is zsh syntax — file is sourced by zsh, not executed as bash
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
@@ -8,6 +10,7 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
 
 # setup aliases to autojump to previously visited directories.
 alias d="dirs -v"
+# shellcheck disable=SC2139  # intentional: expands at definition time for cd +N navigation
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
 # zsh.
@@ -134,9 +137,12 @@ case "$os" in
   ;;
   Linux)
     alias ls='ls --color=auto'                                          # overrides ls to run this default.
+    # shellcheck disable=SC2139  # intentional: $DOTFILES is stable for the session
     alias dotfiles="nvim \"+cd $DOTFILES\" $DOTFILES"                   # opens dotfiles in IDE.
     alias grep="grep --color=auto"                                      # overrides grep to run this default.
+    # shellcheck disable=SC2139  # intentional: $HOME is stable for the session
     alias lock="$HOME/bin/system/lock.sh"                               # locks the computer.
+    # shellcheck disable=SC2139  # intentional: $HOME is stable for the session
     alias lockscreen="$HOME/bin/system/lock.sh"                         # verbose alias for lock.
     alias shutdown="shutdown -h now"                                    # shuts down the computer immediately.
     alias restart="shutdown -r now"                                     # restarts the computer immediately.
@@ -151,6 +157,7 @@ esac
 # opens the last screenshot taken in Firefox (resolved at invocation time, not source time).
 olss() {
   local f
+  # shellcheck disable=SC2012  # ls -t is intentional for mtime sort; filenames here won't have newlines
   f=$(ls -1t "$HOME/Pictures" | head -n1)
   [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
 }
@@ -299,7 +306,7 @@ host=github.com" 2>/dev/null || true
       local dest="${args[-1]}"
       # derive dir name from URL (handles extra flags like --depth 1).
       [[ "$dest" == *"://"* || "$dest" == *"@"* ]] && dest="$(basename "$dest" .git)"
-      command git clone "${args[@]}" && cd "$dest" ;;
+      command git clone "${args[@]}" && { cd "$dest" || return 1; } ;;
 
     # shows all the branches available.
     branch)
@@ -469,15 +476,6 @@ wt() {
     else
       git -C "$root" worktree add "$worktree_path" -b "$branch"
     fi
-  }
-
-  # helper: pick a branch to add (existing local branches without a worktree,
-  # plus a prompt for a brand new name).
-  _wt_pick_add() {
-    local branch
-    read "branch?Branch name (new or existing): "
-    [[ -z "$branch" ]] && return 1
-    echo "$branch"
   }
 
   # helper: pick an existing worktree (excluding current) and cd into it.

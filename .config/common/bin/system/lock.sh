@@ -8,6 +8,7 @@ hash i3lock || {
 }
 
 # colors.
+# shellcheck disable=SC2034  # some colors unused directly but kept for reference/future use
 yellow="#f1fa8c"
 orange="#ffb86c"
 red="#ff5555"

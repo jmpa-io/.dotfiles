@@ -37,7 +37,12 @@ export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
 case "$os" in
   "Darwin")
     # homebrew — prepend so brew tools take precedence.
-    export HOMEBREW_PREFIX="/opt/homebrew"
+    # /opt/homebrew = Apple Silicon; /usr/local = Intel x86_64.
+    if [[ "$(uname -m)" == "arm64" ]]; then
+      export HOMEBREW_PREFIX="/opt/homebrew"
+    else
+      export HOMEBREW_PREFIX="/usr/local"
+    fi
     export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH"
 
     # use GNU make instead of macOS make.
