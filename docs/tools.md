@@ -242,7 +242,6 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 | [Deno](https://deno.land) | Required by peek.nvim Markdown preview |
 | Python 3 | Ansible LSP + debugpy |
 | Java | Required by jdtls + groovyls |
-| [Rust](https://www.rust-lang.org) / rustup | rustfmt formatter |
 
 ---
 
