@@ -187,7 +187,8 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 |------|---------|
 | [gopher.nvim](https://github.com/olexsmir/gopher.nvim) | Go struct tags, test generation |
 | [peek.nvim](https://github.com/toppair/peek.nvim) | Markdown preview in browser (requires Deno) |
-| [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) | Hosts OpenCode in a vertical split (`<leader>oc`) |
+| [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) | Floating/split terminal |
+| [neotest](https://github.com/nvim-neotest/neotest) | In-editor test runner — Go, Python, Jest (`<leader>t*`) |
 
 ---
 
@@ -314,14 +315,6 @@ Installed to `~/bin/` via `make configure-common`. Scripts live in `.config/comm
 
 ## Gap Analysis
 
-### No test runner integration
-
-There is no test runner in Neovim at all. Tests across Go (`go test`), Python (`pytest`), TypeScript (`jest`/`vitest`), and Java (JUnit) have to be run from a terminal. `gopher.nvim` provides some Go helpers but not test running.
-
-**Fix:** Add [neotest](https://github.com/nvim-neotest/neotest) with adapters: [neotest-go](https://github.com/nvim-neotest/neotest-go), [neotest-python](https://github.com/nvim-neotest/neotest-python), [neotest-jest](https://github.com/haydenmeade/neotest-jest).
-
----
-
 ### Previously fixed
 
 | Gap | Fix applied |
@@ -336,6 +329,7 @@ There is no test runner in Neovim at all. Tests across Go (`go test`), Python (`
 | `ansible-lint` in Makefile | Removed — Mason owns it |
 | `kubectl` absent | `install-kubectl` added to Makefile; `k` alias added |
 | `ripgrep` not tracked | `install-ripgrep` added to Makefile |
+| No test runner in Neovim | Added neotest with neotest-go, neotest-python, neotest-jest adapters |
 | `~/bin` double-path symlink bug | Makefile `configure-common` loop fixed; broken symlinks removed; `~/bin` is now a real directory |
 | `kubectl`/`ripgrep` missing from tools table | Added to Cloud/Infrastructure and Utility CLIs sections |
 | Custom bin scripts undocumented | Added Custom Shell Scripts section to this file |
