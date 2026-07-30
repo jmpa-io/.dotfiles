@@ -550,7 +550,7 @@ configure-common: .config/common
 		dir=$$(dirname $$rel); \
 		dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
 		mkdir -p $$(dirname $$dest); \
-		ln -sf $(PWD)/$$f $$dest; \
+		ln -sf $$f $$dest; \
 		echo "  linked $$f -> $$dest"; \
 	done
 

@@ -228,6 +228,7 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 |------|---------|
 | [awscli](https://aws.amazon.com/cli/) | SSO login, ECR auth, SSM, CloudFront, STS |
 | [terraform](https://www.terraform.io) | IaC — formatter invoked directly by conform |
+| [kubectl](https://kubernetes.io/docs/reference/kubectl/) | Container orchestration CLI |
 | [tailscale](https://tailscale.com) | VPN, DNS nameserver queries |
 | [docker](https://www.docker.com) + docker-compose | Container runtime |
 
@@ -251,6 +252,7 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 |------|---------|
 | [jq](https://jqlang.github.io/jq/) | JSON processing |
 | [curl](https://curl.se) | HTTP downloads in Makefile installers |
+| [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) | Fast file search — used by Telescope |
 | [rclone](https://rclone.org) | Syncs Obsidian vault to Google Drive |
 | [act](https://github.com/nektos/act) | Runs GitHub Actions locally in Docker |
 | [imgcat](https://iterm2.com/documentation-images.html) | Displays images inline in iTerm2 |
@@ -272,6 +274,32 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 | [tty-clock](https://github.com/xorg62/tty-clock) | Terminal clock |
 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System info (aliased as `neofetch`) |
 | [pcmanfm](https://wiki.lxde.org/en/PCManFM) | GUI file manager |
+
+---
+
+## Custom Shell Scripts
+
+Installed to `~/bin/` via `make configure-common`. Scripts live in `.config/common/bin/`.
+
+### Cross-platform
+
+| Script | Purpose |
+|--------|---------|
+| `aws-cloudfront-invalidate-distribution` | Looks up a CloudFront distribution by repo name and creates a `/*` invalidation |
+| `aws-ssm-list-parameters-by-name` | Lists all SSM parameter names in the authed account with pagination |
+| `github-actions-clear-workflow-runs` | Bulk-deletes all workflow runs for a given `org/repo` (token from SSM) |
+| `github-list-repository-topics` | Lists topics for a given `org/repo` via GitHub API |
+| `obsidian-upload-to-google-drive` | Rsyncs Obsidian vault to Google Drive via rclone |
+| `tailscale-list-dns-nameservers` | Fetches Tailscale DNS nameservers via API (token from SSM) |
+
+### Linux only (`system/`)
+
+| Script | Purpose |
+|--------|---------|
+| `system/lock` | Locks screen with i3lock (Dracula theme, blur, clock overlay) |
+| `system/polybar-xautolock-status` | Returns polybar-formatted lock status icon based on xautolock PID |
+| `system/polybar-xautolock-toggle` | Toggles xautolock on/off and refreshes polybar |
+| `system/xautolock-start` | Starts xautolock with 10-min idle timeout, writes PID file |
 
 ---
 
@@ -310,3 +338,6 @@ There is no test runner in Neovim at all. Tests across Go (`go test`), Python (`
 | `ansible-lint` in Makefile | Removed — Mason owns it |
 | `kubectl` absent | `install-kubectl` added to Makefile; `k` alias added |
 | `ripgrep` not tracked | `install-ripgrep` added to Makefile |
+| `~/bin` double-path symlink bug | Makefile `configure-common` loop fixed; broken symlinks removed; `~/bin` is now a real directory |
+| `kubectl`/`ripgrep` missing from tools table | Added to Cloud/Infrastructure and Utility CLIs sections |
+| Custom bin scripts undocumented | Added Custom Shell Scripts section to this file |
