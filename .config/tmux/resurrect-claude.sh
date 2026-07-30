@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# tmux AI session manager: debug, save, and restore claude/opencode panes.
+# tmux session manager: debug, save, and restore claude panes.
 # Usage: resurrect-claude.sh [status|save|restore|hook]
 
 SAVE_DIR="$HOME/.local/share/tmux/resurrect"
 SAVE_FILE="$SAVE_DIR/last"
-AI_PROCS=("claude" "opencode")
+AI_PROCS=("claude")
 
 cmd="${1:-status}"
 
@@ -42,7 +42,6 @@ restore_cmd_for() {
   local proc="$1"
   case "$proc" in
     claude)   echo "claude --continue" ;;
-    opencode) echo "opencode" ;;
     *)        echo "$proc" ;;
   esac
 }

@@ -54,7 +54,6 @@ install: \
 	install-wezterm \
 	install-github-cli \
 	install-fonts \
-	install-opencode \
 	install-tmux \
 	install-terraform \
 	install-kubectl \
@@ -81,7 +80,6 @@ configure: \
 	configure-i3 \
 	configure-i3lock \
 	configure-iterm2 \
-	configure-opencode \
 	configure-common \
 	configure-tmux
 
@@ -108,7 +106,6 @@ setup: \
 	setup-picom \
 	setup-pulsemixer \
 	setup-fonts \
-	setup-opencode \
 	setup-common \
 	setup-tmux \
 	setup-i3 \
@@ -455,6 +452,13 @@ ifeq ($(OS),darwin)
 	mkdir -p "$(HOME)/Library/Application Support/iTerm2/DynamicProfiles"
 	ln -sfn $(PWD)/.config/iterm2/Default.json \
 		"$(HOME)/Library/Application Support/iTerm2/DynamicProfiles/Default.json"
+	@mkdir -p $(HOME)/bin
+	@if [ -f "/Applications/iTerm.app/Contents/Resources/utilities/imgcat" ]; then \
+		ln -sf /Applications/iTerm.app/Contents/Resources/utilities/imgcat $(HOME)/bin/imgcat; \
+		echo "  linked imgcat -> ~/bin/imgcat"; \
+	else \
+		echo "  imgcat not found — is iTerm2 installed?"; \
+	fi
 else
 	@echo "Skipping iTerm2 configuration (macOS only)."
 endif
@@ -479,20 +483,6 @@ else
 endif
 
 setup-fonts: install-fonts
-
-# ---------------------------------------------------------------
-# opencode
-# ---------------------------------------------------------------
-
-.PHONY: install-opencode configure-opencode setup-opencode
-install-opencode: ## Install 'opencode'.
-	curl -fsSL https://opencode.ai/install | bash
-
-configure-opencode: ## Configure 'opencode'.
-configure-opencode: .config/opencode $(HOME)/.config
-	$(call cfg,.config/opencode)
-
-setup-opencode: install-opencode configure-opencode
 
 # ---------------------------------------------------------------
 # terraform
@@ -566,7 +556,7 @@ clean: ## Remove generated files.
 
 # ── tmux ──────────────────────────────────────────────────────────────────────
 
-.PHONY: install-tmux configure-tmux setup-tmux test-tmux test-opencode
+.PHONY: install-tmux configure-tmux setup-tmux test-tmux
 install-tmux: ## Install 'tmux'.
 	$(call pkg,tmux)
 
@@ -579,8 +569,6 @@ setup-tmux: install-tmux configure-tmux
 test-tmux: ## Test tmux session functions (pane counts + idempotency).
 	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
 
-test-opencode: ## Test opencode() worktree picker function.
-	@zsh $(PWD)/.config/common/bin/.tests/test-opencode.sh
 
 .PHONY: help
 help: ## Print this help page.

@@ -13,7 +13,7 @@ opens, or that live outside the Neovim ecosystem entirely:
 - Language runtimes: Go, Python, Java
 - System apps: Neovim itself, WezTerm, iTerm2, tmux, Docker, zsh, fzf, starship
 - CLIs Mason cannot package: awscli, gh, kubectl, ripgrep, act, terraform (the
-  CLI — not the LSP), opencode, jq
+  CLI — not the LSP), jq
 - Linux desktop: i3, polybar, picom, pulsemixer, fonts
 
 **Mason** owns everything editor-related — LSPs, formatters, linters, debuggers,

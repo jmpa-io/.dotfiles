@@ -196,7 +196,6 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 | Tool | Purpose |
 |------|---------|
 | [Claude Code](https://claude.ai/code) (`claude`) | Primary AI coding assistant — worktree-aware launcher |
-| [opencode](https://opencode.ai) | Secondary AI assistant — runs in Neovim split |
 | [GitHub Copilot](https://github.com/features/copilot) | Inline completion fallback via copilot-cmp |
 
 ---
