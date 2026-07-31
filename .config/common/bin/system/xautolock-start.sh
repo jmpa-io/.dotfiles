@@ -8,7 +8,7 @@
 # Exit early if xautolock is already running.
 pidFile="$HOME/.xautolock.pid"
 if [[ -f "$pidFile" ]]; then
-  ps -p $(<"$pidFile") >/dev/null 2>&1 \
+  ps -p "$(<"$pidFile")" >/dev/null 2>&1 \
     && { exit 0; }
 fi
 
