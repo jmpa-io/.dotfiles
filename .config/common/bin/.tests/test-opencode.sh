@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# shellcheck disable=SC1071
 # Tests _worktree_pick(), opencode(), claude(), and wt() from .config/common/aliases.
 # Safe to run at any time — all side effects are inside /tmp.
 

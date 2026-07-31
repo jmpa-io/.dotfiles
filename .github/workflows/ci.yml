@@ -24,6 +24,7 @@ jobs:
               - '**/*.sh'
               - '.config/zsh/**'
               - '.config/common/bin/**'
+              - '.config/common/aliases'
               - 'scripts/**'
             makefile:
               - 'Makefile'
@@ -40,9 +41,12 @@ jobs:
       - name: Lint shell scripts
         run: |
           find . -name '*.sh' -not -path './.git/*' | xargs shellcheck
+      - name: Lint aliases
+        run: |
+          shellcheck --shell=bash .config/common/aliases
       - name: Lint zsh configs
         run: |
-          find .config/zsh -type f | xargs shellcheck --shell=bash || true
+          find .config/zsh -type f | xargs shellcheck --shell=bash
 
   # ── makefile ─────────────────────────────────────────────────────────────────
   makefile:
@@ -53,3 +57,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate Makefile targets parse correctly
         run: make --dry-run help
+
+  # ── tests ─────────────────────────────────────────────────────────────────────
+  tests:
+    needs: changes
+    if: needs.changes.outputs.shell == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install zsh
+        run: sudo apt-get install -y zsh
+      - name: Run opencode tests
+        run: make test-opencode
