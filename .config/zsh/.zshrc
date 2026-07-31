@@ -65,8 +65,8 @@ for file in "${files[@]}"; do
 done
 
 # AI launchers — only loaded when claude or opencode is installed.
-if [[ -f "$HOME/ai-launchers" ]] && { command -v claude &>/dev/null || command -v opencode &>/dev/null; }; then
-  source "$HOME/ai-launchers"
+if [[ -f "$HOME/ai" ]] && { command -v claude &>/dev/null || command -v opencode &>/dev/null; }; then
+  source "$HOME/ai"
 fi
 
 
