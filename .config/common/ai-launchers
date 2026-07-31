@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# AI tool launchers — sourced conditionally by .zshrc only when the tools are present.
+# Safe to omit on machines without Claude Code or opencode.
+
+# _worktree_pick — shared worktree picker used by opencode() and claude().
+# Prints the selected worktree path to stdout, or nothing if cancelled/unavailable.
+# $1 = prompt label (e.g. "opencode" or "claude")
+_worktree_pick() {
+  local prompt="${1:-opencode}"
+
+  local root
+  root=$(git rev-parse --show-toplevel 2>/dev/null)
+  [[ -z "$root" ]] && return 0
+
+  local raw_list
+  raw_list=$(git -C "$root" worktree list --porcelain)
+
+  local wt_count
+  wt_count=$(printf '%s\n' "$raw_list" | grep -c '^worktree ') || true
+  [[ "$wt_count" -le 1 ]] && return 0
+
+  command -v fzf &>/dev/null || return 0
+
+  local worktree_lines
+  worktree_lines=$(printf '%s\n' "$raw_list" | awk -v root="$root" '
+    /^worktree / { path=$2; branch=""; sha="" }
+    /^HEAD /     { sha=substr($2,1,7) }
+    /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
+    /^$/ {
+      if (path != "") {
+        if (branch != "") {
+          marker = (path == root) ? "* " : "  "
+          printf "%s%s\n", marker, branch
+        } else if (sha != "") {
+          marker = (path == root) ? "* " : "  "
+          printf "%s(detached @ %s)\n", marker, sha
+        }
+        path=""; branch=""; sha=""
+      }
+    }
+  ')
+
+  local selected
+  selected=$(echo "$worktree_lines" | fzf \
+    --prompt="$prompt > " \
+    --height=40% \
+    --border \
+    --header="Select a worktree  (* = current)" \
+    --no-sort)
+
+  [[ -z "$selected" ]] && return 0
+
+  local branch_name="${selected#\* }"
+  branch_name="${branch_name#  }"
+
+  if [[ "$branch_name" == "(detached @ "* ]]; then
+    local sha="${branch_name#(detached @ }"
+    sha="${sha%)}"
+    git -C "$root" worktree list --porcelain | awk -v sha="$sha" '
+      /^worktree / { path=$2 }
+      /^HEAD /     { if (substr($2,1,7) == sha) print path }
+    '
+  else
+    git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch_name" '
+      /^worktree / { path=$2 }
+      /^branch /   { if ($2 == branch) print path }
+    '
+  fi
+}
+
+# claude — worktree-aware launcher.
+# If args are given, forwards them directly (e.g. 'claude -p "..."').
+# Auto-removes macOS quarantine on version upgrade (cached to avoid re-running).
+# Use 'wt' to create or remove worktrees.
+claude() {
+  local bin
+  bin=$(whence -p claude)
+
+  local ver_file="$HOME/.claude/.last-xattr-version"
+  if [[ "$bin" -nt "$ver_file" ]]; then
+    local cur_ver
+    cur_ver=$("$bin" --version 2>/dev/null | awk '{print $1}')
+    if [[ "$(<"$ver_file" 2>/dev/null)" != "$cur_ver" ]]; then
+      xattr -d com.apple.quarantine "$bin" 2>/dev/null
+      echo "$cur_ver" > "$ver_file"
+    fi
+  fi
+
+  [[ $# -gt 0 ]] && { command claude "$@"; return; }
+
+  local p
+  p=$(_worktree_pick "claude")
+  if [[ -n "$p" ]]; then
+    (cd "$p" && command claude)
+  else
+    command claude
+  fi
+}
+
+# opencode — worktree-aware launcher.
+# If args are given, forwards them directly (e.g. 'opencode run "fix bug"').
+# Use 'wt' to create or remove worktrees.
+opencode() {
+  if [[ $# -gt 0 ]]; then
+    command opencode "$@"
+    return
+  fi
+  local target_path
+  target_path=$(_worktree_pick "opencode")
+  if [[ -n "$target_path" ]]; then
+    command opencode "$target_path"
+  else
+    command opencode
+  fi
+}
