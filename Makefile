@@ -81,7 +81,8 @@ configure: \
 	configure-i3lock \
 	configure-iterm2 \
 	configure-common \
-	configure-tmux
+	configure-tmux \
+	configure-vscode
 
 .PHONY: setup
 setup: ## Install AND configure ALL tools.
@@ -111,6 +112,7 @@ setup: \
 	setup-i3 \
 	setup-i3lock \
 	setup-iterm2 \
+	setup-vscode \
 	install-terraform \
 	install-kubectl \
 	install-ripgrep \
@@ -466,6 +468,35 @@ endif
 setup-iterm2: ## Install font and configure iTerm2 (macOS only).
 setup-iterm2: configure-iterm2
 	@[ "$(OS)" = "darwin" ] && brew install --cask font-fira-code-nerd-font || true
+
+# ---------------------------------------------------------------
+# vscode (macOS only)
+# ---------------------------------------------------------------
+
+.PHONY: configure-vscode setup-vscode
+configure-vscode: ## Configure VS Code settings and extensions (macOS only).
+ifeq ($(OS),darwin)
+configure-vscode: .config/vscode
+	@mkdir -p "$(HOME)/Library/Application Support/Code/User"
+	@ln -sf $(PWD)/.config/vscode/settings.json \
+		"$(HOME)/Library/Application Support/Code/User/settings.json"
+	@ln -sf $(PWD)/.config/vscode/extensions.json \
+		"$(HOME)/Library/Application Support/Code/User/extensions.json"
+	@echo "  linked VS Code settings.json and extensions.json"
+	@if command -v code >/dev/null 2>&1; then \
+		echo "  installing recommended extensions..."; \
+		jq -r '.recommendations[]' $(PWD)/.config/vscode/extensions.json 2>/dev/null | \
+			grep -v '^\s*//' | \
+			xargs -I{} code --install-extension {} --force; \
+	else \
+		echo "  VS Code CLI (code) not found — skipping extension install"; \
+	fi
+else
+configure-vscode:
+	@echo "Skipping VS Code configuration (macOS only)."
+endif
+
+setup-vscode: configure-vscode
 
 # ---------------------------------------------------------------
 # fonts (Linux only)
