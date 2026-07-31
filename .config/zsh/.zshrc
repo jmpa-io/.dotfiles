@@ -17,6 +17,7 @@
 # Skip compaudit if the dump file is less than 24h old (fast path).
 # Regenerate fully if it's stale — catches new completions from brew installs etc.
 autoload -U compinit
+# shellcheck disable=SC1036,SC1072,SC1073,SC1009  # zsh extended glob qualifier — not valid bash syntax
 if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
   compinit
 else
@@ -63,10 +64,6 @@ for file in "${files[@]}"; do
   fi
 done
 
-# set HISTFILE after sourcing external files so nothing in ~/work can clobber it.
-# NOTE: HISTFILE is exported in .zshenv — the override here ensures ~/work cannot
-# change it after the fact.
-export HISTFILE="$HOME/.zhistory"
 
 # use starship, if installed.
 if command -v starship &>/dev/null; then

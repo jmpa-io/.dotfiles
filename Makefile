@@ -51,12 +51,17 @@ install: \
 	install-polybar \
 	install-jq \
 	install-docker \
-	install-deno \
 	install-wezterm \
 	install-github-cli \
 	install-fonts \
-	install-opencode \
-	install-tmux
+	install-tmux \
+	install-terraform \
+	install-kubectl \
+	install-ripgrep \
+	install-act
+# NOTE: deno and ansible-lint are intentionally omitted here — Mason installs
+# them automatically when Neovim first opens (they're in mason.lua ensure_installed).
+# Mason's bin dir (~/.local/share/nvim/mason/bin) is on PATH via .zshenv.
 
 .PHONY: configure
 configure: ## Configure ALL tools.
@@ -75,7 +80,6 @@ configure: \
 	configure-i3 \
 	configure-i3lock \
 	configure-iterm2 \
-	configure-opencode \
 	configure-common \
 	configure-tmux
 
@@ -97,18 +101,23 @@ setup: \
 	setup-polybar \
 	setup-jq \
 	setup-docker \
-	setup-deno \
 	setup-wezterm \
 	setup-btop \
 	setup-picom \
 	setup-pulsemixer \
 	setup-fonts \
-	setup-opencode \
 	setup-common \
 	setup-tmux \
 	setup-i3 \
 	setup-i3lock \
-	setup-iterm2
+	setup-iterm2 \
+	install-terraform \
+	install-kubectl \
+	install-ripgrep \
+	install-act
+# NOTE: deno and ansible-lint are intentionally omitted here — Mason installs
+# them automatically when Neovim first opens (they're in mason.lua ensure_installed).
+# Mason's bin dir (~/.local/share/nvim/mason/bin) is on PATH via .zshenv.
 
 .PHONY: update
 update: ## Update all brew/pacman packages.
@@ -434,20 +443,6 @@ endif
 setup-docker: install-docker
 
 # ---------------------------------------------------------------
-# deno (required for peek.nvim markdown preview)
-# ---------------------------------------------------------------
-
-.PHONY: install-deno setup-deno
-install-deno: ## Install 'deno'.
-ifeq ($(OS),darwin)
-	brew install deno
-else
-	curl -fsSL https://deno.land/install.sh | sh
-endif
-
-setup-deno: install-deno
-
-# ---------------------------------------------------------------
 # iterm2 (macOS only)
 # ---------------------------------------------------------------
 
@@ -457,6 +452,13 @@ ifeq ($(OS),darwin)
 	mkdir -p "$(HOME)/Library/Application Support/iTerm2/DynamicProfiles"
 	ln -sfn $(PWD)/.config/iterm2/Default.json \
 		"$(HOME)/Library/Application Support/iTerm2/DynamicProfiles/Default.json"
+	@mkdir -p $(HOME)/bin
+	@if [ -f "/Applications/iTerm.app/Contents/Resources/utilities/imgcat" ]; then \
+		ln -sf /Applications/iTerm.app/Contents/Resources/utilities/imgcat $(HOME)/bin/imgcat; \
+		echo "  linked imgcat -> ~/bin/imgcat"; \
+	else \
+		echo "  imgcat not found — is iTerm2 installed?"; \
+	fi
 else
 	@echo "Skipping iTerm2 configuration (macOS only)."
 endif
@@ -483,18 +485,46 @@ endif
 setup-fonts: install-fonts
 
 # ---------------------------------------------------------------
-# opencode
+# terraform
 # ---------------------------------------------------------------
 
-.PHONY: install-opencode configure-opencode setup-opencode
-install-opencode: ## Install 'opencode'.
-	curl -fsSL https://opencode.ai/install | bash
+.PHONY: install-terraform
+install-terraform: ## Install 'terraform'.
+ifeq ($(OS),darwin)
+	brew install hashicorp/tap/terraform
+else
+	sudo pacman -S --noconfirm terraform
+endif
 
-configure-opencode: ## Configure 'opencode'.
-configure-opencode: .config/opencode $(HOME)/.config
-	$(call cfg,.config/opencode)
+# ---------------------------------------------------------------
+# kubectl
+# ---------------------------------------------------------------
 
-setup-opencode: install-opencode configure-opencode
+.PHONY: install-kubectl
+install-kubectl: ## Install 'kubectl'.
+	$(call pkg,kubernetes-cli,kubectl)
+
+# ---------------------------------------------------------------
+# ripgrep
+# ---------------------------------------------------------------
+
+.PHONY: install-ripgrep
+install-ripgrep: ## Install 'ripgrep'.
+	$(call pkg,ripgrep)
+
+# ---------------------------------------------------------------
+# act
+# ---------------------------------------------------------------
+
+.PHONY: install-act
+install-act: ## Install 'act' (run GitHub Actions locally).
+ifeq ($(OS),darwin)
+	brew install act
+else
+	@echo "Install act manually on Linux: https://github.com/nektos/act"
+endif
+
+# ansible-lint — installed by Mason (see .config/neovim/lua/configs/mason.lua).
 
 # ---------------------------------------------------------------
 # common
@@ -506,10 +536,11 @@ configure-common: .config/common
 	$(call cfg-home,.config/common)
 	@mkdir -p $(HOME)/bin
 	@for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
-		rel=$$(realpath --relative-to=$(PWD)/.config/common/bin $$f); \
-		dest=$(HOME)/bin/$$(dirname $$rel)/$$(basename $$rel .sh); \
+		rel=$${f#$(PWD)/.config/common/bin/}; \
+		dir=$$(dirname $$rel); \
+		dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
 		mkdir -p $$(dirname $$dest); \
-		ln -sf $(PWD)/$$f $$dest; \
+		ln -sf $$f $$dest; \
 		echo "  linked $$f -> $$dest"; \
 	done
 
@@ -538,8 +569,6 @@ setup-tmux: install-tmux configure-tmux
 test-tmux: ## Test tmux session functions (pane counts + idempotency).
 	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
 
-test-opencode: ## Test opencode() worktree picker function.
-	@zsh $(PWD)/.config/common/bin/.tests/test-opencode.sh
 
 .PHONY: help
 help: ## Print this help page.

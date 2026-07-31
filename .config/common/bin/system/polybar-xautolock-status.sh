@@ -5,7 +5,7 @@
 # Check if xautolock is running.
 pidFile="$HOME/.xautolock.pid"
 if [[ -f "$pidFile" ]]; then
-  if ps -p $(<"$pidFile") >/dev/null 2>&1; then
+  if ps -p "$(<"$pidFile")" >/dev/null 2>&1; then
     echo "🖥️ [%{F#7EE081}🔒%{F-}]"
     exit 0
   fi

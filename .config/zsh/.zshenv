@@ -28,7 +28,7 @@ export AWS_DEFAULT_REGION="ap-southeast-2"
 export AWS_REGION="$AWS_DEFAULT_REGION"
 
 # grep.
-export GREP_COLOR='mt=01;34'
+export GREP_COLORS='mt=01;34'
 
 # mason (neovim lsp tool installer) - same path on all platforms.
 export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
@@ -37,10 +37,16 @@ export PATH="$PATH:$HOME/.local/share/nvim/mason/bin"
 case "$os" in
   "Darwin")
     # homebrew — prepend so brew tools take precedence.
-    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+    # /opt/homebrew = Apple Silicon; /usr/local = Intel x86_64.
+    if [[ "$(uname -m)" == "arm64" ]]; then
+      export HOMEBREW_PREFIX="/opt/homebrew"
+    else
+      export HOMEBREW_PREFIX="/usr/local"
+    fi
+    export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH"
 
     # use GNU make instead of macOS make.
-    export PATH="/opt/homebrew/libexec/gnubin:$PATH"
+    export PATH="$HOMEBREW_PREFIX/libexec/gnubin:$PATH"
     ;;
 
   "Linux")
