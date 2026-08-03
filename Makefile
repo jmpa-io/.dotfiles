@@ -81,6 +81,7 @@ configure: \
 	configure-i3lock \
 	configure-iterm2 \
 	configure-common \
+	configure-dotfiles-d \
 	configure-tmux \
 	configure-vscode
 
@@ -108,6 +109,7 @@ setup: \
 	setup-pulsemixer \
 	setup-fonts \
 	setup-common \
+	configure-dotfiles-d \
 	setup-tmux \
 	setup-i3 \
 	setup-i3lock \
@@ -555,6 +557,26 @@ else
 	@echo "Install act manually on Linux: https://github.com/nektos/act"
 endif
 
+# ---------------------------------------------------------------
+# rclone (used by obsidian-upload-to-google-drive script)
+# ---------------------------------------------------------------
+
+.PHONY: install-rclone
+install-rclone: ## Install 'rclone'.
+	$(call pkg,rclone)
+
+# ---------------------------------------------------------------
+# xautolock (Linux only — drives lock-screen idle timer)
+# ---------------------------------------------------------------
+
+.PHONY: install-xautolock
+install-xautolock: ## Install 'xautolock' (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --noconfirm xautolock
+else
+	@echo "Skipping xautolock installation (Linux only)."
+endif
+
 # ansible-lint — installed by Mason (see .config/neovim/lua/configs/mason.lua).
 
 # ---------------------------------------------------------------
@@ -583,8 +605,13 @@ configure-dotfiles-d: ## Symlink versioned shell files into ~/.dotfiles.d/.
 	@ln -sf $(PWD)/.config/common/aliases $(HOME)/.dotfiles.d/aliases && echo "  linked aliases"
 	@ln -sf $(PWD)/.config/common/.ai-aliases $(HOME)/.dotfiles.d/ai-aliases && echo "  linked ai-aliases"
 
+.PHONY: configure-npmrc
+configure-npmrc: ## Symlink .npmrc into home directory.
+	@ln -sf $(PWD)/.config/common/.npmrc $(HOME)/.npmrc && echo "  linked .npmrc"
+
+.PHONY: test-ai-aliases
 test-ai-aliases: ## Test .ai-aliases shell functions.
-	@zsh -c "$$(cat $(PWD)/.config/common/bin/.tests/test-ai-aliases.sh)"
+	@zsh $(PWD)/.config/common/bin/.tests/test-ai-aliases.sh
 
 # ---------------------------------------------------------------
 # Housekeeping
@@ -610,29 +637,6 @@ setup-tmux: install-tmux configure-tmux
 test-tmux: ## Test tmux session functions (pane counts + idempotency).
 	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
 
-
-# ---------------------------------------------------------------
-# docker
-# ---------------------------------------------------------------
-
-REPO_ROOT := $(shell git rev-parse --show-toplevel 2>/dev/null || pwd)
-CBA_PROXY ?= http://144.125.160.185:8080
-
-.PHONY: docker
-docker: ## Run an interactive shell inside the dotfiles Docker image (builds first).
-	@echo "==> Extracting CBA certs"
-	@REPO_ROOT="$(REPO_ROOT)" bash "$(REPO_ROOT)/bin/extract-cba-certs.sh"
-	@echo "==> Building dotfiles image"
-	@docker build \
-		--build-arg CBA_PROXY="$(CBA_PROXY)" \
-		--network=host \
-		--platform linux/amd64 \
-		-t dotfiles:latest . \
-		--quiet
-	@docker run -it \
-		--platform linux/amd64 \
-		-v "$(REPO_ROOT)":/root/.dotfiles \
-		dotfiles:latest
 
 # ---------------------------------------------------------------
 

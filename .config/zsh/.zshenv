@@ -20,7 +20,7 @@ export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
 export PATH="$PATH:/usr/local/go/bin"
 export GOPATH="$HOME/go"
 export PATH="$PATH:$GOPATH/bin"
-# NOTE: GOPRIVATE and CDPATH are set in ~/work — they include CBA orgs and are
+# NOTE: GOPRIVATE and CDPATH are set in ~/.dotfiles.d/work — they include CBA orgs and are
 # machine-specific so they live outside dotfiles.
 
 # aws.
