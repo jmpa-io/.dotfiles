@@ -117,7 +117,7 @@ if command -v fzf &>/dev/null; then
 fi
 
 # load opener image (only in interactive terminals, not programmatic shells).
-if [[ -t 1 || -n "$TMUX" ]]; then
+if [[ -t 1 && -z "$TMUX" ]]; then
   case "$os" in
     "Linux")
       [[ -f "$HOME/tree-v2.png" ]] && command -v wezterm &>/dev/null && wezterm imgcat "$HOME/tree-v2.png"
