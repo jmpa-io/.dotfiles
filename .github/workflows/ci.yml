@@ -50,7 +50,7 @@ jobs:
           VALIDATE_YAML: true
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
-          FILTER_REGEX_EXCLUDE: '.config/tmux/plugins/.*'
+          FILTER_REGEX_EXCLUDE: '(.config/tmux/plugins/.*|.config/vscode/extensions\.json)'
 
   # ── makefile ─────────────────────────────────────────────────────────────────
   makefile:
