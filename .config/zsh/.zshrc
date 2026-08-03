@@ -51,22 +51,21 @@ setopt HIST_IGNORE_SPACE      # do not record an event starting with a space.
 setopt HIST_SAVE_NO_DUPS      # do not write a duplicate event to the history file.
 setopt HIST_VERIFY            # do not execute immediately upon history expansion.
 
-# source external files.
-# NOTE: ~/work is intentionally omitted here — it's sourced by .zshenv so it's
-# available to all processes (including non-interactive ones like Claude Code).
-# Sourcing it again here would double-run pyenv init, gh auth token, etc.
-files=(
-  "$HOME/aliases"
-)
-for file in "${files[@]}"; do
-  if [[ -f "$file" ]]; then
-    source "$file"
+# source external files from ~/.dotfiles.d/ if it exists, otherwise fall back
+# to legacy home-dir locations.
+# NOTE: work is intentionally omitted — sourced by .zshenv so it's available to
+# all processes (including non-interactive ones like Claude Code). Sourcing it
+# again here would double-run pyenv init, gh auth token, etc.
+if [[ -d "$HOME/.dotfiles.d" ]]; then
+  for f in "$HOME/.dotfiles.d/aliases" "$HOME/.dotfiles.d/ai-aliases"; do
+    [[ -f "$f" ]] && source "$f"
+  done
+else
+  # legacy fallback.
+  [[ -f "$HOME/aliases" ]] && source "$HOME/aliases"
+  if [[ -f "$HOME/.ai-aliases" ]] && { command -v claude &>/dev/null || command -v opencode &>/dev/null; }; then
+    source "$HOME/.ai-aliases"
   fi
-done
-
-# AI launchers — only loaded when claude or opencode is installed.
-if [[ -f "$HOME/.ai-aliases" ]] && { command -v claude &>/dev/null || command -v opencode &>/dev/null; }; then
-  source "$HOME/.ai-aliases"
 fi
 
 
@@ -118,7 +117,7 @@ if command -v fzf &>/dev/null; then
 fi
 
 # load opener image (only in interactive terminals, not programmatic shells).
-if [[ -t 1 ]]; then
+if [[ -t 1 || -n "$TMUX" ]]; then
   case "$os" in
     "Linux")
       [[ -f "$HOME/tree-v2.png" ]] && command -v wezterm &>/dev/null && wezterm imgcat "$HOME/tree-v2.png"
