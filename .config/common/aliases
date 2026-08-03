@@ -14,11 +14,11 @@ alias d="dirs -v"
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
 # zsh.
-alias zsrc='for f in "$HOME/.dotfiles.d/work" "$HOME/work" "$HOME/.dotfiles.d/aliases" "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases" "$HOME/.ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+alias zsrc='for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
 
 # Broadcast 'source work config' to all panes in the current tmux session.
 # Use after key rotation so all shells pick up the new PORTKEY_API_KEY immediately.
-alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {} "source ${HOME}/.dotfiles.d/work 2>/dev/null || source ${HOME}/work" Enter'
+alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {} "source ${HOME}/.dotfiles.d/work" Enter'
 
 # Re-source shell config across all tmux panes (or a single pane with -p).
 # Usage:
@@ -30,7 +30,7 @@ alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {
 #   claude -c resumes the most recent session for that pane's working directory — correct per-pane.
 # Skips the current pane (caller handles it via zsrc) and panes running anything else.
 t-zsrc() {
-  local src_cmd='for f in "$HOME/.dotfiles.d/work" "$HOME/work" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases" "$HOME/.ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+  local src_cmd='for f in "$HOME/.dotfiles.d/work" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
   local current_pane target_pane=""
   current_pane=$(tmux display-message -p '#{pane_id}')
 
@@ -39,34 +39,54 @@ t-zsrc() {
     target_pane="${2:?t-zsrc -p requires a pane ID (e.g. -p %3)}"
   fi
 
+  # Detect if a pane is running claude by checking its child process.
+  # tmux pane_current_command always shows 'zsh' since claude runs inside zsh.
+  _t-zsrc-pane-has-claude() {
+    local pane_pid child_pid
+    pane_pid=$(tmux display-message -p -t "$1" '#{pane_pid}' 2>/dev/null)
+    child_pid=$(pgrep -P "$pane_pid" 2>/dev/null | head -1)
+    [[ $(ps -p "$child_pid" -o comm= 2>/dev/null) == "claude" ]]
+  }
+
   _t-zsrc-handle-pane() {
     local pane_id="$1"
-    local cmd
-    cmd=$(tmux display-message -p -t "$pane_id" '#{pane_current_command}' 2>/dev/null)
     [[ "$pane_id" == "$current_pane" ]] && return
-    case "$cmd" in
-      zsh)
-        tmux send-keys -l -t "$pane_id" "$src_cmd"
-        tmux send-keys -t "$pane_id" Enter
-        ;;
-      claude)
-        # Escape any running output first, then exit.
-        tmux send-keys -t "$pane_id" Escape
-        sleep 0.3
-        tmux send-keys -t "$pane_id" '/exit' Enter
-        local i=0
-        while (( i++ < 30 )); do
-          [[ $(tmux display-message -p -t "$pane_id" '#{pane_current_command}' 2>/dev/null) == zsh ]] && break
-          sleep 0.5
-        done
-        # Small delay to let zsh fully initialise before sending keys.
-        sleep 0.3
-        tmux send-keys -l -t "$pane_id" "$src_cmd && claude -c"
-        tmux send-keys -t "$pane_id" Enter
-        ;;
-      *)
-        echo "t-zsrc: skipping pane $pane_id (running $cmd)" ;;
-    esac
+
+    if _t-zsrc-pane-has-claude "$pane_id"; then
+      # Capture working dir from the claude child process before exiting.
+      local pane_pid child_pid pane_cwd
+      pane_pid=$(tmux display-message -p -t "$pane_id" '#{pane_pid}' 2>/dev/null)
+      child_pid=$(pgrep -P "$pane_pid" 2>/dev/null | head -1)
+      pane_cwd=$(lsof -p "$child_pid" -a -d cwd -Fn 2>/dev/null | awk '/^n/{print substr($0,2); exit}')
+      [[ -z "$pane_cwd" ]] && pane_cwd=$(tmux display-message -p -t "$pane_id" '#{pane_current_path}' 2>/dev/null)
+
+      # Clear any partial input, then send /exit.
+      tmux send-keys -t "$pane_id" C-c
+      sleep 0.2
+      tmux send-keys -t "$pane_id" '/exit' Enter
+
+      # Wait up to 15s for claude child process to exit.
+      local i=0
+      while (( i++ < 30 )); do
+        _t-zsrc-pane-has-claude "$pane_id" || break
+        sleep 0.5
+      done
+
+      # Wait for zsh prompt to be ready after claude exits.
+      sleep 0.8
+      tmux send-keys -l -t "$pane_id" "$src_cmd"
+      tmux send-keys -t "$pane_id" Enter
+      sleep 0.3
+      tmux send-keys -l -t "$pane_id" "cd $(printf '%q' "$pane_cwd")"
+      tmux send-keys -t "$pane_id" Enter
+      sleep 0.1
+      tmux send-keys -t "$pane_id" 'claude -c' Enter
+
+    else
+      # Idle zsh pane — just re-source.
+      tmux send-keys -l -t "$pane_id" "$src_cmd"
+      tmux send-keys -t "$pane_id" Enter
+    fi
   }
 
   if [[ -n "$target_pane" ]]; then
@@ -163,7 +183,7 @@ t-help() {
   ───────
   t-ls        list running sessions
   t-help      show this help
-  b-src       broadcast 'source ~/work' to all panes
+  b-src       broadcast 'source ~/.dotfiles.d/work' to all panes
   t-zsrc      re-source shell config in all panes (exits + resumes claude panes)
 
   Recovery
@@ -224,11 +244,11 @@ olss() {
   [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
 }
 
-# Writes the active AWS_PROFILE to ~/work so it persists across new terminals.
-# Only writes if ~/work exists — no-op otherwise.
+# Writes the active AWS_PROFILE to ~/.dotfiles.d/work so it persists across new terminals.
+# Only writes if ~/.dotfiles.d/work exists — no-op otherwise.
 _aws_write_profile_to_work() {
   local profile="$1"
-  local work="$HOME/work"
+  local work="$HOME/.dotfiles.d/work"
   [[ -f "$work" ]] || return 0
   # Replace existing AWS_PROFILE line or append if not present.
   if grep -q "^export AWS_PROFILE=" "$work"; then

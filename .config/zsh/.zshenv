@@ -64,10 +64,8 @@ fi
 
 # source machine-local config early so secrets (e.g. PORTKEY_API_KEY) are
 # available to all processes, including Claude Code which launches outside
-# interactive shells. Prefer ~/.dotfiles.d/work, fall back to ~/work.
+# interactive shells.
 if [[ -f "$HOME/.dotfiles.d/work" ]]; then
   source "$HOME/.dotfiles.d/work"
-elif [[ -f "$HOME/work" ]]; then
-  source "$HOME/work"
 fi
 
