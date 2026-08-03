@@ -14,11 +14,69 @@ alias d="dirs -v"
 for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
 
 # zsh.
-alias zsrc='for f in "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc"; do [[ -f "$f" ]] && source "$f"; done'
+alias zsrc='for f in "$HOME/.dotfiles.d/work" "$HOME/work" "$HOME/.dotfiles.d/aliases" "$HOME/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases" "$HOME/.ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
 
-# Broadcast 'source ~/work' to all panes in the current tmux session.
+# Broadcast 'source work config' to all panes in the current tmux session.
 # Use after key rotation so all shells pick up the new PORTKEY_API_KEY immediately.
-alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {} "source $HOME/work" Enter'
+alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {} "source ${HOME}/.dotfiles.d/work 2>/dev/null || source ${HOME}/work" Enter'
+
+# Re-source shell config across all tmux panes (or a single pane with -p).
+# Usage:
+#   t-zsrc          — re-source all panes
+#   t-zsrc -p %3   — re-source only pane %3 (safe for testing)
+#
+# Idle zsh panes: sources config directly.
+# Claude panes: sends /exit, waits for zsh to return, sources config, then resumes with claude -c.
+#   claude -c resumes the most recent session for that pane's working directory — correct per-pane.
+# Skips the current pane (caller handles it via zsrc) and panes running anything else.
+t-zsrc() {
+  local src_cmd='for f in "$HOME/.dotfiles.d/work" "$HOME/work" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases" "$HOME/.ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+  local current_pane target_pane=""
+  current_pane=$(tmux display-message -p '#{pane_id}')
+
+  # Parse -p <pane_id> flag.
+  if [[ "${1:-}" == "-p" ]]; then
+    target_pane="${2:?t-zsrc -p requires a pane ID (e.g. -p %3)}"
+  fi
+
+  _t-zsrc-handle-pane() {
+    local pane_id="$1"
+    local cmd
+    cmd=$(tmux display-message -p -t "$pane_id" '#{pane_current_command}' 2>/dev/null)
+    [[ "$pane_id" == "$current_pane" ]] && return
+    case "$cmd" in
+      zsh)
+        tmux send-keys -l -t "$pane_id" "$src_cmd"
+        tmux send-keys -t "$pane_id" Enter
+        ;;
+      claude)
+        # Escape any running output first, then exit.
+        tmux send-keys -t "$pane_id" Escape
+        sleep 0.3
+        tmux send-keys -t "$pane_id" '/exit' Enter
+        local i=0
+        while (( i++ < 30 )); do
+          [[ $(tmux display-message -p -t "$pane_id" '#{pane_current_command}' 2>/dev/null) == zsh ]] && break
+          sleep 0.5
+        done
+        # Small delay to let zsh fully initialise before sending keys.
+        sleep 0.3
+        tmux send-keys -l -t "$pane_id" "$src_cmd && claude -c"
+        tmux send-keys -t "$pane_id" Enter
+        ;;
+      *)
+        echo "t-zsrc: skipping pane $pane_id (running $cmd)" ;;
+    esac
+  }
+
+  if [[ -n "$target_pane" ]]; then
+    _t-zsrc-handle-pane "$target_pane"
+  else
+    tmux list-panes -a -F '#{pane_id}' | while read -r pane_id; do
+      _t-zsrc-handle-pane "$pane_id"
+    done
+  fi
+}
 
 # tmux sessions — each creates or attaches to a named session with a fixed layout.
 # Use across multiple screens — attach from any window with the same alias.
@@ -106,6 +164,7 @@ t-help() {
   t-ls        list running sessions
   t-help      show this help
   b-src       broadcast 'source ~/work' to all panes
+  t-zsrc      re-source shell config in all panes (exits + resumes claude panes)
 
   Recovery
   ────────

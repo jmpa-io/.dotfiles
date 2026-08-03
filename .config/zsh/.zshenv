@@ -62,9 +62,12 @@ if [[ -d "$GOPATH/src/github.com/jmpa-io/email-manager" ]]; then
   export EMAIL_FOLDERS_CONFIG="$GOPATH/src/github.com/jmpa-io/email-manager/folders.json"
 fi
 
-# source ~/work early so secrets (e.g. PORTKEY_API_KEY) are available to all
-# processes, including Claude Code which launches outside interactive shells.
-if [[ -f "$HOME/work" ]]; then
+# source machine-local config early so secrets (e.g. PORTKEY_API_KEY) are
+# available to all processes, including Claude Code which launches outside
+# interactive shells. Prefer ~/.dotfiles.d/work, fall back to ~/work.
+if [[ -f "$HOME/.dotfiles.d/work" ]]; then
+  source "$HOME/.dotfiles.d/work"
+elif [[ -f "$HOME/work" ]]; then
   source "$HOME/work"
 fi
 

@@ -29,24 +29,28 @@ jobs:
             makefile:
               - 'Makefile'
 
-  # ── shellcheck ───────────────────────────────────────────────────────────────
-  shellcheck:
-    needs: changes
-    if: needs.changes.outputs.shell == 'true'
+  # ── Super-Linter ─────────────────────────────────────────────────────────────
+  lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v4
-      - name: Install shellcheck
-        run: sudo apt-get install -y shellcheck
-      - name: Lint shell scripts
-        run: |
-          find . -name '*.sh' -not -path './.git/*' | xargs shellcheck
-      - name: Lint aliases
-        run: |
-          shellcheck --shell=bash .config/common/aliases
-      - name: Lint zsh configs
-        run: |
-          find .config/zsh -type f | xargs shellcheck --shell=bash
+        with:
+          fetch-depth: 0
+      - name: Lint
+        uses: super-linter/super-linter@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_BASH: true
+          VALIDATE_BASH_EXEC: true
+          VALIDATE_SHELL_SHFMT: true
+          VALIDATE_YAML: true
+          VALIDATE_JSON: true
+          VALIDATE_MARKDOWN: true
+          FILTER_REGEX_EXCLUDE: '.config/tmux/plugins/.*'
 
   # ── makefile ─────────────────────────────────────────────────────────────────
   makefile:
@@ -67,5 +71,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install zsh
         run: sudo apt-get install -y zsh
-      - name: Run opencode tests
-        run: make test-opencode
+      - name: Run ai-aliases tests
+        run: make test-ai-aliases
+      - name: Run tmux tests
+        run: make test-tmux

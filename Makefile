@@ -577,6 +577,15 @@ configure-common: .config/common
 
 setup-common: configure-common
 
+.PHONY: configure-dotfiles-d
+configure-dotfiles-d: ## Symlink versioned shell files into ~/.dotfiles.d/.
+	@mkdir -p $(HOME)/.dotfiles.d
+	@ln -sf $(PWD)/.config/common/aliases $(HOME)/.dotfiles.d/aliases && echo "  linked aliases"
+	@ln -sf $(PWD)/.config/common/.ai-aliases $(HOME)/.dotfiles.d/ai-aliases && echo "  linked ai-aliases"
+
+test-ai-aliases: ## Test .ai-aliases shell functions.
+	@zsh -c "$$(cat $(PWD)/.config/common/bin/.tests/test-ai-aliases.sh)"
+
 # ---------------------------------------------------------------
 # Housekeeping
 # ---------------------------------------------------------------
@@ -594,12 +603,38 @@ install-tmux: ## Install 'tmux'.
 configure-tmux: ## Configure 'tmux'.
 configure-tmux: .config/tmux $(HOME)/.config
 	$(call cfg,.config/tmux)
+	ln -sfn $(PWD)/.config/tmux $(HOME)/.tmux
 
 setup-tmux: install-tmux configure-tmux
 
 test-tmux: ## Test tmux session functions (pane counts + idempotency).
 	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
 
+
+# ---------------------------------------------------------------
+# docker
+# ---------------------------------------------------------------
+
+REPO_ROOT := $(shell git rev-parse --show-toplevel 2>/dev/null || pwd)
+CBA_PROXY ?= http://144.125.160.185:8080
+
+.PHONY: docker
+docker: ## Run an interactive shell inside the dotfiles Docker image (builds first).
+	@echo "==> Extracting CBA certs"
+	@REPO_ROOT="$(REPO_ROOT)" bash "$(REPO_ROOT)/bin/extract-cba-certs.sh"
+	@echo "==> Building dotfiles image"
+	@docker build \
+		--build-arg CBA_PROXY="$(CBA_PROXY)" \
+		--network=host \
+		--platform linux/amd64 \
+		-t dotfiles:latest . \
+		--quiet
+	@docker run -it \
+		--platform linux/amd64 \
+		-v "$(REPO_ROOT)":/root/.dotfiles \
+		dotfiles:latest
+
+# ---------------------------------------------------------------
 
 .PHONY: help
 help: ## Print this help page.
