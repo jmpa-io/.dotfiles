@@ -2,7 +2,9 @@
 # Tests for ~/.ai-aliases — shell function behaviour.
 # Run with: zsh .config/common/bin/.tests/test-ai-aliases.sh
 
-AI_ALIASES="${HOME}/.ai-aliases"
+# Prefer ~/.dotfiles.d/ai-aliases (new layout), fall back to ~/.ai-aliases (legacy).
+AI_ALIASES="${HOME}/.dotfiles.d/ai-aliases"
+[[ -f "$AI_ALIASES" ]] || AI_ALIASES="${HOME}/.ai-aliases"
 
 pass() { printf "\033[0;32mPASS\033[0m  %s\n" "$1"; }
 fail() { printf "\033[0;31mFAIL\033[0m  %s\n" "$1"; FAILURES=$(( FAILURES + 1 )); }
