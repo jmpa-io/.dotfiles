@@ -10,4 +10,5 @@
 
 # Diagnostics dump from fix.sh — force-add with: git add -f dist/diagnostics.txt
 dist/diagnostics.txt
+dist/cba-certs/
 .worktrees/
