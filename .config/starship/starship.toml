@@ -5,7 +5,7 @@ add_newline = false
 # Explicitly define the prompt format - anything not listed here won't show.
 # This is cleaner than disabling every language module individually.
 format = """
-$directory$git_branch$git_commit$git_status$cmd_duration
+$directory$git_branch$git_status$cmd_duration
 $time$character"""
 
 [character]

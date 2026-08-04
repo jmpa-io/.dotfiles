@@ -39,8 +39,8 @@ setopt NO_NOTIFY              # suppress background job completion notifications
 setopt NO_MONITOR             # suppress background job status reporting entirely.
 
 # history.
-HISTSIZE=50000   # lines kept in memory.
-SAVEHIST=50000   # lines written to $HISTFILE.
+HISTSIZE=100000   # lines kept in memory.
+SAVEHIST=100000   # lines written to $HISTFILE.
 setopt EXTENDED_HISTORY       # write the history file in the ':start:elapsed;command' format.
 setopt SHARE_HISTORY          # share history between all sessions.
 setopt HIST_EXPIRE_DUPS_FIRST # expire a duplicate event first when trimming history.
@@ -75,7 +75,7 @@ if command -v starship &>/dev/null; then
     || die "failed to setup starship"
 fi
 
-# enable zsh-syntax-highlighting.
+# enable zsh-syntax-highlighting + zsh-autosuggestions.
 case "$os" in
   "Darwin")
     alias firefox='/Applications/Firefox.app/Contents/MacOS/firefox --marionette -remote-allow-system-access'
@@ -83,11 +83,17 @@ case "$os" in
       if [[ -f "$HOMEBREW_PREFIX/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
         source "$HOMEBREW_PREFIX/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
       fi
+      if [[ -f "$HOMEBREW_PREFIX/opt/zsh-autosuggestions/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+        source "$HOMEBREW_PREFIX/opt/zsh-autosuggestions/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+      fi
     fi
   ;;
   "Linux")
     if [[ -f "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
       source "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    fi
+    if [[ -f "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+      source "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
     fi
     ;;
 esac
