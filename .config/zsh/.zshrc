@@ -13,6 +13,9 @@
 # - https://github.com/BrodieRobertson/dotfiles
 
 
+# Re-prepend homebrew after /etc/zprofile (login shell init) overwrites PATH order.
+[[ -n "$HOMEBREW_PREFIX" ]] && export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH"
+
 # enable for tab-completion.
 # Skip compaudit if the dump file is less than 24h old (fast path).
 # Regenerate fully if it's stale — catches new completions from brew installs etc.
@@ -63,7 +66,7 @@ if [[ -d "$HOME/.dotfiles.d" ]]; then
 else
   # legacy fallback.
   [[ -f "$HOME/aliases" ]] && source "$HOME/aliases"
-  if [[ -f "$HOME/.ai-aliases" ]] && { command -v claude &>/dev/null || command -v opencode &>/dev/null; }; then
+  if [[ -f "$HOME/.ai-aliases" ]] && command -v claude &>/dev/null; then
     source "$HOME/.ai-aliases"
   fi
 fi
