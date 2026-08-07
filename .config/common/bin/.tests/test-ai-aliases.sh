@@ -74,13 +74,32 @@ else
   fail "opencode() with args did NOT forward correctly (got: $output)"
 fi
 
-# ── Test 5: claude() without args and no git repo just runs command claude ────
+# ── Test 5: claude() without args runs command claude directly (no picker) ───────
+# Covers both inside and outside a git repo — worktree selection is no longer
+# claude()'s concern.
 
 output=$(_zsh "cd $TMPDIR_TEST; claude")
 if echo "$output" | grep -q "FAKE_CLAUDE_CALLED:$"; then
-  pass "claude() without args outside git repo runs command claude directly"
+  pass "claude() without args runs command claude directly (no git repo)"
 else
   fail "claude() without args outside git repo did NOT run directly (got: $output)"
+fi
+
+# ── Test 5b: claude() with no args inside a multi-worktree repo runs directly ───
+
+MULTI_REPO="$TMPDIR_TEST/multi-repo"
+mkdir -p "$MULTI_REPO"
+git -C "$MULTI_REPO" init -q
+GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test.com" \
+GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test.com" \
+git -C "$MULTI_REPO" commit --allow-empty -q -m "init"
+git -C "$MULTI_REPO" worktree add -q "$MULTI_REPO/.worktrees/feat-x" -b feat-x 2>/dev/null
+
+output=$(_zsh "cd $MULTI_REPO; claude")
+if echo "$output" | grep -q "FAKE_CLAUDE_CALLED:$"; then
+  pass "claude() with no args in multi-worktree repo runs command claude directly"
+else
+  fail "claude() in multi-worktree repo did NOT run directly — picker may still be active (got: $output)"
 fi
 
 # ── Test 6: opencode() without args and no git repo just runs command opencode ─
