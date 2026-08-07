@@ -170,6 +170,71 @@ t-homelab() {
 # misc: single pane — clean shell for one-offs
 t-misc() { tmux new-session -A -s misc; }
 
+# t-claude [name] [path] — create or attach a task-named Claude session.
+# Usage:
+#   t-claude deploy ~/go/src/github.com/CBA-General/harrier
+#   t-claude rename-user
+#   t-claude                   (prompts for name, uses cwd)
+# Session name is slugified: spaces → dashes, lowercased.
+# If a session already exists, attaches to it.
+# When creating, splits into left (Claude) + right (shell) panes.
+t-claude() {
+  local name="${1:-}"
+  local dir="${2:-$(pwd)}"
+
+  if [[ -z "$name" ]]; then
+    read "name?Session name: "
+    [[ -z "$name" ]] && return 0
+  fi
+
+  # slugify
+  local slug
+  slug=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' _/' '-' | tr -cd 'a-z0-9-')
+  [[ -z "$slug" ]] && { echo "t-claude: empty slug after sanitising '$name'" >&2; return 1; }
+
+  if ! tmux has-session -t "$slug" 2>/dev/null; then
+    tmux new-session -d -s "$slug" -c "$dir"
+    tmux split-window -h -t "$slug" -c "$dir"
+    tmux select-pane -t "$slug:1.1"
+    # Start claude in the left pane.
+    tmux send-keys -t "$slug:1.1" 'claude' Enter
+  fi
+  tmux attach-session -t "$slug"
+}
+
+# t-rename [new-name] — rename the current tmux session.
+# If new-name is omitted, prompts interactively.
+t-rename() {
+  local new_name="${1:-}"
+  if [[ -z "$new_name" ]]; then
+    local current
+    current=$(tmux display-message -p '#S' 2>/dev/null)
+    read "new_name?New name [${current}]: "
+    [[ -z "$new_name" ]] && return 0
+  fi
+  local slug
+  slug=$(echo "$new_name" | tr '[:upper:]' '[:lower:]' | tr ' _/' '-' | tr -cd 'a-z0-9-')
+  tmux rename-session "$slug"
+  echo "renamed to: $slug"
+}
+
+# t-status — list all sessions with pane counts, commands, and attached marker.
+t-status() {
+  echo
+  printf "  %-22s  %-5s  %-8s  %s\n" "SESSION" "PANES" "ATTACHED" "COMMANDS"
+  printf "  %-22s  %-5s  %-8s  %s\n" "───────────────────────" "─────" "────────" "────────────────────────────────"
+  while IFS=' ' read -r name _windows attached; do
+    panes=$(tmux list-panes -s -t "$name" -F '#{pane_id}' 2>/dev/null | wc -l | tr -d ' ')
+    cmds=$(tmux list-panes -s -t "$name" -F '#{pane_current_command}' 2>/dev/null \
+      | sort | uniq -c | sort -rn \
+      | awk '{printf "%s×%s  ", $1, $2}' | sed 's/  $//')
+    attached_str=""
+    [[ "$attached" -gt 0 ]] && attached_str="●"
+    printf "  %-22s  %-5s  %-8s  %s\n" "$name" "$panes" "$attached_str" "$cmds"
+  done < <(tmux list-sessions -F '#{session_name} #{session_windows} #{session_attached}' 2>/dev/null)
+  echo
+}
+
 # list running tmux sessions
 alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
 
@@ -187,9 +252,15 @@ t-help() {
   t-homelab   homelab         (3 panes: main left + 2 right)
   t-misc      misc            (single pane)
 
+  Task-named sessions
+  ───────────────────
+  t-claude [name] [path]  create/attach a task-named Claude session (left=claude, right=shell)
+  t-rename [name]         rename current session to a new slug
+
   Utility
   ───────
   t-ls        list running sessions
+  t-status    list sessions with pane counts + commands
   t-help      show this help
   b-src       broadcast 'source ~/.dotfiles.d/work' to all panes
   t-zsrc      re-source shell config in all panes (exits + resumes claude panes)
@@ -204,6 +275,7 @@ t-help() {
   Ctrl+B r          reload tmux config
   Ctrl+B t          floating scratchpad terminal
   Ctrl+B s          fuzzy session switcher (fzf)
+  Ctrl+B A          AI session inspector (status/save/restore)
   Ctrl+B y          toggle pane sync (types to all panes)
   Ctrl+\            split right
   Ctrl+G            split down
