@@ -68,10 +68,8 @@ _worktree_pick() {
   fi
 }
 
-# claude — worktree-aware launcher.
-# If args are given, forwards them directly (e.g. 'claude -p "..."').
-# Auto-removes macOS quarantine on version upgrade (cached to avoid re-running).
-# Use 'wt' to create or remove worktrees.
+# claude — launcher with quarantine auto-removal on macOS.
+# Worktree selection is a shell concern — use 'wt cd' before invoking.
 claude() {
   local bin
   bin=$(whence -p claude)
@@ -86,15 +84,7 @@ claude() {
     fi
   fi
 
-  [[ $# -gt 0 ]] && { command claude "$@"; return; }
-
-  local p
-  p=$(_worktree_pick "claude")
-  if [[ -n "$p" ]]; then
-    (cd "$p" && command claude)
-  else
-    command claude
-  fi
+  command claude "$@"
 }
 
 # opencode — worktree-aware launcher.
