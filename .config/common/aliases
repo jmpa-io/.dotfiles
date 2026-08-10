@@ -59,8 +59,8 @@ t-zsrc() {
       child_pid=$(pgrep -P "$pane_pid" -x claude 2>/dev/null)
       session_file="$HOME/.claude/sessions/${child_pid}.json"
       if [[ -f "$session_file" ]]; then
-        pane_cwd=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d['cwd'])" "$session_file" 2>/dev/null)
-        session_id=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d['sessionId'])" "$session_file" 2>/dev/null)
+        pane_cwd=$(jq -r '.cwd // empty' "$session_file" 2>/dev/null)
+        session_id=$(jq -r '.sessionId // empty' "$session_file" 2>/dev/null)
       fi
       [[ -z "$pane_cwd" ]] && pane_cwd=$(tmux display-message -p -t "$pane_id" '#{pane_current_path}' 2>/dev/null)
 
