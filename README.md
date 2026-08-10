@@ -53,10 +53,23 @@ git config --global user.name "Your Name"
 git config --global user.email "your@email.com"
 ```
 
-For work machines, create `~/.gitconfig-work` instead — it will be picked up automatically for any repo inside the configured work directories (e.g. `~/go/src/github.com/CBA-General/`):
+For work machines, copy the example and fill in your details:
 
-```ini
-[user]
-  name = Your Work Name
-  email = your.email@work.com
+```sh
+cp ~/.gitconfig-work.example ~/.gitconfig-work
 ```
+
+This sets your work identity and pins git credentials to your work GitHub account for all CBA repos automatically — no manual account switching needed.
+
+## Machine-local config (`~/.dotfiles.d/work`)
+
+`~/.dotfiles.d/work` is a machine-local shell file sourced by `.zshenv` on every shell start (interactive and non-interactive). It holds secrets and environment-specific config that must not be committed:
+
+- Proxy settings
+- AWS profile and CA bundle
+- API tokens (Portkey, Atlassian, Artifactory, SonarQube, AAP)
+- GitHub token cache
+- Go private module config
+- Docker host
+
+This file is not tracked in dotfiles. On a new machine, create it manually or copy it from a secure backup.
