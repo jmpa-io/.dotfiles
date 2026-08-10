@@ -1,0 +1,7 @@
+[user]
+  name = Your Name
+  email = your.email@work.com
+
+[credential "https://github.com"]
+  helper =
+  helper = !GH_CREDENTIAL_USER=Your-GitHub-Username ~/bin/git-credential-gh
