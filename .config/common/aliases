@@ -30,7 +30,7 @@ alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {
 #   claude -c resumes the most recent session for that pane's working directory — correct per-pane.
 # Skips the current pane (caller handles it via zsrc) and panes running anything else.
 t-zsrc() {
-  local src_cmd='for f in "$HOME/.dotfiles.d/work" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+  local src_cmd='for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
   local current_pane target_pane=""
   current_pane=$(tmux display-message -p '#{pane_id}')
 
@@ -359,7 +359,7 @@ aws() {
 
     # list ALL the AWS profiles available, including which one is currently authed.
     profiles)
-      profile="${AWS_PROFILE:-default}"
+      local profile="${AWS_PROFILE:-default}"
       command aws --no-cli-pager configure list-profiles | while IFS= read -r p; do
         # Skip -admin profiles as they're just for role assumption.
         [[ "$p" == *-admin ]] && continue
@@ -400,7 +400,7 @@ aws() {
       fi
 
       # Check if there's a corresponding -admin profile and use that instead
-      admin_profile="${profile}-admin"
+      local admin_profile="${profile}-admin"
       if printf '%s\n' "$profiles_list" | grep -q "^${admin_profile}$"; then
         export AWS_PROFILE="$admin_profile"
         _aws_write_profile_to_work "$admin_profile"
@@ -462,7 +462,7 @@ host=github.com" 2>/dev/null || true
       ;;
 
     # runs 'git pull' while pruning old branches.
-    "pull "*)
+    pull|"pull "*)
       command git pull --prune "${@:2}" ;;
 
     # runs 'git clone' and then changes into the directory cloned.
@@ -479,6 +479,7 @@ host=github.com" 2>/dev/null || true
 
     # opens the repository in the default browser.
     "open")
+      local url
       url=$(command git remote get-url origin \
         | sed -E 's|git@github\.com:|https://github.com/|' \
         | sed -E 's|\.git$||')
@@ -514,9 +515,10 @@ wt() {
     return 1
   fi
 
-  # ensure .worktrees/ is gitignored.
-  if ! grep -qxF '.worktrees/' "$root/.gitignore" 2>/dev/null; then
+  # ensure .worktrees/ is gitignored — only in repos we own (under $ROOT).
+  if [[ "$root" == "$ROOT"* ]] && ! grep -qxF '.worktrees/' "$root/.gitignore" 2>/dev/null; then
     echo '.worktrees/' >> "$root/.gitignore"
+    echo "wt: added .worktrees/ to $root/.gitignore"
   fi
 
   # helper: build a worktree from a branch name.
@@ -524,7 +526,7 @@ wt() {
     local branch="$1"
     local worktree_path="$root/.worktrees/$branch"
     mkdir -p "$(dirname "$worktree_path")"
-    if git -C "$root" branch --list "$branch" | grep -q "$branch"; then
+    if git -C "$root" branch --list "$branch" | grep -qxF "$branch"; then
       git -C "$root" worktree add "$worktree_path" "$branch"
     else
       git -C "$root" worktree add "$worktree_path" -b "$branch"
