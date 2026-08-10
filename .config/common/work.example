@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Machine-local shell config — copy to ~/.dotfiles.d/work and fill in your details.
+# Sourced by .zshenv on every shell start (interactive and non-interactive).
+# Never commit this file — it is intentionally untracked.
+
+# Profile used for KEYCHAIN access.
+KEYCHAIN_ACCOUNT="${KEYCHAIN_ACCOUNT:-your-keychain-account}"
+
+# Setup ROOT.
+export ROOT="$HOME/go/src/github.com"
+export CDPATH="."
+export CDPATH="$CDPATH:$ROOT"
+# Add your GitHub org directories here, e.g:
+# export CDPATH="$CDPATH:$ROOT/your-org"
+
+# Setup aws.
+export AWS_CA_BUNDLE="$HOME/.ssh/ca_bundle.pem"
+
+# Update aws ca bundle once per Monday (macOS only).
+if [[ "$(date +%u)" == "1" ]]; then
+    MARKER="$HOME/.ssh/.ca_bundle_last_update"
+    TODAY=$(date +%Y-%m-%d)
+    if [[ ! -f "$MARKER" ]] || [[ "$(<"$MARKER")" != "$TODAY" ]]; then
+        security find-certificate -a -p /Library/Keychains/System.keychain /System/Library/Keychains/SystemRootCertificates.keychain "$HOME/Library/Keychains/login.keychain-db" >"$AWS_CA_BUNDLE"
+        echo "$TODAY" >"$MARKER"
+    fi
+fi
+
+# Setup homebrew (Apple Silicon — change to /usr/local for Intel).
+export PATH="/opt/homebrew/bin:$PATH"
+
+# Corporate proxy — remove or update for your environment.
+# export {ALL,HTTPS,HTTP}_PROXY=http://your.proxy:8080
+# export NO_PROXY='localhost,127.0.0.1'
+
+# Setup Docker.
+export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
+export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+
+# Setup Hashicorp Vault (if applicable).
+# export VAULT_ADDR="https://your.vault.address"
+
+# Setup pyenv.
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
+
+# Setup Portkey API access (auto-rotating keys via lem).
+# Cached to ~/.cache/portkey-key; refreshed if >7 days old.
+_portkey_cache="$HOME/.cache/portkey-key"
+_file_age() { local f="$1"; case "$(uname)" in Darwin) date -r "$f" +%s 2>/dev/null ;; *) stat -c %Y "$f" 2>/dev/null ;; esac; }
+if [[ ! -f "$_portkey_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_portkey_cache" || echo 0))) -gt 604800 ]]; then
+    _portkey_tmp=$(lem get 2>/dev/null)
+    [[ -n "$_portkey_tmp" ]] && echo "$_portkey_tmp" >"$_portkey_cache"
+    unset _portkey_tmp
+fi
+export PORTKEY_API_KEY="$(<"$_portkey_cache" 2>/dev/null)"
+export ANTHROPIC_API_KEY="$PORTKEY_API_KEY"
+export ANTHROPIC_AUTH_TOKEN="$PORTKEY_API_KEY"
+unset _portkey_cache
+
+# Setup GitHub API access.
+# Token cached to ~/.cache/gh-token-<account>; refreshed if >1 hour old.
+# Replace Your-GitHub-Username with your work GitHub account.
+_gh_token_cache="$HOME/.cache/gh-token-work"
+if [[ ! -f "$_gh_token_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_gh_token_cache" || echo 0))) -gt 3600 ]]; then
+    _gh_token_tmp=$(gh auth token --user Your-GitHub-Username 2>/dev/null)
+    [[ -n "$_gh_token_tmp" ]] && echo "$_gh_token_tmp" >"$_gh_token_cache"
+    unset _gh_token_tmp
+fi
+export ADMIN_GITHUB_TOKEN="$(<"$_gh_token_cache")"
+unset _gh_token_cache _file_age
+
+# Setup Python SSL (corporate CA bundle).
+export SSL_CERT_FILE="$HOME/.ssh/ca_bundle.pem"
+export REQUESTS_CA_BUNDLE="$SSL_CERT_FILE"
+
+# Setup Go.
+# export GOPRIVATE='*.your-domain'
+# export GOPROXY='https://your-proxy/go,direct'
+# export GOSUMDB='off'
+
+# API tokens — stored in macOS keychain, read at shell start.
+# To add a token: security add-generic-password -a "$KEYCHAIN_ACCOUNT" -s TOKEN_NAME -w
+# export SOME_API_TOKEN=$(security find-generic-password -a "$KEYCHAIN_ACCOUNT" -s SOME_API_TOKEN -w)
+
+# Setup Node/NPM.
+export PATH="$PATH:$HOME/.npm-packages/bin"
+# export NODE_EXTRA_CA_CERTS="$HOME/your-certs.pem"
