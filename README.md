@@ -72,4 +72,8 @@ This sets your work identity and pins git credentials to your work GitHub accoun
 - Go private module config
 - Docker host
 
-This file is not tracked in dotfiles. On a new machine, create it manually or copy it from a secure backup.
+On a new machine, copy the example and fill in your details:
+
+```sh
+cp ~/.config/common/work.example ~/.dotfiles.d/work
+```
