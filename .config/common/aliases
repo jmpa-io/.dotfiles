@@ -66,24 +66,27 @@ t-zsrc() {
 
       # Clear any partial input, then send /exit.
       tmux send-keys -t "$pane_id" C-c
-      sleep 0.2
+      sleep 0.05
       tmux send-keys -t "$pane_id" '/exit' Enter
 
       # Wait up to 15s for claude child process to exit.
       local i=0
-      while (( i++ < 30 )); do
+      while (( i++ < 150 )); do
         _t-zsrc-pane-has-claude "$pane_id" || break
-        sleep 0.5
+        sleep 0.1
       done
 
-      # Wait for zsh prompt to be ready after claude exits.
-      sleep 0.8
+      # Poll until zsh is the active command (prompt is ready).
+      local j=0
+      while (( j++ < 50 )); do
+        [[ "$(tmux display-message -p -t "$pane_id" '#{pane_current_command}' 2>/dev/null)" == "zsh" ]] && break
+        sleep 0.05
+      done
+
       tmux send-keys -l -t "$pane_id" "$src_cmd"
       tmux send-keys -t "$pane_id" Enter
-      sleep 0.3
       tmux send-keys -l -t "$pane_id" "cd $(printf '%q' "$pane_cwd")"
       tmux send-keys -t "$pane_id" Enter
-      sleep 0.1
       if [[ -n "$session_id" ]]; then
         tmux send-keys -t "$pane_id" "claude --resume $session_id" Enter
       else
