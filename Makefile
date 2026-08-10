@@ -167,6 +167,13 @@ setup-go: install-go
 configure-git: ## Configure 'git'.
 configure-git: .config/git
 	$(call cfg-home,.config/git)
+	@if [ ! -f $(HOME)/.gitconfig-work ]; then \
+		echo ""; \
+		echo "  ⚠  ~/.gitconfig-work not found."; \
+		echo "     Copy the example and fill in your details:"; \
+		echo "     cp ~/.gitconfig-work.example ~/.gitconfig-work"; \
+		echo ""; \
+	fi
 
 setup-git: configure-git
 

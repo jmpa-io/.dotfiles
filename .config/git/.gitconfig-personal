@@ -1,3 +1,7 @@
 [user]
   name = Jordan Cleal
   email = mr.jordan.cleal@gmail.com
+
+[credential "https://github.com"]
+  helper =
+  helper = !GH_CREDENTIAL_USER=jcleal ~/bin/git-credential-gh
