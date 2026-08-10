@@ -12,3 +12,4 @@
 dist/diagnostics.txt
 dist/work-certs/
 .worktrees/
+.config/zsh/.zcompdump
