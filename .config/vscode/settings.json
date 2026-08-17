@@ -64,10 +64,6 @@
     // GitHub Copilot.
     "github.copilot.nextEditSuggestions.enabled": true,
     "github.copilot.chat.defaultModel": "claude-sonnet-4-5",
-
-    // Gitlens.
-    "gitlens.ai.model": "vscode",
-    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
     "extensions.experimental.affinity": {
         "asvetliakov.vscode-neovim": 1
     },
