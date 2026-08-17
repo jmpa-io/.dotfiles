@@ -45,10 +45,10 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
 
 # Setup Portkey API access (auto-rotating keys via lem).
-# Cached to ~/.cache/portkey-key; refreshed if >7 days old.
+# Cached to ~/.cache/portkey-key; refreshed if >3 days old.
 _portkey_cache="$HOME/.cache/portkey-key"
 _file_age() { local f="$1"; case "$(uname)" in Darwin) date -r "$f" +%s 2>/dev/null ;; *) stat -c %Y "$f" 2>/dev/null ;; esac; }
-if [[ ! -f "$_portkey_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_portkey_cache" || echo 0))) -gt 604800 ]]; then
+if [[ ! -f "$_portkey_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_portkey_cache" || echo 0))) -gt 259200 ]]; then
     _portkey_tmp=$(lem get 2>/dev/null)
     [[ -n "$_portkey_tmp" ]] && echo "$_portkey_tmp" >"$_portkey_cache"
     unset _portkey_tmp
@@ -59,15 +59,15 @@ export ANTHROPIC_AUTH_TOKEN="$PORTKEY_API_KEY"
 unset _portkey_cache
 
 # Setup GitHub API access.
-# Token cached to ~/.cache/gh-token-<account>; refreshed if >1 hour old.
+# Token cached to ~/.cache/gh-token-<account>; refreshed if >8 hours old.
 # Replace Your-GitHub-Username with your work GitHub account.
 _gh_token_cache="$HOME/.cache/gh-token-work"
-if [[ ! -f "$_gh_token_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_gh_token_cache" || echo 0))) -gt 3600 ]]; then
+if [[ ! -f "$_gh_token_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_gh_token_cache" || echo 0))) -gt 28800 ]]; then
     _gh_token_tmp=$(gh auth token --user Your-GitHub-Username 2>/dev/null)
     [[ -n "$_gh_token_tmp" ]] && echo "$_gh_token_tmp" >"$_gh_token_cache"
     unset _gh_token_tmp
 fi
-export ADMIN_GITHUB_TOKEN="$(<"$_gh_token_cache")"
+export ADMIN_GITHUB_TOKEN="$(<"$_gh_token_cache" 2>/dev/null)"
 unset _gh_token_cache _file_age
 
 # Setup Python SSL (corporate CA bundle).
