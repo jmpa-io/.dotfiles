@@ -4,14 +4,18 @@
 # shellcheck disable=SC2162  # read "var?prompt" is zsh syntax — file is sourced by zsh, not executed as bash
 
 # funcs.
-die() { echo "$1" >&2; exit "${2:-1}"; }
+die() {
+  echo "$1" >&2
+  exit "${2:-1}"
+}
 
 # $os is exported from .zshenv — no need to re-detect here.
 
 # setup aliases to autojump to previously visited directories.
 alias d="dirs -v"
 # shellcheck disable=SC2139  # intentional: expands at definition time for cd +N navigation
-for index in {0..9}; do alias "$index"="cd +${index}"; done; unset index
+for index in {0..9}; do alias "$index"="cd +${index}"; done
+unset index
 
 # zsh.
 alias zsrc='for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
@@ -30,6 +34,7 @@ alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {
 #   claude -c resumes the most recent session for that pane's working directory — correct per-pane.
 # Skips the current pane (caller handles it via zsrc) and panes running anything else.
 t-zsrc() {
+  # shellcheck disable=SC2016  # $HOME intentionally unexpanded — cmd runs in tmux pane's zsh
   local src_cmd='for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
   local current_pane target_pane=""
   current_pane=$(tmux display-message -p '#{pane_id}')
@@ -71,14 +76,14 @@ t-zsrc() {
 
       # Wait up to 15s for claude child process to exit.
       local i=0
-      while (( i++ < 150 )); do
+      while ((i++ < 150)); do
         _t-zsrc-pane-has-claude "$pane_id" || break
         sleep 0.1
       done
 
       # Poll until zsh is the active command (prompt is ready).
       local j=0
-      while (( j++ < 50 )); do
+      while ((j++ < 50)); do
         [[ "$(tmux display-message -p -t "$pane_id" '#{pane_current_command}' 2>/dev/null)" == "zsh" ]] && break
         sleep 0.05
       done
@@ -119,7 +124,7 @@ tmux-claude-approve() {
     if printf '%s' "$output" | grep -qE "Do you want to proceed|Yes.*allow|to confirm"; then
       tmux send-keys -t "$pane" '1' Enter
       echo "tmux-claude-approve: approved $pane"
-      (( approved++ ))
+      ((approved++))
     fi
   done < <(tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index} #{pane_pid}' | awk '/^work-/')
   [[ $approved -eq 0 ]] && echo "tmux-claude-approve: no panes waiting for approval"
@@ -209,7 +214,10 @@ t-claude() {
   # slugify
   local slug
   slug=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' _/' '-' | tr -cd 'a-z0-9-')
-  [[ -z "$slug" ]] && { echo "t-claude: empty slug after sanitising '$name'" >&2; return 1; }
+  [[ -z "$slug" ]] && {
+    echo "t-claude: empty slug after sanitising '$name'" >&2
+    return 1
+  }
 
   if ! tmux has-session -t "$slug" 2>/dev/null; then
     tmux new-session -d -s "$slug" -c "$dir"
@@ -244,9 +252,9 @@ t-status() {
   printf "  %-22s  %-5s  %-8s  %s\n" "───────────────────────" "─────" "────────" "────────────────────────────────"
   while IFS=' ' read -r name _windows attached; do
     panes=$(tmux list-panes -s -t "$name" -F '#{pane_id}' 2>/dev/null | wc -l | tr -d ' ')
-    cmds=$(tmux list-panes -s -t "$name" -F '#{pane_current_command}' 2>/dev/null \
-      | sort | uniq -c | sort -rn \
-      | awk '{printf "%s×%s  ", $1, $2}' | sed 's/  $//')
+    cmds=$(tmux list-panes -s -t "$name" -F '#{pane_current_command}' 2>/dev/null |
+      sort | uniq -c | sort -rn |
+      awk '{printf "%s×%s  ", $1, $2}' | sed 's/  $//')
     attached_str=""
     [[ "$attached" -gt 0 ]] && attached_str="●"
     printf "  %-22s  %-5s  %-8s  %s\n" "$name" "$panes" "$attached_str" "$cmds"
@@ -311,29 +319,29 @@ alias k="kubectl"
 
 # general.
 case "$os" in
-  Darwin)
-    alias ls='ls -G'
-    alias dotfiles='code "$DOTFILES"'
-    alias code='open -a "Visual Studio Code"'
-    alias grep="grep --color=auto"
-    alias act="act --container-architecture linux/amd64"
+Darwin)
+  alias ls='ls -G'
+  alias dotfiles='code "$DOTFILES"'
+  alias code='open -a "Visual Studio Code"'
+  alias grep="grep --color=auto"
+  alias act="act --container-architecture linux/amd64"
   ;;
-  Linux)
-    alias ls='ls --color=auto'                                          # overrides ls to run this default.
-    # shellcheck disable=SC2139  # intentional: $DOTFILES is stable for the session
-    alias dotfiles="nvim \"+cd $DOTFILES\" $DOTFILES"                   # opens dotfiles in IDE.
-    alias grep="grep --color=auto"                                      # overrides grep to run this default.
-    # shellcheck disable=SC2139  # intentional: $HOME is stable for the session
-    alias lock="$HOME/bin/system/lock.sh"                               # locks the computer.
-    # shellcheck disable=SC2139  # intentional: $HOME is stable for the session
-    alias lockscreen="$HOME/bin/system/lock.sh"                         # verbose alias for lock.
-    alias shutdown="shutdown -h now"                                    # shuts down the computer immediately.
-    alias restart="shutdown -r now"                                     # restarts the computer immediately.
-    alias screenshot="scrot"                                            # takes a screenshot.
-    alias orphans="pacman -Qtdq | sudo pacman -Rns -"                   # removes all orphaned packages.
-    alias clock="tty-clock -s -c -C 5 -t"                               # renders a nice clock, using tty-clock, in the terminal.
-    alias neofetch="fastfetch"                                          # prints system information.
-    alias open="pcmanfm"                                                # opens the given directory in a GUI file manager.
+Linux)
+  alias ls='ls --color=auto' # overrides ls to run this default.
+  # shellcheck disable=SC2139  # intentional: $DOTFILES is stable for the session
+  alias dotfiles="nvim \"+cd $DOTFILES\" $DOTFILES" # opens dotfiles in IDE.
+  alias grep="grep --color=auto"                    # overrides grep to run this default.
+  # shellcheck disable=SC2139  # intentional: $HOME is stable for the session
+  alias lock="$HOME/bin/system/lock.sh" # locks the computer.
+  # shellcheck disable=SC2139  # intentional: $HOME is stable for the session
+  alias lockscreen="$HOME/bin/system/lock.sh"       # verbose alias for lock.
+  alias shutdown="shutdown -h now"                  # shuts down the computer immediately.
+  alias restart="shutdown -r now"                   # restarts the computer immediately.
+  alias screenshot="scrot"                          # takes a screenshot.
+  alias orphans="pacman -Qtdq | sudo pacman -Rns -" # removes all orphaned packages.
+  alias clock="tty-clock -s -c -C 5 -t"             # renders a nice clock, using tty-clock, in the terminal.
+  alias neofetch="fastfetch"                        # prints system information.
+  alias open="pcmanfm"                              # opens the given directory in a GUI file manager.
   ;;
 esac
 
@@ -359,7 +367,7 @@ _aws_write_profile_to_work() {
       sed -i "s|^export AWS_PROFILE=.*|export AWS_PROFILE=\"$profile\"|" "$work"
     fi
   else
-    echo "export AWS_PROFILE=\"$profile\"" >> "$work"
+    echo "export AWS_PROFILE=\"$profile\"" >>"$work"
   fi
 }
 
@@ -367,76 +375,80 @@ _aws_write_profile_to_work() {
 aws() {
   case $* in
 
-    # what is the AWS IAM Role I am authed to?
-    auth)
-      command aws sts get-caller-identity ;;
+  # what is the AWS IAM Role I am authed to?
+  auth)
+    command aws sts get-caller-identity
+    ;;
 
-    # what is the ARN of the AWS IAM Role I am authed as?
-    who)
-      command aws sts get-caller-identity --query "Arn" --output text ;;
+  # what is the ARN of the AWS IAM Role I am authed as?
+  who)
+    command aws sts get-caller-identity --query "Arn" --output text
+    ;;
 
-    # list ALL the AWS profiles available, including which one is currently authed.
-    profiles)
-      local profile="${AWS_PROFILE:-default}"
-      command aws --no-cli-pager configure list-profiles | while IFS= read -r p; do
-        # Skip -admin profiles as they're just for role assumption.
-        [[ "$p" == *-admin ]] && continue
-        # Show * for both the profile and its -admin variant
-        prefix="  "
-        [[ "$p" == "$profile" || "${p}-admin" == "$profile" ]] && prefix=" *"
-        echo "$prefix $p"
-      done
-      ;;
+  # list ALL the AWS profiles available, including which one is currently authed.
+  profiles)
+    local profile="${AWS_PROFILE:-default}"
+    command aws --no-cli-pager configure list-profiles | while IFS= read -r p; do
+      # Skip -admin profiles as they're just for role assumption.
+      [[ "$p" == *-admin ]] && continue
+      # Show * for both the profile and its -admin variant
+      prefix="  "
+      [[ "$p" == "$profile" || "${p}-admin" == "$profile" ]] && prefix=" *"
+      echo "$prefix $p"
+    done
+    ;;
 
-     # resets the AWS_PROFILE to the default profile.
-    "profile clear")
-      export AWS_PROFILE="default"
-      _aws_write_profile_to_work "default"
-      ;;
+    # resets the AWS_PROFILE to the default profile.
+  "profile clear")
+    export AWS_PROFILE="default"
+    _aws_write_profile_to_work "default"
+    ;;
 
-    # logs into the AWS Account associated with the given profile.
-    # supports --no-browser flag for remote/headless login (prints URL instead of opening browser).
-    "login "*)
-      local profile=""
-      local no_browser=0
-      for arg in "${@:2}"; do
-        [[ "$arg" == "--no-browser" ]] && no_browser=1 || profile="$arg"
-      done
+  # logs into the AWS Account associated with the given profile.
+  # supports --no-browser flag for remote/headless login (prints URL instead of opening browser).
+  "login "*)
+    local profile=""
+    local no_browser=0
+    for arg in "${@:2}"; do
+      [[ "$arg" == "--no-browser" ]] && no_browser=1 || profile="$arg"
+    done
 
-      local profiles_list
-      profiles_list=$(command aws --no-cli-pager configure list-profiles)
+    local profiles_list
+    profiles_list=$(command aws --no-cli-pager configure list-profiles)
 
-      if ! printf '%s\n' "$profiles_list" | grep -q "^${profile}$"; then
-        echo "'$profile' is not a valid AWS profile; Run 'aws profiles' to see a list of profiles."
-        return 1
-      fi
+    if ! printf '%s\n' "$profiles_list" | grep -q "^${profile}$"; then
+      echo "'$profile' is not a valid AWS profile; Run 'aws profiles' to see a list of profiles."
+      return 1
+    fi
 
-      if [[ "$no_browser" == 1 ]]; then
-        command aws sso login --profile "$profile" --no-browser
-      else
-        command aws sso login --profile "$profile"
-      fi
+    if [[ "$no_browser" == 1 ]]; then
+      command aws sso login --profile "$profile" --no-browser
+    else
+      command aws sso login --profile "$profile"
+    fi
 
-      # Check if there's a corresponding -admin profile and use that instead
-      local admin_profile="${profile}-admin"
-      if printf '%s\n' "$profiles_list" | grep -q "^${admin_profile}$"; then
-        export AWS_PROFILE="$admin_profile"
-        _aws_write_profile_to_work "$admin_profile"
-        echo "Switched to admin profile: $admin_profile"
-      else
-        export AWS_PROFILE="$profile"
-        _aws_write_profile_to_work "$profile"
-        echo "Using profile: $profile"
-      fi
-      ;;
+    # Check if there's a corresponding -admin profile and use that instead
+    local admin_profile="${profile}-admin"
+    if printf '%s\n' "$profiles_list" | grep -q "^${admin_profile}$"; then
+      export AWS_PROFILE="$admin_profile"
+      _aws_write_profile_to_work "$admin_profile"
+      echo "Switched to admin profile: $admin_profile"
+    else
+      export AWS_PROFILE="$profile"
+      _aws_write_profile_to_work "$profile"
+      echo "Using profile: $profile"
+    fi
+    ;;
 
-    # a quick way to auth to the given AWS ECR repository, using the ARN.
-    "ecr "*.dkr.ecr.*.amazonaws.com*)
-      command aws ecr get-login-password --region "${AWS_DEFAULT_REGION:-ap-southeast-2}" | docker login --username AWS --password-stdin "$2" ;;
+  # a quick way to auth to the given AWS ECR repository, using the ARN.
+  "ecr "*.dkr.ecr.*.amazonaws.com*)
+    command aws ecr get-login-password --region "${AWS_DEFAULT_REGION:-ap-southeast-2}" | docker login --username AWS --password-stdin "$2"
+    ;;
 
-    # run the default command, if none of the above are applicable.
-    *)
-      command aws "$@" ;;
+  # run the default command, if none of the above are applicable.
+  *)
+    command aws "$@"
+    ;;
   esac
 }
 
@@ -444,76 +456,80 @@ aws() {
 git() {
   case $* in
 
-    # checks who the current gh user is, and what git identity will be used for commits.
-    "who")
-      local gh_user gh_protocol name email name_src email_src y r
-      y=$'\033[1;33m'
-      r=$'\033[0m'
-      local gh_json
-      gh_json=$(command gh auth status --active --json hosts 2>/dev/null)
-      gh_user=$(printf '%s' "$gh_json" | jq -r '.hosts."github.com"[0].login // "(not logged in)"')
-      gh_protocol=$(printf '%s' "$gh_json" | jq -r '.hosts."github.com"[0].gitProtocol // "(unknown)"')
-      name=$(command git config user.name 2>/dev/null || echo "(not set)")
-      email=$(command git config user.email 2>/dev/null || echo "(not set)")
-      name_src=$(command git config --show-origin user.name 2>/dev/null | cut -f1 | sed 's|file:||' | sed "s|$HOME|~|" || echo "(not set)")
-      email_src=$(command git config --show-origin user.email 2>/dev/null | cut -f1 | sed 's|file:||' | sed "s|$HOME|~|" || echo "(not set)")
-      printf "\n"
-      printf "  gh auth (cli)      %s  (${y}%s${r})\n" "$gh_user" "$gh_protocol"
-      printf "  commit author      %s  (${y}%s${r})\n" "$name" "$name_src"
-      printf "  commit email       %s  (${y}%s${r})\n" "$email" "$email_src"
-      printf "\n"
-      ;;
+  # checks who the current gh user is, and what git identity will be used for commits.
+  "who")
+    local gh_user gh_protocol name email name_src email_src y r
+    y=$'\033[1;33m'
+    r=$'\033[0m'
+    local gh_json
+    gh_json=$(command gh auth status --active --json hosts 2>/dev/null)
+    gh_user=$(printf '%s' "$gh_json" | jq -r '.hosts."github.com"[0].login // "(not logged in)"')
+    gh_protocol=$(printf '%s' "$gh_json" | jq -r '.hosts."github.com"[0].gitProtocol // "(unknown)"')
+    name=$(command git config user.name 2>/dev/null || echo "(not set)")
+    email=$(command git config user.email 2>/dev/null || echo "(not set)")
+    name_src=$(command git config --show-origin user.name 2>/dev/null | cut -f1 | sed 's|file:||' | sed "s|$HOME|~|" || echo "(not set)")
+    email_src=$(command git config --show-origin user.email 2>/dev/null | cut -f1 | sed 's|file:||' | sed "s|$HOME|~|" || echo "(not set)")
+    printf "\n"
+    printf "  gh auth (cli)      %s  (${y}%s${r})\n" "$gh_user" "$gh_protocol"
+    printf "  commit author      %s  (${y}%s${r})\n" "$name" "$name_src"
+    printf "  commit email       %s  (${y}%s${r})\n" "$email" "$email_src"
+    printf "\n"
+    ;;
 
-    # switch between gh accounts (avoids colliding with `git switch` branch command).
-    "gh-switch")
-      command gh auth switch
-      case "$os" in
-        Darwin)
-          git credential-osxkeychain erase <<< "protocol=https
+  # switch between gh accounts (avoids colliding with `git switch` branch command).
+  "gh-switch")
+    command gh auth switch
+    case "$os" in
+    Darwin)
+      git credential-osxkeychain erase <<<"protocol=https
 host=github.com" 2>/dev/null || true
-          ;;
-        Linux)
-          git credential reject <<< "protocol=https
+      ;;
+    Linux)
+      git credential reject <<<"protocol=https
 host=github.com" 2>/dev/null || true
-          ;;
-      esac
       ;;
+    esac
+    ;;
 
-    # runs 'git pull' while pruning old branches.
-    pull|"pull "*)
-      command git pull --prune "${@:2}" ;;
+  # runs 'git pull' while pruning old branches.
+  pull | "pull "*)
+    command git pull --prune "${@:2}"
+    ;;
 
-    # runs 'git clone' and then changes into the directory cloned.
-    "clone "*)
-      local args=("${@:2}")
-      local dest="${args[-1]}"
-      # derive dir name from URL (handles extra flags like --depth 1).
-      [[ "$dest" == *"://"* || "$dest" == *"@"* ]] && dest="$(basename "$dest" .git)"
-      command git clone "${args[@]}" && { cd "$dest" || return 1; } ;;
+  # runs 'git clone' and then changes into the directory cloned.
+  "clone "*)
+    local args=("${@:2}")
+    local dest="${args[-1]}"
+    # derive dir name from URL (handles extra flags like --depth 1).
+    [[ "$dest" == *"://"* || "$dest" == *"@"* ]] && dest="$(basename "$dest" .git)"
+    command git clone "${args[@]}" && { cd "$dest" || return 1; }
+    ;;
 
-    # shows all the branches available.
-    branch)
-      command git branch --all ;;
+  # shows all the branches available.
+  branch)
+    command git branch --all
+    ;;
 
-    # opens the repository in the default browser.
-    "open")
-      local url
-      url=$(command git remote get-url origin \
-        | sed -E 's|git@github\.com:|https://github.com/|' \
-        | sed -E 's|\.git$||')
-      case "$os" in
-        Darwin)
-          open "$url"
-          ;;
-        Linux)
-          xdg-open "$url"
-          ;;
-      esac
+  # opens the repository in the default browser.
+  "open")
+    local url
+    url=$(command git remote get-url origin |
+      sed -E 's|git@github\.com:|https://github.com/|' |
+      sed -E 's|\.git$||')
+    case "$os" in
+    Darwin)
+      open "$url"
       ;;
+    Linux)
+      xdg-open "$url"
+      ;;
+    esac
+    ;;
 
-    # run the default command, if none of the above are applicable.
-    *)
-      command git "$@" ;;
+  # run the default command, if none of the above are applicable.
+  *)
+    command git "$@"
+    ;;
   esac
 }
 
@@ -534,8 +550,9 @@ wt() {
   fi
 
   # ensure .worktrees/ is gitignored — only in repos we own (under $ROOT).
+  # shellcheck disable=SC2153  # $ROOT is exported from .zshenv
   if [[ "$root" == "$ROOT"* ]] && ! grep -qxF '.worktrees/' "$root/.gitignore" 2>/dev/null; then
-    echo '.worktrees/' >> "$root/.gitignore"
+    echo '.worktrees/' >>"$root/.gitignore"
     echo "wt: added .worktrees/ to $root/.gitignore"
   fi
 
@@ -621,80 +638,80 @@ wt() {
 
   case "${1:-}" in
 
-    cd|switch)
-      local target_path
-      target_path=$(_wt_pick_cd) || return 0
-      cd "$target_path" || return 1
-      ;;
+  cd | switch)
+    local target_path
+    target_path=$(_wt_pick_cd) || return 0
+    cd "$target_path" || return 1
+    ;;
 
-    ls)
-      git -C "$root" worktree list
-      ;;
+  ls)
+    git -C "$root" worktree list
+    ;;
 
-    add)
-      local branch="${2:-}"
-      if [[ -z "$branch" ]]; then
-        read "branch?Branch name (new or existing): "
-        [[ -z "$branch" ]] && return 0
-      fi
-      _wt_add "$branch"
-      ;;
+  add)
+    local branch="${2:-}"
+    if [[ -z "$branch" ]]; then
+      read "branch?Branch name (new or existing): "
+      [[ -z "$branch" ]] && return 0
+    fi
+    _wt_add "$branch"
+    ;;
 
-    rm)
-      local branch="${2:-}"
-      local remove_path
-      if [[ -z "$branch" ]]; then
-        local picked
-        picked=$(_wt_pick_rm) || return 0
-        branch="${picked%%:*}"
-        remove_path="${picked#*:}"
-      else
-        remove_path=$(git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch" '
+  rm)
+    local branch="${2:-}"
+    local remove_path
+    if [[ -z "$branch" ]]; then
+      local picked
+      picked=$(_wt_pick_rm) || return 0
+      branch="${picked%%:*}"
+      remove_path="${picked#*:}"
+    else
+      remove_path=$(git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch" '
           /^worktree / { path=$2 }
           /^branch /   { if ($2 == branch) print path }
         ')
-      fi
-      if [[ -z "$remove_path" ]]; then
-        echo "wt: no worktree found for branch '$branch'" >&2
-        return 1
-      fi
-      git -C "$root" worktree remove "$remove_path"
-      echo "wt: removed worktree for '$branch'"
-      # offer to delete the local branch too
-      local reply
-      read "reply?Delete local branch '$branch'? [y/N] "
-      if [[ "$reply" =~ ^[Yy]$ ]]; then
-        if git -C "$root" branch -d "$branch" 2>/dev/null; then
-          echo "wt: deleted branch '$branch'"
-        else
-          echo "wt: branch '$branch' not fully merged — use 'git branch -D $branch' to force delete" >&2
-        fi
-      fi
-      ;;
-
-    "")
-      # no args — interactive picker: add or remove.
-      if ! command -v fzf &>/dev/null; then
-        echo "wt: fzf not available, use 'wt add' or 'wt rm'" >&2
-        return 1
-      fi
-      local action
-      action=$(printf 'switch\nadd\nremove' | fzf \
-        --prompt="wt > " \
-        --height=20% \
-        --border \
-        --header="Worktree action")
-      [[ -z "$action" ]] && return 0
-      case "$action" in
-        switch) wt cd  ;;
-        add)    wt add ;;
-        remove) wt rm  ;;
-      esac
-      ;;
-
-    *)
-      echo "usage: wt [ls | cd | switch | add [branch] | rm [branch]]" >&2
+    fi
+    if [[ -z "$remove_path" ]]; then
+      echo "wt: no worktree found for branch '$branch'" >&2
       return 1
-      ;;
+    fi
+    git -C "$root" worktree remove "$remove_path"
+    echo "wt: removed worktree for '$branch'"
+    # offer to delete the local branch too
+    local reply
+    read "reply?Delete local branch '$branch'? [y/N] "
+    if [[ "$reply" =~ ^[Yy]$ ]]; then
+      if git -C "$root" branch -d "$branch" 2>/dev/null; then
+        echo "wt: deleted branch '$branch'"
+      else
+        echo "wt: branch '$branch' not fully merged — use 'git branch -D $branch' to force delete" >&2
+      fi
+    fi
+    ;;
+
+  "")
+    # no args — interactive picker: add or remove.
+    if ! command -v fzf &>/dev/null; then
+      echo "wt: fzf not available, use 'wt add' or 'wt rm'" >&2
+      return 1
+    fi
+    local action
+    action=$(printf 'switch\nadd\nremove' | fzf \
+      --prompt="wt > " \
+      --height=20% \
+      --border \
+      --header="Worktree action")
+    [[ -z "$action" ]] && return 0
+    case "$action" in
+    switch) wt cd ;;
+    add) wt add ;;
+    remove) wt rm ;;
+    esac
+    ;;
+
+  *)
+    echo "usage: wt [ls | cd | switch | add [branch] | rm [branch]]" >&2
+    return 1
+    ;;
   esac
 }

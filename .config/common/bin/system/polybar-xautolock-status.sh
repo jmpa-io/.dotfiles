@@ -12,4 +12,3 @@ if [[ -f "$pidFile" ]]; then
 fi
 
 echo "🖥️ [%{F#E07E7E}🔓%{F-}]"
-

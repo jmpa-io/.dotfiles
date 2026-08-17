@@ -7,7 +7,10 @@ AI_ALIASES="${HOME}/.dotfiles.d/ai-aliases"
 [[ -f "$AI_ALIASES" ]] || AI_ALIASES="${HOME}/.ai-aliases"
 
 pass() { printf "\033[0;32mPASS\033[0m  %s\n" "$1"; }
-fail() { printf "\033[0;31mFAIL\033[0m  %s\n" "$1"; FAILURES=$(( FAILURES + 1 )); }
+fail() {
+  printf "\033[0;31mFAIL\033[0m  %s\n" "$1"
+  FAILURES=$((FAILURES + 1))
+}
 
 FAILURES=0
 TMPDIR_TEST=$(mktemp -d)
@@ -15,13 +18,16 @@ FAKE_BIN="$TMPDIR_TEST/bin"
 EMPTY_ZDOTDIR="$TMPDIR_TEST/zdotdir"
 mkdir -p "$FAKE_BIN" "$EMPTY_ZDOTDIR"
 
-printf '#!/bin/sh\nif [ $# -eq 0 ]; then echo "FAKE_CLAUDE_CALLED:"; else echo "FAKE_CLAUDE_CALLED: $*"; fi\n' > "$FAKE_BIN/claude"
+printf '#!/bin/sh\nif [ $# -eq 0 ]; then echo "FAKE_CLAUDE_CALLED:"; else echo "FAKE_CLAUDE_CALLED: $*"; fi\n' >"$FAKE_BIN/claude"
 chmod +x "$FAKE_BIN/claude"
 
 cleanup() { rm -rf "$TMPDIR_TEST"; }
 trap cleanup EXIT
 
-[[ -f "$AI_ALIASES" ]] || { echo "ERROR: $AI_ALIASES not found"; exit 1; }
+[[ -f "$AI_ALIASES" ]] || {
+  echo "ERROR: $AI_ALIASES not found"
+  exit 1
+}
 
 # Helper: run a zsh -c snippet with:
 #   - ZDOTDIR pointing to empty dir (no .zshenv — prevents Homebrew PATH prepend)
@@ -76,8 +82,8 @@ MULTI_REPO="$TMPDIR_TEST/multi-repo"
 mkdir -p "$MULTI_REPO"
 git -C "$MULTI_REPO" init -q
 GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test.com" \
-GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test.com" \
-git -C "$MULTI_REPO" commit --allow-empty -q -m "init"
+  GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test.com" \
+  git -C "$MULTI_REPO" commit --allow-empty -q -m "init"
 git -C "$MULTI_REPO" worktree add -q "$MULTI_REPO/.worktrees/feat-x" -b feat-x 2>/dev/null
 
 output=$(_zsh "cd $MULTI_REPO; claude")
@@ -92,7 +98,7 @@ fi
 
 VER_FILE="$TMPDIR_TEST/.claude/.last-xattr-version"
 mkdir -p "$(dirname "$VER_FILE")"
-echo "99.9.9" > "$VER_FILE"
+echo "99.9.9" >"$VER_FILE"
 touch -t 197001010000 "$FAKE_BIN/claude"
 
 output=$(ZDOTDIR="$EMPTY_ZDOTDIR" PATH="$FAKE_BIN:$(echo "$PATH" | tr ':' '\n' | grep -v fzf | tr '\n' ':' | sed 's/:$//')" HOME="$TMPDIR_TEST" zsh -c "source $AI_ALIASES; claude --version" 2>&1)
