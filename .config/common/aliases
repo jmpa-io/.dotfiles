@@ -109,6 +109,22 @@ t-zsrc() {
   fi
 }
 
+# tmux-claude-approve — send '1' (yes) to all claude panes in work-* sessions that are
+# waiting for tool approval. Run this to unblock paused claude sessions without switching panes.
+tmux-claude-approve() {
+  local approved=0
+  while IFS=' ' read -r pane pane_pid; do
+    pgrep -P "$pane_pid" -x claude &>/dev/null || continue
+    output=$(tmux capture-pane -t "$pane" -p 2>/dev/null)
+    if printf '%s' "$output" | grep -qE "Do you want to proceed|Yes.*allow|to confirm"; then
+      tmux send-keys -t "$pane" '1' Enter
+      echo "tmux-claude-approve: approved $pane"
+      (( approved++ ))
+    fi
+  done < <(tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index} #{pane_pid}' | awk '/^work-/')
+  [[ $approved -eq 0 ]] && echo "tmux-claude-approve: no panes waiting for approval"
+}
+
 # tmux sessions — each creates or attaches to a named session with a fixed layout.
 # Use across multiple screens — attach from any window with the same alias.
 
@@ -265,8 +281,10 @@ t-help() {
   t-ls        list running sessions
   t-status    list sessions with pane counts + commands
   t-help      show this help
-  b-src       broadcast 'source ~/.dotfiles.d/work' to all panes
-  t-zsrc      re-source shell config in all panes (exits + resumes claude panes)
+  b-src                broadcast 'source ~/.dotfiles.d/work' to all panes
+  t-zsrc               re-source shell config in all panes (exits + resumes claude panes)
+  claude-dispatch      start claude in next free work-* pane and send a prompt file
+  tmux-claude-approve  approve pending tool calls in all work-* claude panes
 
   Recovery
   ────────
