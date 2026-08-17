@@ -15,4 +15,3 @@ fi
 # Start xautolock.
 "$HOME/bin/system/xautolock-start.sh"
 pkill -USR1 -x polybar
-

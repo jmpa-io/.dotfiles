@@ -71,7 +71,8 @@ if [[ ! -f "$_gh_token_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_gh_token_
   [[ -n "$_gh_token_tmp" ]] && echo "$_gh_token_tmp" >"$_gh_token_cache"
   unset _gh_token_tmp
 fi
-export ADMIN_GITHUB_TOKEN="$(<"$_gh_token_cache" 2>/dev/null)"
+ADMIN_GITHUB_TOKEN="$(<"$_gh_token_cache" 2>/dev/null)"
+export ADMIN_GITHUB_TOKEN
 unset _gh_token_cache _file_age
 
 # Setup Python SSL (corporate CA bundle).

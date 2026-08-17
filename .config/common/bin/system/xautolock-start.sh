@@ -8,13 +8,13 @@
 # Exit early if xautolock is already running.
 pidFile="$HOME/.xautolock.pid"
 if [[ -f "$pidFile" ]]; then
-  ps -p "$(<"$pidFile")" >/dev/null 2>&1 \
-    && { exit 0; }
+  ps -p "$(<"$pidFile")" >/dev/null 2>&1 &&
+    { exit 0; }
 fi
 
 # Start xautolock.
 xautolock -time 10 -locker "$HOME/bin/system/lock.sh" &
 pid="$!"
 disown "$pid"
-ps -p "$pid" >/dev/null 2>&1 \
-  && { echo "$pid" > "$pidFile"; }
+ps -p "$pid" >/dev/null 2>&1 &&
+  { echo "$pid" >"$pidFile"; }

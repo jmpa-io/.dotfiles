@@ -4,7 +4,10 @@
 set -e
 
 # Funcs.
-die() { echo "$1" >&2; exit "${2:-1}"; }
+die() {
+  echo "$1" >&2
+  exit "${2:-1}"
+}
 
 # Check deps.
 deps=(security openssl)
