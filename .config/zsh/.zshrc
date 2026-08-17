@@ -73,9 +73,18 @@ fi
 
 
 # use starship, if installed.
+# Cache the init script keyed by the binary's mtime — invalidated automatically on upgrade.
 if command -v starship &>/dev/null; then
-  eval "$(starship init zsh)" \
-    || die "failed to setup starship"
+  _starship_bin=$(command -v starship)
+  _starship_mtime=$(date -r "$_starship_bin" +%s 2>/dev/null || stat -c %Y "$_starship_bin" 2>/dev/null)
+  _starship_cache="${XDG_CACHE_HOME:-$HOME/.cache}/starship-init-${_starship_mtime}.zsh"
+  if [[ ! -f "$_starship_cache" ]]; then
+    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/starship-init-*.zsh
+    starship init zsh > "$_starship_cache"
+  fi
+  # shellcheck disable=SC1090
+  source "$_starship_cache" || die "failed to setup starship"
+  unset _starship_bin _starship_mtime _starship_cache
 fi
 
 # enable zsh-syntax-highlighting + zsh-autosuggestions.

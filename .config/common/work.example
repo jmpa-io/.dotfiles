@@ -18,12 +18,12 @@ export AWS_CA_BUNDLE="$HOME/.ssh/ca_bundle.pem"
 
 # Update aws ca bundle once per Monday (macOS only).
 if [[ "$(date +%u)" == "1" ]]; then
-    MARKER="$HOME/.ssh/.ca_bundle_last_update"
-    TODAY=$(date +%Y-%m-%d)
-    if [[ ! -f "$MARKER" ]] || [[ "$(<"$MARKER")" != "$TODAY" ]]; then
-        security find-certificate -a -p /Library/Keychains/System.keychain /System/Library/Keychains/SystemRootCertificates.keychain "$HOME/Library/Keychains/login.keychain-db" >"$AWS_CA_BUNDLE"
-        echo "$TODAY" >"$MARKER"
-    fi
+  MARKER="$HOME/.ssh/.ca_bundle_last_update"
+  TODAY=$(date +%Y-%m-%d)
+  if [[ ! -f "$MARKER" ]] || [[ "$(<"$MARKER")" != "$TODAY" ]]; then
+    security find-certificate -a -p /Library/Keychains/System.keychain /System/Library/Keychains/SystemRootCertificates.keychain "$HOME/Library/Keychains/login.keychain-db" >"$AWS_CA_BUNDLE"
+    echo "$TODAY" >"$MARKER"
+  fi
 fi
 
 # Setup homebrew (Apple Silicon — change to /usr/local for Intel).
@@ -47,13 +47,17 @@ export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
 # Setup Portkey API access (auto-rotating keys via lem).
 # Cached to ~/.cache/portkey-key; refreshed if >3 days old.
 _portkey_cache="$HOME/.cache/portkey-key"
-_file_age() { local f="$1"; case "$(uname)" in Darwin) date -r "$f" +%s 2>/dev/null ;; *) stat -c %Y "$f" 2>/dev/null ;; esac; }
+_file_age() {
+  local f="$1"
+  case "$(uname)" in Darwin) date -r "$f" +%s 2>/dev/null ;; *) stat -c %Y "$f" 2>/dev/null ;; esac
+}
 if [[ ! -f "$_portkey_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_portkey_cache" || echo 0))) -gt 259200 ]]; then
-    _portkey_tmp=$(lem get 2>/dev/null)
-    [[ -n "$_portkey_tmp" ]] && echo "$_portkey_tmp" >"$_portkey_cache"
-    unset _portkey_tmp
+  _portkey_tmp=$(lem get 2>/dev/null)
+  [[ -n "$_portkey_tmp" ]] && echo "$_portkey_tmp" >"$_portkey_cache"
+  unset _portkey_tmp
 fi
-export PORTKEY_API_KEY="$(<"$_portkey_cache" 2>/dev/null)"
+PORTKEY_API_KEY="$(<"$_portkey_cache" 2>/dev/null)"
+export PORTKEY_API_KEY
 export ANTHROPIC_API_KEY="$PORTKEY_API_KEY"
 export ANTHROPIC_AUTH_TOKEN="$PORTKEY_API_KEY"
 unset _portkey_cache
@@ -63,9 +67,9 @@ unset _portkey_cache
 # Replace Your-GitHub-Username with your work GitHub account.
 _gh_token_cache="$HOME/.cache/gh-token-work"
 if [[ ! -f "$_gh_token_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_gh_token_cache" || echo 0))) -gt 28800 ]]; then
-    _gh_token_tmp=$(gh auth token --user Your-GitHub-Username 2>/dev/null)
-    [[ -n "$_gh_token_tmp" ]] && echo "$_gh_token_tmp" >"$_gh_token_cache"
-    unset _gh_token_tmp
+  _gh_token_tmp=$(gh auth token --user Your-GitHub-Username 2>/dev/null)
+  [[ -n "$_gh_token_tmp" ]] && echo "$_gh_token_tmp" >"$_gh_token_cache"
+  unset _gh_token_tmp
 fi
 export ADMIN_GITHUB_TOKEN="$(<"$_gh_token_cache" 2>/dev/null)"
 unset _gh_token_cache _file_age
@@ -79,9 +83,21 @@ export REQUESTS_CA_BUNDLE="$SSL_CERT_FILE"
 # export GOPROXY='https://your-proxy/go,direct'
 # export GOSUMDB='off'
 
-# API tokens — stored in macOS keychain, read at shell start.
-# To add a token: security add-generic-password -a "$KEYCHAIN_ACCOUNT" -s TOKEN_NAME -w
-# export SOME_API_TOKEN=$(security find-generic-password -a "$KEYCHAIN_ACCOUNT" -s SOME_API_TOKEN -w)
+# API tokens — read from macOS keychain, cached to ~/.cache/keychain-tokens with a 7-day TTL.
+# Avoids N x security(1) subprocess calls (~22ms each) on every shell start.
+# To force a refresh: rm ~/.cache/keychain-tokens
+# To add a token to keychain: security add-generic-password -a "$KEYCHAIN_ACCOUNT" -s TOKEN_NAME -w
+_keychain_cache="$HOME/.cache/keychain-tokens"
+if [[ ! -f "$_keychain_cache" ]] || [[ $(($(date +%s) - $(_file_age "$_keychain_cache" || echo 0))) -gt 604800 ]]; then
+  {
+    # echo "SOME_API_TOKEN=$(security find-generic-password -a "$KEYCHAIN_ACCOUNT" -s SOME_API_TOKEN -w 2>/dev/null)"
+    true
+  } >"$_keychain_cache"
+  chmod 600 "$_keychain_cache"
+fi
+# shellcheck disable=SC1090
+source "$_keychain_cache"
+unset _keychain_cache
 
 # Setup Node/NPM.
 export PATH="$PATH:$HOME/.npm-packages/bin"
