@@ -69,10 +69,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install zsh
-        run: sudo apt-get install -y zsh
+      - name: Install zsh and tmux
+        run: sudo apt-get install -y zsh tmux
       - name: Configure dotfiles.d symlinks
         run: make configure-dotfiles-d
+      - name: Configure tmux (sets base-index 1 required by tests)
+        run: make configure-tmux
       - name: Run ai-aliases tests
         run: make test-ai-aliases
       - name: Run tmux tests
