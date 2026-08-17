@@ -2,6 +2,7 @@
 # Tests tmux session functions defined in .config/common/aliases.
 # Verifies correct pane counts and idempotency (no extra panes on re-run).
 # Safe to run at any time — creates and kills sessions, does not attach.
+# Requires base-index 1 (set by configure-tmux / tmux.conf).
 
 set -euo pipefail
 
