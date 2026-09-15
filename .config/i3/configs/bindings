@@ -48,6 +48,15 @@ bindsym $mod+$smod+F3     exec $wm_terminal -e $wm_file_browser_tui
 # F4 - system info.
 bindsym $mod+$smod+F4     exec $wm_terminal -e $wm_system_info_tui
 
+# brightness.
+bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set +5%
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+
+# volume.
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
+
 # F5 - media player.
 bindsym $mod+F5           exec $wm_media_player_gui
 

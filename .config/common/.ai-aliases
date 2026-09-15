@@ -20,3 +20,5 @@ claude() {
 
   command claude "$@"
 }
+
+alias cap='claude-approve --options'
