@@ -470,9 +470,8 @@ ifeq ($(OS),darwin)
 	else \
 		echo "  imgcat not found — is iTerm2 installed?"; \
 	fi
-	defaults write com.googlecode.iterm2 DimInactiveSplitPanes -bool true
-	defaults write com.googlecode.iterm2 DimOnlyText -bool false
-	defaults write com.googlecode.iterm2 SplitPaneDimmingAmount -float 0.4
+	@defaults write com.googlecode.iterm2 DimInactiveSplitPanes -bool true
+	@defaults write com.googlecode.iterm2 SplitPaneDimmingAmount -float 0.3
 else
 	@echo "Skipping iTerm2 configuration (macOS only)."
 endif
