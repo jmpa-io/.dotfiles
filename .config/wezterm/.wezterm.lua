@@ -3,6 +3,7 @@ local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 
 config.font = wezterm.font { family = 'FiraCode Nerd Font Mono', weight = 'Regular' }
+config.harfbuzz_features = { 'calt=0', 'clig=0', 'liga=0' }
 config.font_size = 10
 
 config.color_scheme = "Dracula (Official)"
