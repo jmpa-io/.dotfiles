@@ -499,9 +499,11 @@ host=github.com" 2>/dev/null || true
   # runs 'git clone' and then changes into the directory cloned.
   "clone "*)
     local args=("${@:2}")
-    local dest="${args[-1]}"
-    # derive dir name from URL (handles extra flags like --depth 1).
-    [[ "$dest" == *"://"* || "$dest" == *"@"* ]] && dest="$(basename "$dest" .git)"
+    local dest
+    # find the URL arg explicitly — it may not be last (e.g. --branch flag after URL).
+    for arg in "${args[@]}"; do
+      [[ "$arg" == *"://"* || "$arg" == *"@"* ]] && dest="$(basename "$arg" .git)" && break
+    done
     command git clone "${args[@]}" && { cd "$dest" || return 1; }
     ;;
 
@@ -561,7 +563,7 @@ wt() {
     local branch="$1"
     local worktree_path="$root/.worktrees/$branch"
     mkdir -p "$(dirname "$worktree_path")"
-    if git -C "$root" branch --list "$branch" | grep -qxF "$branch"; then
+    if git -C "$root" show-ref --verify --quiet "refs/heads/$branch"; then
       git -C "$root" worktree add "$worktree_path" "$branch"
     else
       git -C "$root" worktree add "$worktree_path" -b "$branch"

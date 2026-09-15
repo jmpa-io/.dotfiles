@@ -9,6 +9,14 @@
   # The [includeIf] blocks below will pick it up automatically for repos
   # inside the configured work directories.
 
+# Default credential helper — overridden by personal/work includeIf below.
+[credential "https://github.com"]
+  helper =
+  helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+  helper =
+  helper = !gh auth git-credential
+
 # Work identity — CBA repos.
 [includeIf "gitdir:~/go/src/github.com/CBA-General/"]
   path = ~/.gitconfig-work
