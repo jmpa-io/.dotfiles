@@ -107,6 +107,7 @@ setup: \
 	setup-btop \
 	setup-picom \
 	setup-pulsemixer \
+	setup-brightnessctl \
 	setup-fonts \
 	setup-common \
 	configure-dotfiles-d \
@@ -392,6 +393,21 @@ else
 endif
 
 setup-pulsemixer: install-pulsemixer
+
+# ---------------------------------------------------------------
+# brightnessctl (Linux only — screen brightness; its udev rule grants the 'video' group write access)
+# ---------------------------------------------------------------
+
+.PHONY: install-brightnessctl setup-brightnessctl
+install-brightnessctl: ## Install 'brightnessctl' and add the user to 'video' (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --noconfirm brightnessctl
+	sudo usermod -aG video $(USER)
+else
+	@echo "Skipping brightnessctl installation (Linux only)."
+endif
+
+setup-brightnessctl: install-brightnessctl
 
 # ---------------------------------------------------------------
 # i3 (Linux only, assumed installed)
