@@ -2,7 +2,9 @@
 # AI tool launchers — sourced conditionally by .zshrc only when claude is present.
 # Safe to omit on machines without Claude Code.
 
-# claude — launcher with quarantine auto-removal on macOS.
+# claude — launcher with quarantine auto-removal on macOS, plus auto-approve
+# mode support (shared toggle with the copilot() wrapper in common/aliases —
+# run `auto-approve` to flip it for both tools, in any tmux pane).
 # Worktree selection is a shell concern — use 'wt cd' before invoking.
 claude() {
   local bin
@@ -18,7 +20,9 @@ claude() {
     fi
   fi
 
-  command claude "$@"
+  local -a extra_args=()
+  [[ -f "$HOME/.auto_approve" ]] && extra_args=(--permission-mode bypassPermissions)
+
+  command claude "${extra_args[@]}" "$@"
 }
 
-alias cap='claude-approve --options'
