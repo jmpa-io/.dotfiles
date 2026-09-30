@@ -282,21 +282,31 @@ alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
 # .ai-aliases). The flag file is checked fresh on every invocation, so
 # toggling it applies to new `copilot`/`claude` sessions started in any tmux
 # pane — not just the pane where you ran `auto-approve`.
+#
+# IMPORTANT: stdout stays directly attached to the terminal (not captured) so
+# the interactive TUI renders live. Only stderr is duplicated to a temp file
+# for dyld-error detection — capturing stdout via command substitution would
+# buffer the whole session until exit, making a real interactive session look
+# hung forever (it only ever "completed" for quick, non-interactive calls
+# like --version).
 copilot() {
   local real_copilot="/Users/jordan.cleal/.npm-packages/bin/copilot"
   local -a extra_args=()
   [[ -f "$HOME/.auto_approve" ]] && extra_args=(--allow-all-tools)
-  local out attempt=1 max=3
+  local attempt=1 max=3 rc errfile
+  errfile=$(mktemp "${TMPDIR:-/tmp}/copilot-stderr.XXXXXX")
   while (( attempt <= max )); do
-    out=$("$real_copilot" "${extra_args[@]}" "$@" 2>&1)
-    local rc=$?
-    if [[ $rc -ne 0 && "$out" == *"dyld"*"Library not loaded"* ]]; then
-      (( attempt == max )) && { print -r -- "$out" >&2; return $rc; }
+    : > "$errfile"
+    "$real_copilot" "${extra_args[@]}" "$@" 2> >(tee "$errfile" >&2)
+    rc=$?
+    wait
+    if [[ $rc -ne 0 ]] && grep -q "dyld.*Library not loaded" "$errfile" 2>/dev/null; then
+      (( attempt == max )) && { rm -f "$errfile"; return $rc; }
       sleep 1
       (( attempt++ ))
       continue
     fi
-    print -r -- "$out"
+    rm -f "$errfile"
     return $rc
   done
 }
