@@ -19,12 +19,12 @@
 # enable for tab-completion.
 # Always pass -d explicitly so zsh reuses the cached dump rather than scanning
 # the full fpath (1235+ files) — this saves ~350ms on every startup.
-# Regenerate fully if the dump is >24h old; recompile the .zwc so subsequent
+# Regenerate fully if the dump is >7 days old; recompile the .zwc so subsequent
 # starts use the binary cache instead of re-parsing the 2200-line text dump.
 autoload -U compinit
 _zcd="${ZDOTDIR:-$HOME}/.zcompdump"
 # shellcheck disable=SC1036,SC1072,SC1073,SC1009  # zsh extended glob qualifier — not valid bash syntax
-if [[ -n ${_zcd}(#qN.mh+24) ]]; then
+if [[ -n ${_zcd}(#qN.mh+168) ]]; then
   compinit -d "$_zcd"
   zcompile "$_zcd" 2>/dev/null
 else
@@ -78,6 +78,11 @@ else
 fi
 
 
+# zsh-defer: load eagerly (tiny), then defer everything else until zle is idle.
+# This makes the prompt appear instantly; plugins finish loading in the background
+# before the first keypress lands.
+source "$HOME/.zsh/zsh-defer/zsh-defer.plugin.zsh"
+
 # use starship, if installed.
 # Cache the init script keyed by the binary's mtime — invalidated automatically on upgrade.
 if command -v starship &>/dev/null; then
@@ -99,19 +104,19 @@ case "$os" in
     alias firefox='/Applications/Firefox.app/Contents/MacOS/firefox --marionette -remote-allow-system-access'
     if [[ -n "$HOMEBREW_PREFIX" ]]; then
       if [[ -f "$HOMEBREW_PREFIX/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
-        source "$HOMEBREW_PREFIX/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+        zsh-defer source "$HOMEBREW_PREFIX/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
       fi
       if [[ -f "$HOMEBREW_PREFIX/opt/zsh-autosuggestions/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-        source "$HOMEBREW_PREFIX/opt/zsh-autosuggestions/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+        zsh-defer source "$HOMEBREW_PREFIX/opt/zsh-autosuggestions/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
       fi
     fi
   ;;
   "Linux")
     if [[ -f "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
-      source "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+      zsh-defer source "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
     fi
     if [[ -f "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-      source "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+      zsh-defer source "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
     fi
     ;;
 esac
@@ -122,19 +127,19 @@ if command -v fzf &>/dev/null; then
   "Darwin")
     if [[ -n "$HOMEBREW_PREFIX" ]]; then
       if [[ -f "$HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh" ]]; then
-        source "$HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh"
+        zsh-defer source "$HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh"
       fi
       if [[ -f "$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh" ]]; then
-        source "$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh"
+        zsh-defer source "$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh"
       fi
     fi
   ;;
     "Linux")
       if [[ -f "/usr/share/fzf/completion.zsh" ]]; then
-        source "/usr/share/fzf/completion.zsh"
+        zsh-defer source "/usr/share/fzf/completion.zsh"
       fi
       if [[ -f "/usr/share/fzf/key-bindings.zsh" ]]; then
-        source "/usr/share/fzf/key-bindings.zsh"
+        zsh-defer source "/usr/share/fzf/key-bindings.zsh"
       fi
       ;;
   esac
@@ -157,21 +162,5 @@ fi
 # macOS only — Linux uses system Firefox directly. Also defined in common/aliases Darwin block.
 
 
-# --- Auto-retry wrapper for transient Homebrew dyld/Gatekeeper EPERM errors ---
-# Fixes intermittent: "Library not loaded: .../libcrypto.3.dylib ... errno=1"
-copilot() {
-  local real_copilot="/Users/jordan.cleal/.npm-packages/bin/copilot"
-  local out attempt=1 max=3
-  while (( attempt <= max )); do
-    out=$("$real_copilot" "$@" 2>&1)
-    local rc=$?
-    if [[ $rc -ne 0 && "$out" == *"dyld"*"Library not loaded"* ]]; then
-      (( attempt == max )) && { print -r -- "$out" >&2; return $rc; }
-      sleep 1
-      (( attempt++ ))
-      continue
-    fi
-    print -r -- "$out"
-    return $rc
-  done
-}
+# copilot() wrapper (dyld-retry + lunch mode) moved to
+# ~/.dotfiles/.config/common/aliases, sourced above via ~/.dotfiles.d/aliases.
