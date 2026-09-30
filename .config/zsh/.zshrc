@@ -156,3 +156,22 @@ fi
 # browser-manager: launch Firefox with Marionette enabled (no red bar in main profile).
 # macOS only — Linux uses system Firefox directly. Also defined in common/aliases Darwin block.
 
+
+# --- Auto-retry wrapper for transient Homebrew dyld/Gatekeeper EPERM errors ---
+# Fixes intermittent: "Library not loaded: .../libcrypto.3.dylib ... errno=1"
+copilot() {
+  local real_copilot="/Users/jordan.cleal/.npm-packages/bin/copilot"
+  local out attempt=1 max=3
+  while (( attempt <= max )); do
+    out=$("$real_copilot" "$@" 2>&1)
+    local rc=$?
+    if [[ $rc -ne 0 && "$out" == *"dyld"*"Library not loaded"* ]]; then
+      (( attempt == max )) && { print -r -- "$out" >&2; return $rc; }
+      sleep 1
+      (( attempt++ ))
+      continue
+    fi
+    print -r -- "$out"
+    return $rc
+  done
+}
