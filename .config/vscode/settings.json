@@ -2,20 +2,39 @@
     //Workbench.
     "workbench.colorTheme": "Panda Syntax",
     "workbench.layoutControl.enabled": false,
+    "workbench.editor.enablePreview": false,
+    "workbench.startupEditor": "none",
+    "explorer.compactFolders": false,
+    "telemetry.telemetryLevel": "off",
 
     // Editor.
     "editor.accessibilitySupport": "off",
     "editor.stickyScroll.enabled": false,
-    "editor.rulers": [
-        80
-    ],
+    "editor.rulers": [80, 120],
     "editor.fontFamily": "'Fira Code', Menlo, Monaco, 'Courier New', monospace",
     "editor.fontLigatures": true,
     "editor.fontWeight": "400",
     "editor.letterSpacing": 0,
-    "window.zoomLevel": -0.3,
     "editor.fontSize": 12,
+    "editor.lineHeight": 1.6,
+    "editor.minimap.enabled": false,
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off",
+    "editor.renderWhitespace": "boundary",
+    "editor.smoothScrolling": true,
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    "window.zoomLevel": 0,
     "files.encoding": "utf8",
+    "files.trimTrailingWhitespace": true,
+    "files.autoSave": "onFocusChange",
+    "search.exclude": {
+        "**/vendor/**": true,
+        "**/node_modules/**": true,
+        "**/*.pb.go": true,
+        "**/*_generated.go": true
+    },
     "editor.tokenColorCustomizations": {
       "textMateRules": [
         {
@@ -45,15 +64,18 @@
     "terminal.integrated.unicodeVersion": 14,
     "terminal.integrated.customGlyphs": true,
 
-    // Markdown.
+    // Makefile.
     "makefile.configureOnOpen": false,
 
     // Git.
     "git.mergeEditor": false,
 
     // Go.
-    "go.useLanguageServer": true,
     "go.toolsManagement.autoUpdate": true,
+    "[go]": {
+        "editor.defaultFormatter": "golang.go",
+        "editor.formatOnSave": true
+    },
 
     // GitHub Actions.
     "github-actions.workflows.pinned.refresh.enabled": false,
@@ -63,18 +85,11 @@
 
     // GitHub Copilot.
     "github.copilot.nextEditSuggestions.enabled": true,
-    "github.copilot.chat.defaultModel": "claude-sonnet-4-5",
+    "github.copilot.chat.defaultModel": "claude-sonnet-4-6",
     "extensions.experimental.affinity": {
         "asvetliakov.vscode-neovim": 1
     },
-    "gitlens.currentLine.enabled": false,
-    "gitlens.codeLens.enabled": false,
-    "gitlens.hovers.currentLine.over": "line",
-    "gitlens.blame.highlight.enabled": false,
-    "gitlens.blame.avatars": false,
-    "gitlens.blame.compact": false,
-    "editor.codeLens": false,
-
+    "vscode-neovim.neovimExecutablePaths.darwin": "/opt/homebrew/bin/nvim",
     // TODO Highlight.
     "todohighlight.keywords": [
       { "text": "PLEASE NOTE", "color": "#C5A3FF", "backgroundColor": "rgba(197,163,255,0.18)", "overviewRulerColor": "#C5A3FF", "isWholeLine": false },

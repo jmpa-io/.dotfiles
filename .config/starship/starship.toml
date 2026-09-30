@@ -1,6 +1,7 @@
 # https://starship.rs/config
 
 add_newline = false
+command_timeout = 100
 
 # Explicitly define the prompt format - anything not listed here won't show.
 # This is cleaner than disabling every language module individually.
@@ -19,6 +20,7 @@ min_time = 1_000
 truncation_symbol = ""
 home_symbol = "~"
 format = "[$path]($style)[$read_only]($read_only_style) "
+truncation_length = 4
 
 [time]
 disabled = false
