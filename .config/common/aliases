@@ -50,6 +50,25 @@ t-zsrc() {
     pgrep -P "$pane_pid" -x claude &>/dev/null
   }
 
+  # Detect if a pane is running Copilot CLI. Unlike claude, copilot runs
+  # nested (zsh -> node -> copilot binary), so check the full descendant
+  # tree, not just the direct child. Matches the "@github/copilot" segment
+  # of the npm install path, which is OS/arch-independent (portable across
+  # copilot-darwin-arm64, copilot-linux-x64, etc).
+  _t-zsrc-pane-has-copilot() {
+    local pane_pid target_pid ancestor
+    pane_pid=$(tmux display-message -p -t "$1" '#{pane_pid}' 2>/dev/null)
+    [[ -z "$pane_pid" ]] && return 1
+    for target_pid in $(pgrep -f '@github/copilot' 2>/dev/null); do
+      ancestor="$target_pid"
+      while [[ -n "$ancestor" && "$ancestor" != "1" && "$ancestor" != "0" ]]; do
+        [[ "$ancestor" == "$pane_pid" ]] && return 0
+        ancestor=$(ps -o ppid= -p "$ancestor" 2>/dev/null | tr -d ' ')
+      done
+    done
+    return 1
+  }
+
   _t-zsrc-handle-pane() {
     local pane_id="$1"
     [[ "$pane_id" == "$current_pane" ]] && return
@@ -95,6 +114,15 @@ t-zsrc() {
         tmux send-keys -t "$pane_id" 'claude -c' Enter
       fi
 
+    elif _t-zsrc-pane-has-copilot "$pane_id"; then
+      # Copilot has no reliable pane->session-id mapping (unlike claude's
+      # ~/.claude/sessions/<pid>.json), so we can't safely auto-exit and
+      # resume the correct session. Skip it rather than risk sending text
+      # into a live agent conversation. Re-source that pane's shell config
+      # yourself later (e.g. `t-zsrc -p <pane_id>` after it's idle, or
+      # manually source ~/.zshrc once you exit copilot there).
+      echo "t-zsrc: skipping $pane_id — active copilot session (re-source it manually once idle)"
+
     else
       # Idle zsh pane — just re-source.
       tmux send-keys -l -t "$pane_id" "$src_cmd"
@@ -109,22 +137,6 @@ t-zsrc() {
       _t-zsrc-handle-pane "$pane_id"
     done
   fi
-}
-
-# tmux-claude-approve — send '1' (yes) to all claude panes in work-* sessions that are
-# waiting for tool approval. Run this to unblock paused claude sessions without switching panes.
-tmux-claude-approve() {
-  local approved=0
-  while IFS=' ' read -r pane pane_pid; do
-    pgrep -P "$pane_pid" -x claude &>/dev/null || continue
-    output=$(tmux capture-pane -t "$pane" -p 2>/dev/null)
-    if printf '%s' "$output" | grep -qE "Do you want to proceed|Yes.*allow|to confirm"; then
-      tmux send-keys -t "$pane" '1' Enter
-      echo "tmux-claude-approve: approved $pane"
-      ((approved++))
-    fi
-  done < <(tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index} #{pane_pid}' | awk '/^work-/')
-  [[ $approved -eq 0 ]] && echo "tmux-claude-approve: no panes waiting for approval"
 }
 
 # tmux sessions — each creates or attaches to a named session with a fixed layout.
@@ -266,13 +278,14 @@ alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
 # Auto-retries on transient Homebrew dyld/Gatekeeper EPERM errors:
 # "Library not loaded: .../libcrypto.3.dylib ... errno=1"
 # Also auto-approves all tools (--allow-all-tools) when auto-approve mode is
-# on (toggle with `auto-approve` below). The flag file is checked fresh on
-# every invocation, so toggling it applies to new `copilot` sessions started
-# in any tmux pane — not just the pane where you ran `auto-approve`.
+# on (toggle with `auto-approve` below — shared with the claude() wrapper in
+# .ai-aliases). The flag file is checked fresh on every invocation, so
+# toggling it applies to new `copilot`/`claude` sessions started in any tmux
+# pane — not just the pane where you ran `auto-approve`.
 copilot() {
   local real_copilot="/Users/jordan.cleal/.npm-packages/bin/copilot"
   local -a extra_args=()
-  [[ -f "$HOME/.copilot_auto_approve" ]] && extra_args=(--allow-all-tools)
+  [[ -f "$HOME/.auto_approve" ]] && extra_args=(--allow-all-tools)
   local out attempt=1 max=3
   while (( attempt <= max )); do
     out=$("$real_copilot" "${extra_args[@]}" "$@" 2>&1)
@@ -288,10 +301,11 @@ copilot() {
   done
 }
 
-# auto-approve: toggle Copilot CLI auto-approve mode (--allow-all-tools) for
-# all new `copilot` sessions across every tmux pane. Run it once to turn on,
-# run it again to turn off. Already-running sessions are unaffected.
-alias auto-approve='if [[ -f "$HOME/.copilot_auto_approve" ]]; then rm -f "$HOME/.copilot_auto_approve"; echo "✅ Copilot auto-approve OFF — new sessions require normal approval."; else touch "$HOME/.copilot_auto_approve"; echo "⚡ Copilot auto-approve ON — new sessions auto-approve all tools."; fi'
+# auto-approve: toggle auto-approve mode for BOTH Copilot CLI
+# (--allow-all-tools) and Claude Code (--permission-mode bypassPermissions)
+# for all new sessions across every tmux pane. Run it once to turn on, run it
+# again to turn off. Already-running sessions are unaffected.
+alias auto-approve='if [[ -f "$HOME/.auto_approve" ]]; then rm -f "$HOME/.auto_approve"; echo "✅ Auto-approve OFF — new copilot/claude sessions require normal approval."; else touch "$HOME/.auto_approve"; echo "⚡ Auto-approve ON — new copilot/claude sessions auto-approve all tools."; fi'
 
 # print a summary of all tmux aliases and how sessions work
 t-help() {
@@ -317,9 +331,9 @@ t-help() {
   t-ls        list running sessions
   t-status    list sessions with pane counts + commands
   t-help      show this help
-  t-zsrc               re-source shell config in all panes (exits + resumes claude panes)
+  t-zsrc               re-source shell config in all panes (exits+resumes claude panes, skips active copilot panes)
   claude-dispatch      start claude in next free work-* pane and send a prompt file
-  tmux-claude-approve  approve pending tool calls in all work-* claude panes
+  auto-approve         toggle auto-approve mode for BOTH copilot and claude (all panes)
 
   Recovery
   ────────
