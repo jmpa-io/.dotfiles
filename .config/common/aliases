@@ -18,11 +18,8 @@ for index in {0..9}; do alias "$index"="cd +${index}"; done
 unset index
 
 # zsh.
-alias zsrc='for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+alias zsrc='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
 
-# Broadcast 'source work config' to all panes in the current tmux session.
-# Use after key rotation so all shells pick up the new PORTKEY_API_KEY immediately.
-alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {} "source ${HOME}/.dotfiles.d/work" Enter'
 
 # Re-source shell config across all tmux panes (or a single pane with -p).
 # Usage:
@@ -35,7 +32,7 @@ alias b-src='tmux list-panes -a -F "#{pane_id}" | xargs -I{} tmux send-keys -t {
 # Skips the current pane (caller handles it via zsrc) and panes running anything else.
 t-zsrc() {
   # shellcheck disable=SC2016  # $HOME intentionally unexpanded — cmd runs in tmux pane's zsh
-  local src_cmd='for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+  local src_cmd='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
   local current_pane target_pane=""
   current_pane=$(tmux display-message -p '#{pane_id}')
 
@@ -265,6 +262,37 @@ t-status() {
 # list running tmux sessions
 alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
 
+# --- Copilot CLI wrapper: dyld-retry + auto-approve toggle ---
+# Auto-retries on transient Homebrew dyld/Gatekeeper EPERM errors:
+# "Library not loaded: .../libcrypto.3.dylib ... errno=1"
+# Also auto-approves all tools (--allow-all-tools) when auto-approve mode is
+# on (toggle with `auto-approve` below). The flag file is checked fresh on
+# every invocation, so toggling it applies to new `copilot` sessions started
+# in any tmux pane — not just the pane where you ran `auto-approve`.
+copilot() {
+  local real_copilot="/Users/jordan.cleal/.npm-packages/bin/copilot"
+  local -a extra_args=()
+  [[ -f "$HOME/.copilot_auto_approve" ]] && extra_args=(--allow-all-tools)
+  local out attempt=1 max=3
+  while (( attempt <= max )); do
+    out=$("$real_copilot" "${extra_args[@]}" "$@" 2>&1)
+    local rc=$?
+    if [[ $rc -ne 0 && "$out" == *"dyld"*"Library not loaded"* ]]; then
+      (( attempt == max )) && { print -r -- "$out" >&2; return $rc; }
+      sleep 1
+      (( attempt++ ))
+      continue
+    fi
+    print -r -- "$out"
+    return $rc
+  done
+}
+
+# auto-approve: toggle Copilot CLI auto-approve mode (--allow-all-tools) for
+# all new `copilot` sessions across every tmux pane. Run it once to turn on,
+# run it again to turn off. Already-running sessions are unaffected.
+alias auto-approve='if [[ -f "$HOME/.copilot_auto_approve" ]]; then rm -f "$HOME/.copilot_auto_approve"; echo "✅ Copilot auto-approve OFF — new sessions require normal approval."; else touch "$HOME/.copilot_auto_approve"; echo "⚡ Copilot auto-approve ON — new sessions auto-approve all tools."; fi'
+
 # print a summary of all tmux aliases and how sessions work
 t-help() {
   cat <<'EOF'
@@ -289,7 +317,6 @@ t-help() {
   t-ls        list running sessions
   t-status    list sessions with pane counts + commands
   t-help      show this help
-  b-src                broadcast 'source ~/.dotfiles.d/work' to all panes
   t-zsrc               re-source shell config in all panes (exits + resumes claude panes)
   claude-dispatch      start claude in next free work-* pane and send a prompt file
   tmux-claude-approve  approve pending tool calls in all work-* claude panes
@@ -660,7 +687,15 @@ wt() {
     ;;
 
   rm)
-    local branch="${2:-}"
+    local branch="" force=""
+    local -a rest=()
+    for arg in "${@:2}"; do
+      case "$arg" in
+        -f|--force) force="--force" ;;
+        *) rest+=("$arg") ;;
+      esac
+    done
+    branch="${rest[1]:-}"
     local remove_path
     if [[ -z "$branch" ]]; then
       local picked
@@ -677,7 +712,7 @@ wt() {
       echo "wt: no worktree found for branch '$branch'" >&2
       return 1
     fi
-    git -C "$root" worktree remove "$remove_path"
+    git -C "$root" worktree remove ${force:+"$force"} "$remove_path"
     echo "wt: removed worktree for '$branch'"
     # offer to delete the local branch too
     local reply
@@ -712,7 +747,7 @@ wt() {
     ;;
 
   *)
-    echo "usage: wt [ls | cd | switch | add [branch] | rm [branch]]" >&2
+    echo "usage: wt [ls | cd | switch | add [branch] | rm [-f] [branch]]" >&2
     return 1
     ;;
   esac
