@@ -594,15 +594,20 @@ endif
 configure-common: ## Configure common shell files.
 configure-common: .config/common
 	$(call cfg-home,.config/common)
-	@mkdir -p $(HOME)/bin
-	@for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
-		rel=$${f#$(PWD)/.config/common/bin/}; \
-		dir=$$(dirname $$rel); \
-		dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
-		mkdir -p $$(dirname $$dest); \
-		ln -sf $$f $$dest; \
-		echo "  linked $$f -> $$dest"; \
-	done
+	@# If ~/bin already points at the repo's bin dir, per-script links would be written back into the repo (and i3/polybar call the .sh names), so skip them.
+	@if [ -L $(HOME)/bin ] && [ "$$(cd $(HOME)/bin && pwd -P)" = "$$(cd $(PWD)/.config/common/bin && pwd -P)" ]; then \
+		echo "  ~/bin -> .config/common/bin already; scripts are available by their .sh names"; \
+	else \
+		mkdir -p $(HOME)/bin; \
+		for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
+			rel=$${f#$(PWD)/.config/common/bin/}; \
+			dir=$$(dirname $$rel); \
+			dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
+			mkdir -p $$(dirname $$dest); \
+			ln -sf $$f $$dest; \
+			echo "  linked $$f -> $$dest"; \
+		done; \
+	fi
 
 setup-common: configure-common
 
