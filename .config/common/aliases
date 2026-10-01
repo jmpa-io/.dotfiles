@@ -277,11 +277,20 @@ alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
 # --- Copilot CLI wrapper: dyld-retry + auto-approve toggle ---
 # Auto-retries on transient Homebrew dyld/Gatekeeper EPERM errors:
 # "Library not loaded: .../libcrypto.3.dylib ... errno=1"
-# Also auto-approves all tools (--allow-all-tools) when auto-approve mode is
-# on (toggle with `auto-approve` below — shared with the claude() wrapper in
-# .ai-aliases). The flag file is checked fresh on every invocation, so
-# toggling it applies to new `copilot`/`claude` sessions started in any tmux
-# pane — not just the pane where you ran `auto-approve`.
+# Also auto-approves all tools AND auto-trusts the working directory when
+# auto-approve mode is on (toggle with `auto-approve` below — shared with the
+# claude() wrapper in .ai-aliases). Uses COPILOT_ALLOW_ALL=true (the exact
+# string "true"), not just --allow-all-tools, because per `copilot help
+# environment`: only the exact "true" value also trusts the working
+# directory without prompting — --allow-all-tools alone only covers tool
+# confirmations, NOT the "Do you want to allow this?" path/directory trust
+# dialog. That dialog is exactly what's risky to leave live: if it's ever
+# sent unrelated keystrokes (e.g. by automation), Enter can silently accept
+# whichever option is highlighted. Auto-approve now removes that dialog
+# entirely rather than relying on never touching it by accident.
+# The flag file is checked fresh on every invocation, so toggling it applies
+# to new `copilot`/`claude` sessions started in any tmux pane — not just the
+# pane where you ran `auto-approve`.
 #
 # IMPORTANT: stdout stays directly attached to the terminal (not captured) so
 # the interactive TUI renders live. Only stderr is duplicated to a temp file
@@ -291,13 +300,13 @@ alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
 # like --version).
 copilot() {
   local real_copilot="/Users/jordan.cleal/.npm-packages/bin/copilot"
-  local -a extra_args=()
-  [[ -f "$HOME/.auto_approve" ]] && extra_args=(--allow-all-tools)
+  local -a env_prefix=()
+  [[ -f "$HOME/.auto_approve" ]] && env_prefix=(env COPILOT_ALLOW_ALL=true)
   local attempt=1 max=3 rc errfile
   errfile=$(mktemp "${TMPDIR:-/tmp}/copilot-stderr.XXXXXX")
   while (( attempt <= max )); do
     : > "$errfile"
-    "$real_copilot" "${extra_args[@]}" "$@" 2> >(tee "$errfile" >&2)
+    "${env_prefix[@]}" "$real_copilot" "$@" 2> >(tee "$errfile" >&2)
     rc=$?
     wait
     if [[ $rc -ne 0 ]] && grep -q "dyld.*Library not loaded" "$errfile" 2>/dev/null; then
