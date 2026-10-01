@@ -620,6 +620,10 @@ configure-npmrc: ## Symlink .npmrc into home directory.
 test-ai-aliases: ## Test .ai-aliases shell functions.
 	@zsh $(PWD)/.config/common/bin/.tests/test-ai-aliases.sh
 
+.PHONY: test-aws-keepalive
+test-aws-keepalive: ## Test aws-keepalive (stubbed aws + crontab).
+	@bash $(PWD)/.config/common/bin/.tests/test-aws-keepalive.sh
+
 # ---------------------------------------------------------------
 # Housekeeping
 # ---------------------------------------------------------------
