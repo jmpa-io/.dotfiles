@@ -320,6 +320,21 @@ copilot() {
   done
 }
 
+# ai — unified launcher: Copilot CLI is the default/priority tool; pass
+# 'claude' as the first arg to switch to Claude Code instead for this
+# invocation. Both underlying wrappers (copilot()'s dyld-retry logic,
+# claude()'s quarantine/auto-approve handling) are preserved untouched —
+# this just picks which one to call. Everything after 'claude' is forwarded,
+# e.g. `ai claude --resume <id>` or `ai claude -p "..."`.
+ai() {
+  if [[ "$1" == "claude" ]]; then
+    shift
+    claude "$@"
+  else
+    copilot "$@"
+  fi
+}
+
 # auto-approve: toggle auto-approve mode for BOTH Copilot CLI
 # (--allow-all-tools) and Claude Code (--permission-mode bypassPermissions)
 # for all new sessions across every tmux pane. Run it once to turn on, run it
