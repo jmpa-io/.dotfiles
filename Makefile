@@ -497,6 +497,8 @@ setup-system: configure-system
 configure-desktop: ## Link dunst/rofi/gtk/qt5ct/Kvantum/i3-scrot config (Linux only).
 ifeq ($(OS),linux)
 	$(call link-file,.config/dunst/dunstrc,$(HOME)/.config/dunst/dunstrc)
+	$(call link-file,.config/dunst/org.freedesktop.Notifications.service,$(HOME)/.local/share/dbus-1/services/org.freedesktop.Notifications.service)
+	$(call link-file,.config/dunst/xfce4-notifyd.desktop,$(HOME)/.config/autostart/xfce4-notifyd.desktop)
 	$(call link-file,.config/rofi/config.rasi,$(HOME)/.config/rofi/config.rasi)
 	$(call link-file,.config/gtk-3.0/gtk.css,$(HOME)/.config/gtk-3.0/gtk.css)
 	$(call link-file,.config/gtk-3.0/settings.ini,$(HOME)/.config/gtk-3.0/settings.ini)
