@@ -45,7 +45,7 @@ i3lock \
   \
   --greeter-text="" \
   --verif-text="Checking..." \
-  --wrong-text="Wrong, or locked out? Wait 60s" \
+  --wrong-text="Wrong. 6 fails = 30s lockout" \
   --noinput="Please type your password." \
   --lock-text="Locking..." \
   --lockfailed-text="Locking failed!" \
