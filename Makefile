@@ -476,7 +476,8 @@ ifeq ($(OS),linux)
 		if cmp -s "$$f" "/$$f"; then \
 			echo "  /$$f unchanged"; \
 		else \
-			sudo install -Dm644 --backup=numbered "$$f" "/$$f" \
+			diff -u "/$$f" "$$f" 2>/dev/null || true; \
+			sudo install -Dm644 "$$f" "/$$f" \
 				&& echo "  installed /$$f" \
 				|| exit 1; \
 		fi; \

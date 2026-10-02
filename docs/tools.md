@@ -276,7 +276,7 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 
 ### System config (`system/`, Linux only)
 
-Files that live under `/etc`. Mirrored in `system/` and installed by `make configure-system` (uses `sudo`; skips files that are unchanged and keeps a numbered backup of any it replaces).
+Files that live under `/etc`. Mirrored in `system/` and installed by `make configure-system` (uses `sudo`; skips files that are unchanged, and prints a diff before overwriting any that differ; no backup files are made, the repo copy is the source of truth).
 
 | File | Purpose |
 |------|---------|
