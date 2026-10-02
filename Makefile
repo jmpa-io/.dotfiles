@@ -23,6 +23,22 @@ define cfg
 	ln -sfn $(PWD)/$1 $(HOME)/.config/
 endef
 
+# Symlink one repo file to a destination: $(call link-file,<repo path>,<dest>).
+# Never overwrites: links if <dest> is missing, or is a real file identical to
+# the repo copy; otherwise leaves it alone and says so.
+define link-file
+	@mkdir -p "$$(dirname "$2")"; \
+	if [ -L "$2" ] && [ "$$(readlink "$2")" = "$(PWD)/$1" ]; then \
+		echo "  $2 already linked"; \
+	elif [ ! -e "$2" ] && [ ! -L "$2" ]; then \
+		ln -s "$(PWD)/$1" "$2" && echo "  linked $2"; \
+	elif [ -f "$2" ] && [ ! -L "$2" ] && cmp -s "$2" "$(PWD)/$1"; then \
+		ln -sf "$(PWD)/$1" "$2" && echo "  linked $2 (was identical)"; \
+	else \
+		echo "  $2 differs from the repo copy — skipped (see: diff $2 $(PWD)/$1)"; \
+	fi
+endef
+
 # Symlink files from a directory directly into $HOME/.
 define cfg-home
 	for f in $$(find $1 -mindepth 1 -maxdepth 1 -type f); do \
@@ -80,6 +96,7 @@ configure: \
 	configure-i3 \
 	configure-i3lock \
 	configure-system \
+	configure-desktop \
 	configure-iterm2 \
 	configure-common \
 	configure-dotfiles-d \
@@ -116,6 +133,7 @@ setup: \
 	setup-i3 \
 	setup-i3lock \
 	setup-system \
+	setup-desktop \
 	setup-iterm2 \
 	setup-vscode \
 	install-terraform \
@@ -469,6 +487,27 @@ configure-system:
 endif
 
 setup-system: configure-system
+
+# ---------------------------------------------------------------
+# desktop (Linux only — dunst, rofi, gtk, qt5ct, Kvantum, i3-scrot)
+# ---------------------------------------------------------------
+
+.PHONY: configure-desktop setup-desktop
+configure-desktop: ## Link dunst/rofi/gtk/qt5ct/Kvantum/i3-scrot config (Linux only).
+ifeq ($(OS),linux)
+	$(call link-file,.config/dunst/dunstrc,$(HOME)/.config/dunst/dunstrc)
+	$(call link-file,.config/rofi/config.rasi,$(HOME)/.config/rofi/config.rasi)
+	$(call link-file,.config/gtk-3.0/gtk.css,$(HOME)/.config/gtk-3.0/gtk.css)
+	$(call link-file,.config/gtk-3.0/settings.ini,$(HOME)/.config/gtk-3.0/settings.ini)
+	$(call link-file,.config/qt5ct/qt5ct.conf,$(HOME)/.config/qt5ct/qt5ct.conf)
+	$(call link-file,.config/Kvantum/kvantum.kvconfig,$(HOME)/.config/Kvantum/kvantum.kvconfig)
+	$(call link-file,.config/i3-scrot.conf,$(HOME)/.config/i3-scrot.conf)
+else
+configure-desktop:
+	@echo "Skipping desktop configuration (Linux only)."
+endif
+
+setup-desktop: configure-desktop
 
 # ---------------------------------------------------------------
 # jq
