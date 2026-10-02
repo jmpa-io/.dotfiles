@@ -274,6 +274,35 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System info (aliased as `neofetch`) |
 | [pcmanfm](https://wiki.lxde.org/en/PCManFM) | GUI file manager |
 
+### System config (`system/`, Linux only)
+
+Files that live under `/etc`. Mirrored in `system/` and installed by `make configure-system` (uses `sudo`; skips files that are unchanged and keeps a numbered backup of any it replaces).
+
+| File | Purpose |
+|------|---------|
+| `/etc/security/faillock.conf` | `pam_faillock` lockout: `deny = 6`, `unlock_time = 60` (defaults are 3 / 600s — a few typos at i3lock locked out even the correct password for 10 minutes) |
+| `/etc/X11/xorg.conf.d/00-keyboard.conf` | Keyboard layout (`au`) |
+| `/etc/X11/xorg.conf.d/30-touchpad.conf` | Touchpad tap-to-click (libinput) |
+
+`/etc/pam.d/i3lock` is shipped by the `i3lock-color` package (it includes `system-local-login`, which is where `pam_faillock` is applied) and is not mirrored here.
+
+### System services (enabled outside this repo)
+
+Not installed or enabled by the Makefile — recorded here so a rebuild isn't a surprise.
+
+| Package | Service |
+|---------|---------|
+| `docker` | `docker.service` (installed by `make install-docker`) |
+| `tailscale` | `tailscaled.service` |
+| `nordvpn-bin` | `nordvpnd.service` |
+| `ufw` | `ufw.service` |
+| `cronie` | `cronie.service` (hosts the `aws-keepalive` cron job) |
+| `openssh` | `sshd.service` |
+| `networkmanager`, `modemmanager`, `netctl` | `NetworkManager.service`, `ModemManager.service`, `netctl@phone.service` |
+| `avahi` | `avahi-daemon.service` |
+| `bluez` | `bluetooth.service` |
+| `lightdm`, `lightdm-slick-greeter` | Display manager |
+
 ---
 
 ## Custom Shell Scripts
@@ -296,6 +325,7 @@ Installed to `~/bin/` via `make configure-common`. Scripts live in `.config/comm
 | Script | Purpose |
 |--------|---------|
 | `system/lock` | Locks screen with i3lock (Dracula theme, blur, clock overlay) |
+| `system/polybar-faillock-status` | Polybar label that warns of failed logins / `pam_faillock` lockout, with a countdown; blank when all is well |
 | `system/polybar-xautolock-status` | Returns polybar-formatted lock status icon based on xautolock PID |
 | `system/polybar-xautolock-toggle` | Toggles xautolock on/off and refreshes polybar |
 | `system/xautolock-start` | Starts xautolock with 10-min idle timeout, writes PID file |
