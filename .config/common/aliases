@@ -402,17 +402,22 @@ ai-export-context() {
 # tool (capped to recent turns) and launch the target tool seeded with it as
 # an interactive first message. This is a one-way, read-only copy — it does
 # not touch either tool's real session storage.
-# Usage: ai-handoff claude    (bring recent Copilot context into Claude)
-#        ai-handoff copilot   (bring recent Claude context into Copilot)
+# Usage: ai-handoff claude [max_turns]    (bring recent Copilot context into Claude)
+#        ai-handoff copilot [max_turns]   (bring recent Claude context into Copilot)
+#
+# NOTE: the two CLIs seed an interactive first message differently, verified
+# live (not just from --help) — claude accepts a bare positional prompt;
+# copilot requires -i/--interactive (a bare positional arg errors with
+# "Invalid command format" — confirmed by testing, not assumed).
 ai-handoff() {
-  local target="$1" source outfile
+  local target="$1" max="${2:-15}" source outfile
   case "$target" in
     claude) source="copilot" ;;
     copilot) source="claude" ;;
-    *) echo "usage: ai-handoff <claude|copilot>" >&2; return 64 ;;
+    *) echo "usage: ai-handoff <claude|copilot> [max_turns]" >&2; return 64 ;;
   esac
 
-  outfile=$(ai-export-context "$source") || return 1
+  outfile=$(ai-export-context "$source" "$max") || return 1
   echo "Handoff context from $source written to $outfile ($(wc -l < "$outfile" | tr -d ' ') lines)"
 
   local seed
@@ -420,7 +425,11 @@ ai-handoff() {
 
 $(cat "$outfile")"
 
-  "$target" "$seed"
+  if [[ "$target" == "copilot" ]]; then
+    copilot -i "$seed"
+  else
+    claude "$seed"
+  fi
 }
 
 # auto-approve: toggle auto-approve mode for BOTH Copilot CLI
