@@ -79,6 +79,7 @@ configure: \
 	configure-picom \
 	configure-i3 \
 	configure-i3lock \
+	configure-system \
 	configure-iterm2 \
 	configure-common \
 	configure-dotfiles-d \
@@ -114,6 +115,7 @@ setup: \
 	setup-tmux \
 	setup-i3 \
 	setup-i3lock \
+	setup-system \
 	setup-iterm2 \
 	setup-vscode \
 	install-terraform \
@@ -444,6 +446,29 @@ configure-i3lock:
 endif
 
 setup-i3lock: configure-i3lock
+
+# ---------------------------------------------------------------
+# system (Linux only — files that live under /etc, mirrored in system/)
+# ---------------------------------------------------------------
+
+.PHONY: configure-system setup-system
+configure-system: ## Install /etc config from system/ (Linux only).
+ifeq ($(OS),linux)
+	@cd system && for f in $$(find etc -type f); do \
+		if cmp -s "$$f" "/$$f"; then \
+			echo "  /$$f unchanged"; \
+		else \
+			sudo install -Dm644 --backup=numbered "$$f" "/$$f" \
+				&& echo "  installed /$$f" \
+				|| exit 1; \
+		fi; \
+	done
+else
+configure-system:
+	@echo "Skipping system configuration (Linux only)."
+endif
+
+setup-system: configure-system
 
 # ---------------------------------------------------------------
 # jq
