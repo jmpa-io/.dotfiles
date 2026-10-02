@@ -268,6 +268,7 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 | [polybar](https://polybar.github.io) | Status bar |
 | [picom](https://github.com/yshui/picom) | X11 compositor |
 | [xautolock](https://github.com/l0b0/xautolock) | Auto-lock after idle timeout |
+| [dunst](https://dunst-project.org) | Notification daemon (Dracula theme, top-right under polybar). `$mod+grave` recalls the last notification, `$mod+Shift+grave` closes all, `$mod+Ctrl+grave` toggles do-not-disturb. It replaces `xfce4-notifyd`, which is hidden via `~/.config/autostart` and a per-user D-Bus service override (both linked by `make configure-desktop`) |
 | [pulsemixer](https://github.com/GeorgeFilipkin/pulsemixer) | TUI audio mixer (PipeWire) |
 | [scrot](https://github.com/dreamer/scrot) | Screenshots |
 | [tty-clock](https://github.com/xorg62/tty-clock) | Terminal clock |
