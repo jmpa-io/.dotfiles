@@ -280,7 +280,7 @@ Files that live under `/etc`. Mirrored in `system/` and installed by `make confi
 
 | File | Purpose |
 |------|---------|
-| `/etc/security/faillock.conf` | `pam_faillock` lockout: `deny = 6`, `unlock_time = 60` (defaults are 3 / 600s — a few typos at i3lock locked out even the correct password for 10 minutes) |
+| `/etc/security/faillock.conf` | `pam_faillock` lockout: `deny = 6`, `unlock_time = 30` (defaults are 3 / 600s — a few typos at i3lock locked out even the correct password for 10 minutes) |
 | `/etc/X11/xorg.conf.d/00-keyboard.conf` | Keyboard layout (`au`) |
 | `/etc/X11/xorg.conf.d/30-touchpad.conf` | Touchpad tap-to-click (libinput) |
 
