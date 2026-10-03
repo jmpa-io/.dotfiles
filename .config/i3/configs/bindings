@@ -31,9 +31,9 @@ bindsym $mod+$smod+q kill
 bindsym $mod+$smod+r restart
 
 # screenshots.
-bindsym Print             exec --no-startup-id i3-scrot
-bindsym $mod+Print        --release exec --no-startup-id i3-scrot -w
-bindsym $mod+Shift+Print  --release exec --no-startup-id i3-scrot -s
+bindsym Print             exec --no-startup-id "$HOME/bin/system/i3-scrot.sh"
+bindsym $mod+Print        --release exec --no-startup-id "$HOME/bin/system/i3-scrot.sh" -w
+bindsym $mod+Shift+Print  --release exec --no-startup-id "$HOME/bin/system/i3-scrot.sh" -s
 
 # F1 - terminal (alt).
 bindsym $mod+F1           exec $wm_terminal
