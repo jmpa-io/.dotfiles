@@ -15,6 +15,7 @@ cp -r /src ~/.dotfiles && cd ~/.dotfiles || exit 99
 
 step "pacman sync"                 sudo pacman -Syu --noconfirm
 step "configure-bin"               make configure-bin
+step "configure-common leaves the repo clean" bash -c 'before=$(find .config/common/bin -type l | wc -l); make configure-common >/dev/null; after=$(find .config/common/bin -type l | wc -l); echo "symlinks inside the repo bin dir: $before -> $after"; [ "$before" = "$after" ]'
 step "install-desktop (packages + AUR)" make install-desktop
 step "configure-desktop"           make configure-desktop
 step "configure-i3"                make configure-i3
