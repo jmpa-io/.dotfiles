@@ -21,8 +21,8 @@ exec --no-startup-id clipit -d
 # setup autolock mechanism.
 exec --no-startup-id "$HOME/bin/system/xautolock-start.sh"
 
-# run fix_xcursor, a script to automatically set the theme of a cursor in i3.
-exec_always --no-startup-id fix_xcursor
+# apply the GTK cursor theme to X (replaces Manjaro's fix_xcursor).
+exec_always --no-startup-id "$HOME/bin/system/set-cursor.sh"
 
 # run compositor, for window effects.
 # Kill any existing instance first to avoid stacking on i3 reload.

@@ -284,6 +284,16 @@ Files that live under `/etc`. Mirrored in `system/` and installed by `make confi
 | `/etc/security/faillock.conf` | `pam_faillock` lockout: `deny = 6`, `unlock_time = 30` (defaults are 3 / 600s — a few typos at i3lock locked out even the correct password for 10 minutes) |
 | `/etc/X11/xorg.conf.d/00-keyboard.conf` | Keyboard layout (`au`) |
 | `/etc/X11/xorg.conf.d/30-touchpad.conf` | Touchpad tap-to-click (libinput) |
+| `/etc/lightdm/lightdm.conf.d/50-dotfiles.conf` | LightDM greeter (`lightdm-slick-greeter`) and the `i3` session, so a fresh install boots into i3 |
+
+### Arch Linux and Manjaro
+
+The Linux setup targets both. Nothing in the i3 config depends on a Manjaro-only package:
+the three Manjaro scripts it used (`i3exit`, `i3-scrot`, `fix_xcursor`) are replaced by scripts in this repo, and
+`make install-desktop` installs the packages that `manjaro-i3-settings` used to pull in implicitly
+(i3, picom, dunst, polybar, rofi, ...). AUR packages (`i3lock-color`, `xautolock`, and `nitrogen` where
+the distro's repos don't carry it) are installed with `yay`, which `make install-yay` builds if missing.
+`make configure-bin` links `~/bin` to this repo's `bin/` on a fresh machine.
 
 `/etc/pam.d/i3lock` is shipped by the `i3lock-color` package (it includes `system-local-login`, which is where `pam_faillock` is applied) and is not mirrored here.
 
@@ -326,6 +336,9 @@ Installed to `~/bin/` via `make configure-common`. Scripts live in `.config/comm
 | Script | Purpose |
 |--------|---------|
 | `system/lock` | Locks screen with i3lock (Dracula theme, blur, clock overlay) |
+| `system/i3exit` | Session/power actions for the i3 exit mode (lock, logout, suspend, reboot, ...). Replaces Manjaro's `i3exit`/`blurlock`; `I3EXIT_DRY_RUN=1` prints instead of acting |
+| `system/i3-scrot` | Screenshots with scrot (full, window, selection, or to clipboard). Replaces Manjaro's `i3-scrot` |
+| `system/set-cursor` | Applies the GTK cursor theme to X; read-only, and a no-op if the theme isn't installed. Replaces Manjaro's `fix_xcursor` |
 | `system/polybar-faillock-status` | Polybar label that warns of failed logins / `pam_faillock` lockout, with a countdown; blank when all is well |
 | `system/polybar-xautolock-status` | Returns polybar-formatted lock status icon based on xautolock PID |
 | `system/polybar-xautolock-toggle` | Toggles xautolock on/off and refreshes polybar |

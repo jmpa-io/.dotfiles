@@ -10,6 +10,15 @@ OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 PKG_DARWIN  = brew install
 PKG_LINUX   = sudo pacman -S --noconfirm
 
+# i3 desktop packages (Arch and Manjaro). Manjaro's 'manjaro-i3-settings' used
+# to pull i3, picom, dunst etc. in implicitly; list them so plain Arch gets them.
+DESKTOP_PKGS = i3-wm picom dunst dmenu polybar rofi scrot xclip xorg-xrdb \
+	xdg-user-dirs lightdm lightdm-slick-greeter lightdm-settings clipit \
+	volumeicon pavucontrol arandr polkit-gnome pcmanfm ranger btop pulseaudio \
+	ttf-firacode-nerd noto-fonts-emoji adwaita-cursors papirus-icon-theme
+# AUR on both distros.
+DESKTOP_AUR_PKGS = i3lock-color xautolock
+
 # Generic install macro: $(call pkg,<darwin-pkg>,<linux-pkg>)
 # Falls back to darwin pkg if linux pkg not specified.
 define pkg
@@ -67,6 +76,7 @@ install: \
 	install-polybar \
 	install-jq \
 	install-docker \
+	install-desktop \
 	install-wezterm \
 	install-github-cli \
 	install-fonts \
@@ -98,6 +108,7 @@ configure: \
 	configure-system \
 	configure-desktop \
 	configure-iterm2 \
+	configure-bin \
 	configure-common \
 	configure-dotfiles-d \
 	configure-tmux \
@@ -127,6 +138,7 @@ setup: \
 	setup-pulsemixer \
 	setup-brightnessctl \
 	setup-fonts \
+	configure-bin \
 	setup-common \
 	configure-dotfiles-d \
 	setup-tmux \
@@ -510,7 +522,50 @@ configure-desktop:
 	@echo "Skipping desktop configuration (Linux only)."
 endif
 
-setup-desktop: configure-desktop
+.PHONY: install-desktop install-desktop-aur install-yay configure-bin
+install-desktop: ## Install the i3 desktop packages (Linux only; Arch + Manjaro).
+ifeq ($(OS),linux)
+	sudo pacman -S --needed --noconfirm $(DESKTOP_PKGS)
+	@$(MAKE) --no-print-directory install-desktop-aur
+else
+	@echo "Skipping desktop installation (Linux only)."
+endif
+
+# nitrogen is in Arch's repos but missing from Manjaro's, so use whichever has it.
+install-desktop-aur: ## Install the desktop's AUR packages via yay (Linux only).
+ifeq ($(OS),linux)
+	@command -v yay >/dev/null 2>&1 || $(MAKE) --no-print-directory install-yay
+	yay -S --needed --noconfirm $(DESKTOP_AUR_PKGS)
+	@if pacman -Si nitrogen >/dev/null 2>&1; then \
+		sudo pacman -S --needed --noconfirm nitrogen; \
+	else \
+		yay -S --needed --noconfirm nitrogen; \
+	fi
+else
+	@echo "Skipping desktop AUR installation (Linux only)."
+endif
+
+install-yay: ## Build and install the 'yay' AUR helper (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --needed --noconfirm base-devel git
+	rm -rf dist/yay-bin
+	@mkdir -p dist
+	git clone https://aur.archlinux.org/yay-bin.git dist/yay-bin
+	cd dist/yay-bin && makepkg -si --noconfirm
+else
+	@echo "Skipping yay installation (Linux only)."
+endif
+
+# Link ~/bin to the repo's bin dir if ~/bin doesn't exist yet. The i3 config calls
+# scripts as ~/bin/system/<name>.sh, so a fresh machine needs this link.
+configure-bin: ## Link ~/bin to the repo's bin directory (if absent).
+	@if [ -e $(HOME)/bin ] || [ -L $(HOME)/bin ]; then \
+		echo "  ~/bin already exists — leaving it alone"; \
+	else \
+		ln -s $(PWD)/.config/common/bin $(HOME)/bin && echo "  linked ~/bin"; \
+	fi
+
+setup-desktop: install-desktop configure-desktop
 
 # ---------------------------------------------------------------
 # jq
