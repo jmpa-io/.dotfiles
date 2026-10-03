@@ -790,8 +790,14 @@ configure-tmux: .config/tmux $(HOME)/.config
 
 setup-tmux: install-tmux configure-tmux
 
-.PHONY: test-arch
-test-arch: ## Test the dotfiles in a clean Arch Linux container (needs docker; screenshot in dist/arch-test/).
+.PHONY: test-arch test-arch-worktree
+test-arch: ## Test the COMMITTED dotfiles (HEAD) in a clean Arch container (needs docker; screenshot in dist/arch-test/).
+	docker build -q -t dotfiles-arch-test -f test/arch/Dockerfile test/arch
+	@mkdir -p dist/arch-test
+	git archive HEAD | docker run -i --rm -v "$(PWD)/dist/arch-test:/out" dotfiles-arch-test \
+		bash -c 'mkdir -p /tmp/src && tar -x -C /tmp/src && SRC=/tmp/src bash /tmp/src/test/arch/run-tests.sh'
+
+test-arch-worktree: ## Same, but test the working tree including uncommitted changes.
 	docker build -q -t dotfiles-arch-test -f test/arch/Dockerfile test/arch
 	@mkdir -p dist/arch-test
 	docker run --rm -v "$(PWD):/src:ro" -v "$(PWD)/dist/arch-test:/out" \
