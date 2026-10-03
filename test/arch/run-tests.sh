@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs inside the container. The repo is mounted read-only at /src; each run
+# Runs inside the container. The repo is at $SRC (default /src, mounted read-only); each run
 # copies it to ~/.dotfiles so every run starts pristine.
 # Each step prints PASS/FAIL; the exit code is the number of failed steps.
 # shellcheck disable=SC2016  # the inner 'bash -c' shells must expand $HOME, not this one.
@@ -11,7 +11,7 @@ step() {
   if "$@"; then echo "PASS: $name"; else echo "FAIL: $name"; fails=$((fails + 1)); fi
 }
 
-cp -r /src ~/.dotfiles && cd ~/.dotfiles || exit 99
+cp -r "${SRC:-/src}" ~/.dotfiles && cd ~/.dotfiles || exit 99
 
 step "pacman sync"                 sudo pacman -Syu --noconfirm
 step "configure-bin"               make configure-bin
