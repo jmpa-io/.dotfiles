@@ -13,11 +13,11 @@ PKG_LINUX   = sudo pacman -S --noconfirm
 # i3 desktop packages (Arch and Manjaro). Manjaro's 'manjaro-i3-settings' used
 # to pull i3, picom, dunst etc. in implicitly; list them so plain Arch gets them.
 DESKTOP_PKGS = i3-wm picom dunst dmenu polybar rofi scrot xclip xorg-xrdb \
-	xdg-user-dirs lightdm lightdm-slick-greeter lightdm-settings clipit \
-	volumeicon pavucontrol arandr polkit-gnome pcmanfm ranger btop pulseaudio \
+	xdg-user-dirs lightdm lightdm-slick-greeter \
+	volumeicon pavucontrol arandr polkit-gnome pcmanfm ranger btop pulseaudio xorg-xrandr \
 	ttf-firacode-nerd noto-fonts-emoji adwaita-cursors papirus-icon-theme
-# AUR on both distros.
-DESKTOP_AUR_PKGS = i3lock-color xautolock
+# AUR on Arch (some, like clipit and lightdm-settings, are only in Manjaro's repos).
+DESKTOP_AUR_PKGS = i3lock-color xautolock clipit lightdm-settings
 
 # Generic install macro: $(call pkg,<darwin-pkg>,<linux-pkg>)
 # Falls back to darwin pkg if linux pkg not specified.
@@ -531,18 +531,23 @@ else
 	@echo "Skipping desktop installation (Linux only)."
 endif
 
-# nitrogen is in Arch's repos but missing from Manjaro's, so use whichever has it.
 install-desktop-aur: ## Install the desktop's AUR packages via yay (Linux only).
 ifeq ($(OS),linux)
 	@command -v yay >/dev/null 2>&1 || $(MAKE) --no-print-directory install-yay
 	yay -S --needed --noconfirm $(DESKTOP_AUR_PKGS)
-	@if pacman -Si nitrogen >/dev/null 2>&1; then \
-		sudo pacman -S --needed --noconfirm nitrogen; \
-	else \
-		yay -S --needed --noconfirm nitrogen; \
-	fi
 else
 	@echo "Skipping desktop AUR installation (Linux only)."
+endif
+
+# nitrogen (wallpaper picker) is opt-in: it is no longer in Arch's repos, and its
+# AUR build compiles gtk2 and gtkmm from source (~30 min). Not part of install-desktop.
+.PHONY: install-nitrogen
+install-nitrogen: ## Install 'nitrogen' via the AUR (slow: builds gtk2 + gtkmm).
+ifeq ($(OS),linux)
+	@command -v yay >/dev/null 2>&1 || $(MAKE) --no-print-directory install-yay
+	yay -S --needed --noconfirm nitrogen
+else
+	@echo "Skipping nitrogen installation (Linux only)."
 endif
 
 install-yay: ## Build and install the 'yay' AUR helper (Linux only).
@@ -778,6 +783,13 @@ configure-tmux: .config/tmux $(HOME)/.config
 	ln -sfn $(PWD)/.config/tmux $(HOME)/.tmux
 
 setup-tmux: install-tmux configure-tmux
+
+.PHONY: test-arch
+test-arch: ## Test the dotfiles in a clean Arch Linux container (needs docker; screenshot in dist/arch-test/).
+	docker build -q -t dotfiles-arch-test -f test/arch/Dockerfile test/arch
+	@mkdir -p dist/arch-test
+	docker run --rm -v "$(PWD):/src:ro" -v "$(PWD)/dist/arch-test:/out" \
+		dotfiles-arch-test /src/test/arch/run-tests.sh
 
 test-tmux: ## Test tmux session functions (pane counts + idempotency).
 	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
