@@ -561,13 +561,19 @@ else
 	@echo "Skipping yay installation (Linux only)."
 endif
 
-# Link ~/bin to the repo's bin dir if ~/bin doesn't exist yet. The i3 config calls
-# scripts as ~/bin/system/<name>.sh, so a fresh machine needs this link.
-configure-bin: ## Link ~/bin to the repo's bin directory (if absent).
+# The i3 config calls scripts as ~/bin/system/<name>.sh. On a fresh machine, create
+# ~/bin and link each script into it (keeping the .sh names). A real directory, not
+# a link to the repo, so later per-script links can never write back into the repo.
+configure-bin: ## Link the repo's scripts into ~/bin by their .sh names (if ~/bin is absent).
 	@if [ -e $(HOME)/bin ] || [ -L $(HOME)/bin ]; then \
 		echo "  ~/bin already exists — leaving it alone"; \
 	else \
-		ln -s $(PWD)/.config/common/bin $(HOME)/bin && echo "  linked ~/bin"; \
+		for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
+			rel=$${f#$(PWD)/.config/common/bin/}; \
+			mkdir -p "$(HOME)/bin/$$(dirname $$rel)"; \
+			ln -s "$$f" "$(HOME)/bin/$$rel"; \
+		done; \
+		echo "  linked scripts into ~/bin"; \
 	fi
 
 setup-desktop: install-desktop configure-desktop

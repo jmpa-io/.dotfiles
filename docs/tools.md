@@ -294,7 +294,7 @@ the three Manjaro scripts it used (`i3exit`, `i3-scrot`, `fix_xcursor`) are repl
 (i3, picom, dunst, polybar, rofi, ...). AUR packages (`i3lock-color`, `xautolock`, `clipit`, `lightdm-settings`)
 are installed with `yay`, which `make install-yay` builds if missing. `nitrogen` is opt-in
 (`make install-nitrogen`): it is no longer in Arch's repos and its AUR build compiles gtk2 and gtkmm (~30 min).
-`make configure-bin` links `~/bin` to this repo's `bin/` on a fresh machine.
+`make configure-bin` links each script into `~/bin` (by its `.sh` name) on a fresh machine.
 
 Test it in a clean Arch container with `make test-arch` (see `test/arch/`): it runs the real `make` targets
 against a fresh `archlinux` image, then a headless i3 + polybar + dunst smoke test and saves a screenshot.
