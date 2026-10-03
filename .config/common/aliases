@@ -346,14 +346,18 @@ ai-export-context() {
   # not randomise the X's when a literal suffix follows them, so a suffixed
   # template silently creates the same unrandomised filename every time.
   outfile=$(mktemp "${TMPDIR:-/tmp}/ai-handoff.XXXXXX")
-  local safe_pwd="${PWD//\'/\'\'}"
+  # Both tools record cwd with symlinks resolved (e.g. /tmp -> /private/tmp on
+  # macOS), confirmed by testing — resolve here too or lookups silently miss.
+  local real_pwd
+  real_pwd=$(cd "$PWD" && pwd -P)
+  local safe_pwd="${real_pwd//\'/\'\'}"
 
   if [[ "$source" == "copilot" ]]; then
     local session_id
     session_id=$(sqlite3 "$HOME/.copilot/session-store.db" \
       "SELECT id FROM sessions WHERE cwd = '$safe_pwd' ORDER BY updated_at DESC LIMIT 1;" 2>/dev/null)
     if [[ -z "$session_id" ]]; then
-      echo "ai-export-context: no Copilot session found for $PWD" >&2
+      echo "ai-export-context: no Copilot session found for $real_pwd" >&2
       rm -f "$outfile"
       return 1
     fi
@@ -369,11 +373,11 @@ ai-export-context() {
 
   elif [[ "$source" == "claude" ]]; then
     local cwd_encoded session_file
-    cwd_encoded=$(echo "$PWD" | tr '/.' '-')
+    cwd_encoded=$(echo "$real_pwd" | tr '/.' '-')
     session_file=$(find "$HOME/.claude/projects/$cwd_encoded" -maxdepth 1 -name "*.jsonl" 2>/dev/null \
       -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
     if [[ -z "$session_file" ]]; then
-      echo "ai-export-context: no Claude session found for $PWD" >&2
+      echo "ai-export-context: no Claude session found for $real_pwd" >&2
       rm -f "$outfile"
       return 1
     fi
