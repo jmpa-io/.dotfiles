@@ -291,9 +291,15 @@ Files that live under `/etc`. Mirrored in `system/` and installed by `make confi
 The Linux setup targets both. Nothing in the i3 config depends on a Manjaro-only package:
 the three Manjaro scripts it used (`i3exit`, `i3-scrot`, `fix_xcursor`) are replaced by scripts in this repo, and
 `make install-desktop` installs the packages that `manjaro-i3-settings` used to pull in implicitly
-(i3, picom, dunst, polybar, rofi, ...). AUR packages (`i3lock-color`, `xautolock`, and `nitrogen` where
-the distro's repos don't carry it) are installed with `yay`, which `make install-yay` builds if missing.
+(i3, picom, dunst, polybar, rofi, ...). AUR packages (`i3lock-color`, `xautolock`, `clipit`, `lightdm-settings`)
+are installed with `yay`, which `make install-yay` builds if missing. `nitrogen` is opt-in
+(`make install-nitrogen`): it is no longer in Arch's repos and its AUR build compiles gtk2 and gtkmm (~30 min).
 `make configure-bin` links `~/bin` to this repo's `bin/` on a fresh machine.
+
+Test it in a clean Arch container with `make test-arch` (see `test/arch/`): it runs the real `make` targets
+against a fresh `archlinux` image, then a headless i3 + polybar + dunst smoke test and saves a screenshot.
+This catches things like packages that exist on Manjaro but not on Arch. It can't test booting, GRUB,
+systemd services or LightDM; use a VM for that.
 
 `/etc/pam.d/i3lock` is shipped by the `i3lock-color` package (it includes `system-local-login`, which is where `pam_faillock` is applied) and is not mirrored here.
 
