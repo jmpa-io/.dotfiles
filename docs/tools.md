@@ -296,7 +296,7 @@ are installed with `yay`, which `make install-yay` builds if missing. `nitrogen`
 (`make install-nitrogen`): it is no longer in Arch's repos and its AUR build compiles gtk2 and gtkmm (~30 min).
 `make configure-bin` links each script into `~/bin` (by its `.sh` name) on a fresh machine.
 
-Test it in a clean Arch container with `make test-arch` (see `test/arch/`): it runs the real `make` targets
+Test it in a clean Arch container with `make test-arch` (tests what is committed; `make test-arch-worktree` includes uncommitted changes; see `test/arch/`): it runs the real `make` targets
 against a fresh `archlinux` image, then a headless i3 + polybar + dunst smoke test and saves a screenshot.
 This catches things like packages that exist on Manjaro but not on Arch. It can't test booting, GRUB,
 systemd services or LightDM; use a VM for that.
