@@ -3,14 +3,15 @@
 #
 # The aws cli refreshes the SSO access token itself (using the refresh token
 # stored in ~/.aws/sso/cache) whenever it's used, so no browser is needed until
-# the SSO client registration expires (~90 days) — then run 'aws login <profile>'.
+# the SSO client registration expires (~90 days) — then run 'aws sso login --profile <profile>'.
 #
 #   aws-keepalive on [profile]   install the cron job (default profile: $AWS_KEEPALIVE_PROFILE or $AWS_PROFILE)
 #   aws-keepalive off            remove the cron job
-#   aws-keepalive status         show if it's on, when SSO needs a real login, and recent log lines
+#   aws-keepalive status         show if it's on, whether it's failing (and since when), when SSO needs a real login, and recent log lines
 #   aws-keepalive run            refresh once now (this is what cron runs)
 #
-# It also warns (once a day) when the SSO registration is close to expiring.
+# It also warns (once a day) when the SSO registration is close to expiring, and
+# re-notifies once a day for as long as the login stays expired.
 #
 # Env: AWS_KEEPALIVE_PROFILE, AWS_KEEPALIVE_INTERVAL (minutes, default 15),
 #      AWS_KEEPALIVE_WARN_DAYS (default 7), AWS_KEEPALIVE_LOG (default ~/.aws/keepalive.log).
@@ -99,7 +100,7 @@ warn_if_expiring() {
   [[ -f "$stamp" && "$(cat "$stamp")" == "$today" ]] && return 0
   echo "$today" >"$stamp"
   echo "$(date '+%Y-%m-%dT%H:%M:%S%z') warn sso registration expires in ${days}d ($(format_time "$exp"))" >>"$log"
-  notify "AWS SSO login needed soon" "Expires in ${days}d; run: aws login $profile"
+  notify "AWS SSO login needed soon" "Expires in ${days}d; run: aws sso login --profile $profile"
 }
 
 cmd_on() {
@@ -134,14 +135,32 @@ cmd_off() {
   echo "off"
 }
 
+# summarises the log's tail: "failing since <t> (<n> consecutive FAIL); last ok <t>" or "healthy: last ok <t>".
+health_summary() {
+  [[ -f "$log" ]] || return 0
+  awk '
+    $2 == "ok" { lastOk = $1; n = 0; since = "" }
+    $2 == "FAIL" { if (n == 0) since = $1; n++ }
+    END {
+      if (lastOk == "") lastOk = "not in log"
+      if (n > 0) printf "FAILING since %s (%d consecutive FAIL); last ok %s\n", since, n, lastOk
+      else if (lastOk != "not in log") printf "healthy: last ok %s\n", lastOk
+    }' "$log"
+}
+
 cmd_status() {
   local entry exp
   entry=$(read_crontab | grep -F "$tag")
   if [[ -n "$entry" ]]; then echo "on: $entry"; else echo "off"; fi
+  health_summary
   exp=$(registration_expiry)
-  [[ -n "$exp" ]] && echo "sso registration expires: $(format_time "$exp") (then run 'aws login <profile>')"
+  [[ -n "$exp" ]] && echo "sso registration expires: $(format_time "$exp") (then run 'aws sso login --profile <profile>')"
   [[ -f "$log" ]] && tail -n 5 "$log"
   return 0
+}
+
+trim_log() {
+  tail -n "$logLines" "$log" >"$log.tmp" && mv "$log.tmp" "$log"
 }
 
 cmd_run() {
@@ -156,11 +175,17 @@ cmd_run() {
     warn_if_expiring "$profile"
   else
     echo "$(date '+%Y-%m-%dT%H:%M:%S%z') FAIL ${out//$'\n'/ }" >>"$log"
-    # only notify on the first failure, not every run until you log back in.
-    [[ "$prev" == *" FAIL "* ]] || notify "AWS SSO expired" "Run: aws login $profile"
+    # notify on the first failure, then at most once a day until you log back in.
+    local today stamp="$log.notified"
+    today=$(date +%F)
+    if [[ "$prev" != *" FAIL "* || ! -f "$stamp" || "$(cat "$stamp")" != "$today" ]]; then
+      echo "$today" >"$stamp"
+      notify "AWS SSO expired" "Run: aws sso login --profile $profile"
+    fi
+    trim_log
     exit 1
   fi
-  tail -n "$logLines" "$log" >"$log.tmp" && mv "$log.tmp" "$log"
+  trim_log
 }
 
 case "${1:-}" in
