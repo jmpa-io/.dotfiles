@@ -8,7 +8,7 @@ export DOTFILES="$HOME/.dotfiles"
 export ROOT="$HOME/go/src/github.com"
 export PATH="$PATH:$HOME/bin"
 export EDITOR="nvim"
-export BROWSER="firefox"
+export BROWSER="chrome"
 
 # zsh.
 export HISTFILE="$HOME/.zhistory" # history file location.
