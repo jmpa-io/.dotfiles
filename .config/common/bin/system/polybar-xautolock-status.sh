@@ -6,10 +6,10 @@
 pidFile="$HOME/.xautolock.pid"
 if [[ -f "$pidFile" ]]; then
   if ps -p "$(<"$pidFile")" >/dev/null 2>&1; then
-    echo "🖥️ [%{F#7EE081}🔒%{F-}]"
+    [[ "${1:-}" == "--mini" ]] && echo "%{F#7EE081}🔒%{F-}" || echo "🖥️ [%{F#7EE081}🔒%{F-}]"
     exit 0
   fi
 fi
 
-echo "🖥️ [%{F#E07E7E}🔓%{F-}]"
+[[ "${1:-}" == "--mini" ]] && echo "%{F#E07E7E}🔓%{F-}" || echo "🖥️ [%{F#E07E7E}🔓%{F-}]"
 
