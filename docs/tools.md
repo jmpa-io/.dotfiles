@@ -268,11 +268,57 @@ Complete breakdown of every tool, CLI, plugin, and binary used in this dotfiles 
 | [polybar](https://polybar.github.io) | Status bar |
 | [picom](https://github.com/yshui/picom) | X11 compositor |
 | [xautolock](https://github.com/l0b0/xautolock) | Auto-lock after idle timeout |
+| [dunst](https://dunst-project.org) | Notification daemon (Dracula theme, top-right under polybar). `$mod+grave` recalls the last notification, `$mod+Shift+grave` closes all, `$mod+Ctrl+grave` toggles do-not-disturb. It replaces `xfce4-notifyd`, which is hidden via `~/.config/autostart` and a per-user D-Bus service override (both linked by `make configure-desktop`) |
 | [pulsemixer](https://github.com/GeorgeFilipkin/pulsemixer) | TUI audio mixer (PipeWire) |
 | [scrot](https://github.com/dreamer/scrot) | Screenshots |
 | [tty-clock](https://github.com/xorg62/tty-clock) | Terminal clock |
 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System info (aliased as `neofetch`) |
 | [pcmanfm](https://wiki.lxde.org/en/PCManFM) | GUI file manager |
+
+### System config (`system/`, Linux only)
+
+Files that live under `/etc`. Mirrored in `system/` and installed by `make configure-system` (uses `sudo`; skips files that are unchanged, and prints a diff before overwriting any that differ; no backup files are made, the repo copy is the source of truth).
+
+| File | Purpose |
+|------|---------|
+| `/etc/security/faillock.conf` | `pam_faillock` lockout: `deny = 6`, `unlock_time = 30` (defaults are 3 / 600s — a few typos at i3lock locked out even the correct password for 10 minutes) |
+| `/etc/X11/xorg.conf.d/00-keyboard.conf` | Keyboard layout (`au`) |
+| `/etc/X11/xorg.conf.d/30-touchpad.conf` | Touchpad tap-to-click (libinput) |
+| `/etc/lightdm/lightdm.conf.d/50-dotfiles.conf` | LightDM greeter (`lightdm-slick-greeter`) and the `i3` session, so a fresh install boots into i3 |
+
+### Arch Linux and Manjaro
+
+The Linux setup targets both. Nothing in the i3 config depends on a Manjaro-only package:
+the three Manjaro scripts it used (`i3exit`, `i3-scrot`, `fix_xcursor`) are replaced by scripts in this repo, and
+`make install-desktop` installs the packages that `manjaro-i3-settings` used to pull in implicitly
+(i3, picom, dunst, polybar, rofi, ...). AUR packages (`i3lock-color`, `xautolock`, `clipit`, `lightdm-settings`)
+are installed with `yay`, which `make install-yay` builds if missing. `nitrogen` is opt-in
+(`make install-nitrogen`): it is no longer in Arch's repos and its AUR build compiles gtk2 and gtkmm (~30 min).
+`make configure-bin` links each script into `~/bin` (by its `.sh` name) on a fresh machine.
+
+Test it in a clean Arch container with `make test-arch` (tests what is committed; `make test-arch-worktree` includes uncommitted changes; see `test/arch/`): it runs the real `make` targets
+against a fresh `archlinux` image, then a headless i3 + polybar + dunst smoke test and saves a screenshot.
+This catches things like packages that exist on Manjaro but not on Arch. It can't test booting, GRUB,
+systemd services or LightDM; use a VM for that.
+
+`/etc/pam.d/i3lock` is shipped by the `i3lock-color` package (it includes `system-local-login`, which is where `pam_faillock` is applied) and is not mirrored here.
+
+### System services (enabled outside this repo)
+
+Not installed or enabled by the Makefile — recorded here so a rebuild isn't a surprise.
+
+| Package | Service |
+|---------|---------|
+| `docker` | `docker.service` (installed by `make install-docker`) |
+| `tailscale` | `tailscaled.service` |
+| `nordvpn-bin` | `nordvpnd.service` |
+| `ufw` | `ufw.service` |
+| `cronie` | `cronie.service` (hosts the `aws-keepalive` cron job) |
+| `openssh` | `sshd.service` |
+| `networkmanager`, `modemmanager`, `netctl` | `NetworkManager.service`, `ModemManager.service`, `netctl@phone.service` |
+| `avahi` | `avahi-daemon.service` |
+| `bluez` | `bluetooth.service` |
+| `lightdm`, `lightdm-slick-greeter` | Display manager |
 
 ---
 
@@ -297,6 +343,10 @@ Installed to `~/bin/` via `make configure-common`. Scripts live in `.config/comm
 | Script | Purpose |
 |--------|---------|
 | `system/lock` | Locks screen with i3lock (Dracula theme, blur, clock overlay) |
+| `system/i3exit` | Session/power actions for the i3 exit mode (lock, logout, suspend, reboot, ...). Replaces Manjaro's `i3exit`/`blurlock`; `I3EXIT_DRY_RUN=1` prints instead of acting |
+| `system/i3-scrot` | Screenshots with scrot (full, window, selection, or to clipboard). Replaces Manjaro's `i3-scrot` |
+| `system/set-cursor` | Applies the GTK cursor theme to X; read-only, and a no-op if the theme isn't installed. Replaces Manjaro's `fix_xcursor` |
+| `system/polybar-faillock-status` | Polybar label that warns of failed logins / `pam_faillock` lockout, with a countdown; blank when all is well |
 | `system/polybar-xautolock-status` | Returns polybar-formatted lock status icon based on xautolock PID |
 | `system/polybar-xautolock-toggle` | Toggles xautolock on/off and refreshes polybar |
 | `system/xautolock-start` | Starts xautolock with 10-min idle timeout, writes PID file |

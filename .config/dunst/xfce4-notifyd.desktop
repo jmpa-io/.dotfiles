@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Xfce Notification Daemon (disabled; dunst is used instead)
+Exec=/usr/lib/xfce4/notifyd/xfce4-notifyd
+Hidden=true

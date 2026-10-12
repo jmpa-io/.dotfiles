@@ -28,6 +28,7 @@ i3lock \
   --clock \
   --indicator \
   --ignore-empty-password \
+  --show-failed-attempts \
   --pointer=default \
   --line-uses-ring \
   --pass-media-keys \
@@ -44,7 +45,7 @@ i3lock \
   \
   --greeter-text="" \
   --verif-text="Checking..." \
-  --wrong-text="Try again!" \
+  --wrong-text="Wrong. 6 fails = 30s lockout" \
   --noinput="Please type your password." \
   --lock-text="Locking..." \
   --lockfailed-text="Locking failed!" \
