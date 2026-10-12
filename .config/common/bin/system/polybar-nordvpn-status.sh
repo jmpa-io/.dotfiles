@@ -57,21 +57,27 @@ refresh() {
   out=$(timeout 3 "${NORDVPN_CMD:-nordvpn}" status 2>&1) || true
   status=$(sed -nE 's/^[[:space:]]*Status:[[:space:]]*(.*)$/\1/p' <<<"$out" | head -1)
   case "$status" in
-    "") state=na; place="" ;;
-    Connected)
-      state=connected
-      country=$(sed -nE 's/^[[:space:]]*Country:[[:space:]]*(.*)$/\1/p' <<<"$out" | head -1)
-      city=$(sed -nE 's/^[[:space:]]*City:[[:space:]]*(.*)$/\1/p' <<<"$out" | head -1)
-      place="${country:-${city:-connected}}"
-      flag=""
-      code="${codes[$country]:-}"
-      if [[ -n "$code" && "$flagCodes" == *" $code "* ]]; then
-        flag="$(flagGlyph "$code")"
-      elif [[ -n "$code" ]]; then
-        place="$code $country" # no flag drawn for this country, so lead with the code.
-      fi
-      ;;
-    *) state=off; place="" ;;
+  "")
+    state=na
+    place=""
+    ;;
+  Connected)
+    state=connected
+    country=$(sed -nE 's/^[[:space:]]*Country:[[:space:]]*(.*)$/\1/p' <<<"$out" | head -1)
+    city=$(sed -nE 's/^[[:space:]]*City:[[:space:]]*(.*)$/\1/p' <<<"$out" | head -1)
+    place="${country:-${city:-connected}}"
+    flag=""
+    code="${codes[$country]:-}"
+    if [[ -n "$code" && "$flagCodes" == *" $code "* ]]; then
+      flag="$(flagGlyph "$code")"
+    elif [[ -n "$code" ]]; then
+      place="$code $country" # no flag drawn for this country, so lead with the code.
+    fi
+    ;;
+  *)
+    state=off
+    place=""
+    ;;
   esac
 }
 
@@ -80,27 +86,35 @@ render() {
   local icon="$1" tag
   if [[ "$mini" == 1 ]]; then # just the icon, and the flag (or country code) or a short state.
     case "$state" in
-      connected) # the flag, or the country code when no flag is drawn for it.
-        tag="$code"
-        [[ -n "$flag" ]] && tag="%{T6}${flag}%{T-}"
-        echo "%{T6}${icon}%{T-}  [${tag}]" ;;
-      off)       echo "%{T6}${globe}%{T-}  [%{F#FFE94D}off%{F-}]" ;;
-      *)         echo "%{T6}${globe}%{T-}  [%{F#6272A4}n/a%{F-}]" ;;
+    connected) # the flag, or the country code when no flag is drawn for it.
+      tag="$code"
+      [[ -n "$flag" ]] && tag="%{T6}${flag}%{T-}"
+      echo "%{T6}${icon}%{T-}  [${tag}]"
+      ;;
+    off) echo "%{T6}${globe}%{T-}  [%{F#FFE94D}off%{F-}]" ;;
+    *) echo "%{T6}${globe}%{T-}  [%{F#6272A4}n/a%{F-}]" ;;
     esac
     return
   fi
   case "$state" in
-    connected) echo "%{T6}${icon}%{T-}  [${flag:+%{T6\}${flag}%{T-\} }%{F#50FA7B}${place}%{F-}]" ;;
-    off)       echo "%{T6}${globe}%{T-}  [%{F#FFE94D}VPN off%{F-}]" ;;
-    *)         echo "%{T6}${globe}%{T-}  [%{F#6272A4}VPN n/a%{F-}]" ;;
+  connected) echo "%{T6}${icon}%{T-}  [${flag:+%{T6\}${flag}%{T-\} }%{F#50FA7B}${place}%{F-}]" ;;
+  off) echo "%{T6}${globe}%{T-}  [%{F#FFE94D}VPN off%{F-}]" ;;
+  *) echo "%{T6}${globe}%{T-}  [%{F#6272A4}VPN n/a%{F-}]" ;;
   esac
 }
 
 mini=0
-[[ "${1:-}" == "--mini" ]] && { mini=1; shift; }
+[[ "${1:-}" == "--mini" ]] && {
+  mini=1
+  shift
+}
 
 globe=$'\ue000' # still frame.
-frames=(); for i in {0..11}; do printf -v g '\\U%08x' $((0xE000 + i)); frames+=("$(printf '%b' "$g")"); done
+frames=()
+for i in {0..11}; do
+  printf -v g '\\U%08x' $((0xE000 + i))
+  frames+=("$(printf '%b' "$g")")
+done
 state=na place="" flag="" code=""
 
 if [[ "${1:-}" == "--once" ]]; then

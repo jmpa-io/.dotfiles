@@ -22,8 +22,8 @@ maxAge=900
 scan() {
   mkdir -p "$(dirname "$cache")"
   local tmp="$cache.$$"
-  nice -n 19 ionice -c3 du -xh --max-depth=1 "$root" 2>/dev/null | sort -rh | head -n "$((top + 1))" >"$tmp" \
-    && mv "$tmp" "$cache"
+  nice -n 19 ionice -c3 du -xh --max-depth=1 "$root" 2>/dev/null | sort -rh | head -n "$((top + 1))" >"$tmp" &&
+    mv "$tmp" "$cache"
 }
 
 age() { echo $(($(date +%s) - $(stat -c %Y "$cache" 2>/dev/null || echo 0))); }
@@ -47,12 +47,12 @@ entries=$(
 choice=$(printf '%s\n' "$entries" | "$rofi" -dmenu -i -p "Disk" -no-custom -l 22 -width 60) || exit 0
 
 case "$choice" in
-  "Rescan now"*)
-    "$notify" "Disk usage" "Rescanning $root..."
-    scan
-    "$notify" "Disk usage" "Rescan finished."
-    exec "$0"
-    ;;
+"Rescan now"*)
+  "$notify" "Disk usage" "Rescanning $root..."
+  scan
+  "$notify" "Disk usage" "Rescan finished."
+  exec "$0"
+  ;;
 esac
 
 # Folder lines look like "75G    /home/me/.local" - open that folder in ncdu.

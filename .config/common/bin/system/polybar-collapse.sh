@@ -62,11 +62,14 @@ apply() {
       continue
     fi
     if ! shown "$m"; then
-      act "$m" module_hide; act "$m-mini" module_hide
+      act "$m" module_hide
+      act "$m-mini" module_hide
     elif [[ "$(effective "$m")" == mini ]]; then
-      act "$m" module_hide; act "$m-mini" module_show
+      act "$m" module_hide
+      act "$m-mini" module_show
     else
-      act "$m-mini" module_hide; act "$m" module_show
+      act "$m-mini" module_hide
+      act "$m" module_show
     fi || rc=1
   done
   return $rc
@@ -94,7 +97,12 @@ chevron() {
   fi
 }
 
-toggle() { [[ "$size" == mini ]] && size=full || size=mini; flipped=""; save; apply; }
+toggle() {
+  [[ "$size" == mini ]] && size=full || size=mini
+  flipped=""
+  save
+  apply
+}
 
 # flip expands (or shrinks again) one module in place, leaving the others alone.
 flip() {
@@ -104,20 +112,30 @@ flip() {
   save
   apply
 }
-hide() { [[ "$collapsed" == off ]] && collapsed=on || collapsed=off; save; apply; }
+hide() {
+  [[ "$collapsed" == off ]] && collapsed=on || collapsed=off
+  save
+  apply
+}
 
 menu() {
   local entries m idx
   while true; do
     entries=("Size: ${size}   (choose to switch to $([[ "$size" == mini ]] && echo full || echo mini))"
-      "Hide extras: ${collapsed}   (choose to switch; ticked modules always stay)")
+    "Hide extras: ${collapsed}   (choose to switch; ticked modules always stay)")
     for m in "${all[@]}"; do
       if kept "$m"; then entries+=("[x] ${label[$m]}"); else entries+=("[ ] ${label[$m]}"); fi
     done
     idx=$(printf '%s\n' "${entries[@]}" | "$rofi" -dmenu -i -p "Bar" -no-custom -format i -l 14 -width 56) || return 0
     case "$idx" in
-      0) toggle; continue ;;
-      1) hide; continue ;;
+    0)
+      toggle
+      continue
+      ;;
+    1)
+      hide
+      continue
+      ;;
     esac
     m="${all[idx - 2]}"
     if kept "$m"; then keep=$(tr ' ' '\n' <<<"$keep" | grep -vx "$m" | tr '\n' ' '); else keep="$keep $m"; fi
@@ -128,12 +146,15 @@ menu() {
 }
 
 case "${1:-}" in
-  toggle) toggle ;;
-  flip) flip "${2:-}" ;;
-  hide) hide ;;
-  menu) menu ;;
-  apply) apply ;;
-  chevron) chevron ;;
-  visible) visible ;;
-  *) echo "usage: $0 flip <module>|toggle|hide|menu|apply|chevron" >&2; exit 2 ;;
+toggle) toggle ;;
+flip) flip "${2:-}" ;;
+hide) hide ;;
+menu) menu ;;
+apply) apply ;;
+chevron) chevron ;;
+visible) visible ;;
+*)
+  echo "usage: $0 flip <module>|toggle|hide|menu|apply|chevron" >&2
+  exit 2
+  ;;
 esac
