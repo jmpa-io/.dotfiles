@@ -74,7 +74,7 @@
     background = "#282a36"
     foreground = "#f8f8f2"
     frame_color = "#ff5555"
-    timeout = 0
+    timeout = 30
 
 # per-app tweaks.
 [tile-hints]
