@@ -1,0 +1,14 @@
+[Unit]
+Description=Let Tailscale's own traffic bypass the NordVPN firewall
+Documentation=file:///etc/tailscale-nordvpn.nft
+After=network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/nft -f /etc/tailscale-nordvpn.nft
+ExecStop=/usr/bin/nft delete table inet tailscale_nordvpn
+
+[Install]
+WantedBy=multi-user.target
