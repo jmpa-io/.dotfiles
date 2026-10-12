@@ -1,0 +1,3 @@
+# Keep (AUR)
+cursor-bin nordvpn-bin i3lock-color zoom ttf-joypixels aws-sam-cli hadolint multi-gitter
+blueberry xautolock sbxkb ncpamixer moc tty-clock python-pipreqs python-cpplint
