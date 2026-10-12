@@ -29,7 +29,10 @@ muted() { [[ "$("$pactl" get-sink-mute "$sink" 2>/dev/null)" == *yes* ]]; }
 render() {
   local mini="$1" vol icon bar="" filled i width=10
   vol=$(volume)
-  [[ -z "$vol" ]] && { echo "%{F#6272A4}%{T3}$(printf '')%{T-} n/a%{F-}"; return; }
+  [[ -z "$vol" ]] && {
+    echo "%{F#6272A4}%{T3}$(printf '')%{T-} n/a%{F-}"
+    return
+  }
   local a="%{A1:$self mute:}%{A4:$self up:}%{A5:$self down:}"
   local b="%{A1:$collapse flip volume:}%{A4:$self up:}%{A5:$self down:}"
   if muted; then
@@ -43,7 +46,8 @@ render() {
     echo "${a} ${icon} %{A}%{A}%{A}${b} ${vol}% %{A}%{A}%{A}"
     return
   fi
-  filled=$((vol * width / 100)); ((filled > width - 1)) && filled=$((width - 1))
+  filled=$((vol * width / 100))
+  ((filled > width - 1)) && filled=$((width - 1))
   for ((i = 0; i < width; i++)); do
     if ((i < filled)); then bar+="─"; elif ((i == filled)); then bar+="%{F#F8F8F2}|%{F-}%{F#6272A4}"; else bar+="─"; fi
   done
@@ -52,7 +56,8 @@ render() {
 
 change() {
   local v target
-  v=$(volume); [[ -z "$v" ]] && exit 0
+  v=$(volume)
+  [[ -z "$v" ]] && exit 0
   if [[ "$1" == up ]]; then target=$((v + step)); else target=$((v - step)); fi
   ((target > 100)) && target=100
   ((target < 0)) && target=0
@@ -60,19 +65,23 @@ change() {
 }
 
 case "${1:-}" in
-  status)
-    mini=0; [[ "${2:-}" == --mini ]] && mini=1
-    render "$mini"
-    # redraw on every sink change (volume, mute, default output) as it happens.
-    "$pactl" subscribe 2>/dev/null | grep --line-buffered -E "on (sink|server) " | while read -r _; do render "$mini"; done
-    ;;
-  once) render "$([[ "${2:-}" == --mini ]] && echo 1 || echo 0)" ;; # one line, for testing.
-  up | down) change "$1" ;;
-  mute) "$pactl" set-sink-mute "$sink" toggle ;;
-  mic) "$pactl" set-source-mute "$source" toggle ;;
-  outputs)
-    choice=$("$pactl" list short sinks | awk '{ print $2 }' | "$rofi" -dmenu -i -p "Output" -no-custom) || exit 0
-    [[ -n "$choice" ]] && "$pactl" set-default-sink "$choice"
-    ;;
-  *) echo "usage: $0 status [--mini]|up|down|mute|mic|outputs" >&2; exit 2 ;;
+status)
+  mini=0
+  [[ "${2:-}" == --mini ]] && mini=1
+  render "$mini"
+  # redraw on every sink change (volume, mute, default output) as it happens.
+  "$pactl" subscribe 2>/dev/null | grep --line-buffered -E "on (sink|server) " | while read -r _; do render "$mini"; done
+  ;;
+once) render "$([[ "${2:-}" == --mini ]] && echo 1 || echo 0)" ;; # one line, for testing.
+up | down) change "$1" ;;
+mute) "$pactl" set-sink-mute "$sink" toggle ;;
+mic) "$pactl" set-source-mute "$source" toggle ;;
+outputs)
+  choice=$("$pactl" list short sinks | awk '{ print $2 }' | "$rofi" -dmenu -i -p "Output" -no-custom) || exit 0
+  [[ -n "$choice" ]] && "$pactl" set-default-sink "$choice"
+  ;;
+*)
+  echo "usage: $0 status [--mini]|up|down|mute|mic|outputs" >&2
+  exit 2
+  ;;
 esac

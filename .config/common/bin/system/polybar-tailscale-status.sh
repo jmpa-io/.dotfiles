@@ -29,14 +29,14 @@ json=$(timeout 3 "$tailscale" status --json 2>/dev/null) || json=""
 backend=$(jq -r '.BackendState // empty' <<<"$json" 2>/dev/null)
 
 case "$backend" in
-  Running)
-    if [[ "$(jq -r '.Self.Online // false' <<<"$json")" == "true" ]]; then
-      read -r online total < <(jq -r '[.Peer // {} | .[]] | "\([.[] | select(.Online == true)] | length) \(length)"' <<<"$json")
-      render "$logoOn" "#50FA7B" "Tailscale ${online}/${total} online" "${online}/${total}"
-    else
-      render "$logoOff" "#FFB86C" "Tailscale offline" "offline"
-    fi
-    ;;
-  Stopped | NeedsLogin | NoState) render "$logoOff" "#FFE94D" "Tailscale off" "off" ;;
-  *) render "$logoOff" "#6272A4" "Tailscale n/a" "n/a" ;;
+Running)
+  if [[ "$(jq -r '.Self.Online // false' <<<"$json")" == "true" ]]; then
+    read -r online total < <(jq -r '[.Peer // {} | .[]] | "\([.[] | select(.Online == true)] | length) \(length)"' <<<"$json")
+    render "$logoOn" "#50FA7B" "Tailscale ${online}/${total} online" "${online}/${total}"
+  else
+    render "$logoOff" "#FFB86C" "Tailscale offline" "offline"
+  fi
+  ;;
+Stopped | NeedsLogin | NoState) render "$logoOff" "#FFE94D" "Tailscale off" "off" ;;
+*) render "$logoOff" "#6272A4" "Tailscale n/a" "n/a" ;;
 esac
