@@ -9,6 +9,10 @@
 # A collection of applications & processes to start on boot.
 #
 
+# give systemd user services (dunst) the X display, then start the notification daemon.
+# without this, dunst.service starts before X is known and fails with "Cannot open X11 display".
+exec --no-startup-id /bin/sh -c 'dbus-update-activation-environment --systemd DISPLAY XAUTHORITY && systemctl --user restart dunst'
+
 # run polkit-gnome-authentication-agent-1, which handles auth for GUI applications.
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
