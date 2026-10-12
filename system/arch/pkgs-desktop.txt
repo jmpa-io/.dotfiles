@@ -1,0 +1,12 @@
+# X11 / i3 desktop
+xorg-server xorg-xinit xorg-xhost xorg-xkill xorg-xprop xdg-user-dirs xdg-utils xdotool
+xf86-input-libinput xf86-input-evdev mesa mesa-utils vulkan-intel
+i3-wm i3status i3lock polybar rofi dunst picom feh arandr lxappearance qt5ct
+lightdm lightdm-slick-greeter lightdm-settings accountsservice gnome-keyring polkit-gnome gvfs gvfs-mtp gvfs-smb
+# Apps
+wezterm firefox chromium code obsidian discord vlc vlc-plugins-all gimp pinta mousepad
+pcmanfm viewnior mupdf deluge clipit gcolor3 volumeicon
+# Fonts
+ttf-dejavu ttf-fira-code ttf-firacode-nerd noto-fonts-cjk noto-fonts-emoji woff2-font-awesome terminus-font
+# Gaming / AI
+steam gamemode lib32-gamemode gamescope protonup-qt lib32-mesa-utils lib32-vulkan-intel ollama

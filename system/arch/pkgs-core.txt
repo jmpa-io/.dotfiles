@@ -1,0 +1,19 @@
+# Base system
+base base-devel linux linux-lts linux-firmware intel-ucode sof-firmware wireless-regdb
+grub efibootmgr os-prober dosfstools e2fsprogs btrfs-progs exfatprogs ntfs-3g xfsprogs
+sudo nano neovim vim man-db man-pages less which tree unzip zip 7zip rsync wget
+openssh inetutils bind net-tools traceroute tcpdump openbsd-netcat sshpass
+htop ncdu lsof usbutils dmidecode inxi fastfetch plocate jq tmux ranger
+pacman-contrib archlinux-keyring reflector cronie haveged
+# Networking
+networkmanager network-manager-applet networkmanager-openvpn networkmanager-openconnect networkmanager-vpnc
+wpa_supplicant modemmanager dhcpcd nss-mdns avahi ufw tailscale rclone syncthing samba nfs-utils
+# Audio / bluetooth
+pulseaudio pulseaudio-alsa pulseaudio-bluetooth alsa-utils alsa-plugins pavucontrol bluez-utils
+# Power / hardware
+acpi acpid upower powertop cpupower brightnessctl xfce4-power-manager cups
+# Dev
+git github-cli go npm python-pip python-ruff shellcheck cmake gcc make
+docker docker-buildx docker-compose kubectl helm ansible cppcheck luarocks stack
+dotnet-sdk dotnet-runtime-6.0 aspnet-runtime
+arm-none-eabi-gcc arm-none-eabi-newlib aarch64-linux-gnu-gcc mingw-w64-gcc
