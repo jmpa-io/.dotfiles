@@ -79,3 +79,5 @@ jobs:
         run: make test-ai-aliases
       - name: Run tmux tests
         run: make test-tmux
+      - name: Run aws-keepalive tests
+        run: make test-aws-keepalive
