@@ -1,0 +1,21 @@
+# Let Tailscale work while NordVPN is connected.
+#
+# NordVPN's firewall drops anything leaving the machine that isn't going through
+# its tunnel or carrying its own firewall mark (0xe1f1). Tailscale's own traffic
+# (its coordination server, relays and WireGuard UDP) carries Tailscale's mark
+# (0x80000) and is meant to go straight out, so NordVPN was dropping it and
+# Tailscale showed as offline.
+#
+# This relabels Tailscale's own packets with NordVPN's mark, so NordVPN accepts and
+# routes them directly. Traffic between tailnet peers (100.64.0.0/10) is handled by
+# `nordvpn allowlist add subnet 100.64.0.0/10`. Everything else still goes through the VPN.
+#
+# Priority -160 runs before NordVPN's own output chain (mangle, -150).
+add table inet tailscale_nordvpn
+flush table inet tailscale_nordvpn
+table inet tailscale_nordvpn {
+	chain output {
+		type route hook output priority -160; policy accept;
+		meta mark & 0xff0000 == 0x80000 meta mark set 0x0000e1f1 ct mark set 0x0000e1f1
+	}
+}

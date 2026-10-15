@@ -1,0 +1,85 @@
+# dunst config (dunst >= 1.11). Dracula palette, matching lock.sh / polybar.
+# Keyboard shortcuts live in i3 (configs/bindings) via dunstctl, not here.
+
+[global]
+    # position: top-right, just below the 32px polybar bar.
+    monitor = 0
+    follow = keyboard
+    origin = top-right
+    offset = (16, 48)
+    width = (300, 420)
+    height = (0, 240)
+    notification_limit = 5
+    gap_size = 8
+    corner_radius = 8
+    frame_width = 2
+    padding = 12
+    horizontal_padding = 14
+    separator_height = 0
+    transparency = 0
+
+    # text.
+    font = FiraCode Nerd Font 10
+    markup = full
+    format = "<b>%s</b>\n%b"
+    alignment = left
+    vertical_alignment = center
+    word_wrap = yes
+    ellipsize = end
+    ignore_newline = no
+    show_age_threshold = 60
+    stack_duplicates = true
+    hide_duplicate_count = false
+    indicate_hidden = yes
+    show_indicators = yes
+
+    # progress bars (volume/brightness style: dunstify -h int:value:42 ...).
+    progress_bar = true
+    progress_bar_height = 8
+    progress_bar_frame_width = 0
+    progress_bar_corner_radius = 4
+
+    # icons.
+    icon_theme = "Papirus-Dark, Adwaita"
+    enable_recursive_icon_lookup = true
+    icon_position = left
+    min_icon_size = 32
+    max_icon_size = 48
+    icon_corner_radius = 6
+
+    # behaviour.
+    sticky_history = yes
+    history_length = 50
+    idle_threshold = 120
+    always_run_script = true
+    dmenu = /usr/bin/rofi -dmenu -p dunst
+    browser = /usr/bin/xdg-open
+    mouse_left_click = close_current
+    mouse_middle_click = do_action, close_current
+    mouse_right_click = close_all
+
+[urgency_low]
+    background = "#282a36"
+    foreground = "#6272a4"
+    frame_color = "#44475a"
+    timeout = 5
+
+[urgency_normal]
+    background = "#282a36"
+    foreground = "#f8f8f2"
+    frame_color = "#bd93f9"
+    timeout = 8
+
+[urgency_critical]
+    background = "#282a36"
+    foreground = "#f8f8f2"
+    frame_color = "#ff5555"
+    timeout = 30
+
+# per-app tweaks.
+[tile-hints]
+    # i3 split-direction hints are momentary.
+    appname = notify-send
+    summary = "Tile *"
+    timeout = 2
+    format = "%s"

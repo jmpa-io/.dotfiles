@@ -13,3 +13,4 @@ dist/diagnostics.txt
 dist/cba-certs/
 .worktrees/
 .config/zsh/.zcompdump
+dist/arch-test/

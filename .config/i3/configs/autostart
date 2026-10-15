@@ -9,6 +9,10 @@
 # A collection of applications & processes to start on boot.
 #
 
+# give systemd user services (dunst) the X display, then start the notification daemon.
+# without this, dunst.service starts before X is known and fails with "Cannot open X11 display".
+exec --no-startup-id /bin/sh -c 'dbus-update-activation-environment --systemd DISPLAY XAUTHORITY && systemctl --user restart dunst'
+
 # run polkit-gnome-authentication-agent-1, which handles auth for GUI applications.
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
@@ -21,8 +25,8 @@ exec --no-startup-id clipit -d
 # setup autolock mechanism.
 exec --no-startup-id "$HOME/bin/system/xautolock-start.sh"
 
-# run fix_xcursor, a script to automatically set the theme of a cursor in i3.
-exec_always --no-startup-id fix_xcursor
+# apply the GTK cursor theme to X (replaces Manjaro's fix_xcursor).
+exec_always --no-startup-id "$HOME/bin/system/set-cursor.sh"
 
 # run compositor, for window effects.
 # Kill any existing instance first to avoid stacking on i3 reload.
