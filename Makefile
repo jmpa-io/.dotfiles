@@ -10,6 +10,15 @@ OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 PKG_DARWIN  = brew install
 PKG_LINUX   = sudo pacman -S --noconfirm
 
+# i3 desktop packages (Arch and Manjaro). Manjaro's 'manjaro-i3-settings' used
+# to pull i3, picom, dunst etc. in implicitly; list them so plain Arch gets them.
+DESKTOP_PKGS = i3-wm picom dunst dmenu polybar rofi scrot xclip xorg-xrdb \
+	xdg-user-dirs lightdm lightdm-slick-greeter \
+	volumeicon pavucontrol arandr polkit-gnome pcmanfm ranger btop pulseaudio xorg-xrandr \
+	ttf-firacode-nerd noto-fonts-emoji adwaita-cursors papirus-icon-theme
+# AUR on Arch (some, like clipit and lightdm-settings, are only in Manjaro's repos).
+DESKTOP_AUR_PKGS = i3lock-color xautolock clipit lightdm-settings
+
 # Generic install macro: $(call pkg,<darwin-pkg>,<linux-pkg>)
 # Falls back to darwin pkg if linux pkg not specified.
 define pkg
@@ -21,6 +30,22 @@ endef
 # Symlink a config directory into ~/.config/.
 define cfg
 	ln -sfn $(PWD)/$1 $(HOME)/.config/
+endef
+
+# Symlink one repo file to a destination: $(call link-file,<repo path>,<dest>).
+# Never overwrites: links if <dest> is missing, or is a real file identical to
+# the repo copy; otherwise leaves it alone and says so.
+define link-file
+	@mkdir -p "$$(dirname "$2")"; \
+	if [ -L "$2" ] && [ "$$(readlink "$2")" = "$(PWD)/$1" ]; then \
+		echo "  $2 already linked"; \
+	elif [ ! -e "$2" ] && [ ! -L "$2" ]; then \
+		ln -s "$(PWD)/$1" "$2" && echo "  linked $2"; \
+	elif [ -f "$2" ] && [ ! -L "$2" ] && cmp -s "$2" "$(PWD)/$1"; then \
+		ln -sf "$(PWD)/$1" "$2" && echo "  linked $2 (was identical)"; \
+	else \
+		echo "  $2 differs from the repo copy — skipped (see: diff $2 $(PWD)/$1)"; \
+	fi
 endef
 
 # Symlink files from a directory directly into $HOME/.
@@ -51,6 +76,7 @@ install: \
 	install-polybar \
 	install-jq \
 	install-docker \
+	install-desktop \
 	install-wezterm \
 	install-github-cli \
 	install-fonts \
@@ -79,7 +105,10 @@ configure: \
 	configure-picom \
 	configure-i3 \
 	configure-i3lock \
+	configure-system \
+	configure-desktop \
 	configure-iterm2 \
+	configure-bin \
 	configure-common \
 	configure-dotfiles-d \
 	configure-tmux \
@@ -107,12 +136,16 @@ setup: \
 	setup-btop \
 	setup-picom \
 	setup-pulsemixer \
+	setup-brightnessctl \
 	setup-fonts \
+	configure-bin \
 	setup-common \
 	configure-dotfiles-d \
 	setup-tmux \
 	setup-i3 \
 	setup-i3lock \
+	setup-system \
+	setup-desktop \
 	setup-iterm2 \
 	setup-vscode \
 	install-terraform \
@@ -394,6 +427,21 @@ endif
 setup-pulsemixer: install-pulsemixer
 
 # ---------------------------------------------------------------
+# brightnessctl (Linux only — screen brightness; its udev rule grants the 'video' group write access)
+# ---------------------------------------------------------------
+
+.PHONY: install-brightnessctl setup-brightnessctl
+install-brightnessctl: ## Install 'brightnessctl' and add the user to 'video' (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --noconfirm brightnessctl
+	sudo usermod -aG video $(USER)
+else
+	@echo "Skipping brightnessctl installation (Linux only)."
+endif
+
+setup-brightnessctl: install-brightnessctl
+
+# ---------------------------------------------------------------
 # i3 (Linux only, assumed installed)
 # ---------------------------------------------------------------
 
@@ -428,6 +476,107 @@ configure-i3lock:
 endif
 
 setup-i3lock: configure-i3lock
+
+# ---------------------------------------------------------------
+# system (Linux only — files that live under /etc, mirrored in system/)
+# ---------------------------------------------------------------
+
+.PHONY: configure-system setup-system
+configure-system: ## Install /etc config from system/ (Linux only).
+ifeq ($(OS),linux)
+	@cd system && for f in $$(find etc -type f); do \
+		if cmp -s "$$f" "/$$f"; then \
+			echo "  /$$f unchanged"; \
+		else \
+			diff -u "/$$f" "$$f" 2>/dev/null || true; \
+			sudo install -Dm644 "$$f" "/$$f" \
+				&& echo "  installed /$$f" \
+				|| exit 1; \
+		fi; \
+	done
+else
+configure-system:
+	@echo "Skipping system configuration (Linux only)."
+endif
+
+setup-system: configure-system
+
+# ---------------------------------------------------------------
+# desktop (Linux only — dunst, rofi, gtk, qt5ct, Kvantum, i3-scrot)
+# ---------------------------------------------------------------
+
+.PHONY: configure-desktop setup-desktop
+configure-desktop: ## Link dunst/rofi/gtk/qt5ct/Kvantum/i3-scrot config (Linux only).
+ifeq ($(OS),linux)
+	$(call link-file,.config/dunst/dunstrc,$(HOME)/.config/dunst/dunstrc)
+	$(call link-file,.config/dunst/org.freedesktop.Notifications.service,$(HOME)/.local/share/dbus-1/services/org.freedesktop.Notifications.service)
+	$(call link-file,.config/dunst/xfce4-notifyd.desktop,$(HOME)/.config/autostart/xfce4-notifyd.desktop)
+	$(call link-file,.config/rofi/config.rasi,$(HOME)/.config/rofi/config.rasi)
+	$(call link-file,.config/gtk-3.0/gtk.css,$(HOME)/.config/gtk-3.0/gtk.css)
+	$(call link-file,.config/gtk-3.0/settings.ini,$(HOME)/.config/gtk-3.0/settings.ini)
+	$(call link-file,.config/qt5ct/qt5ct.conf,$(HOME)/.config/qt5ct/qt5ct.conf)
+	$(call link-file,.config/Kvantum/kvantum.kvconfig,$(HOME)/.config/Kvantum/kvantum.kvconfig)
+	$(call link-file,.config/i3-scrot.conf,$(HOME)/.config/i3-scrot.conf)
+else
+configure-desktop:
+	@echo "Skipping desktop configuration (Linux only)."
+endif
+
+.PHONY: install-desktop install-desktop-aur install-yay configure-bin
+install-desktop: ## Install the i3 desktop packages (Linux only; Arch + Manjaro).
+ifeq ($(OS),linux)
+	sudo pacman -S --needed --noconfirm $(DESKTOP_PKGS)
+	@$(MAKE) --no-print-directory install-desktop-aur
+else
+	@echo "Skipping desktop installation (Linux only)."
+endif
+
+install-desktop-aur: ## Install the desktop's AUR packages via yay (Linux only).
+ifeq ($(OS),linux)
+	@command -v yay >/dev/null 2>&1 || $(MAKE) --no-print-directory install-yay
+	yay -S --needed --noconfirm $(DESKTOP_AUR_PKGS)
+else
+	@echo "Skipping desktop AUR installation (Linux only)."
+endif
+
+# nitrogen (wallpaper picker) is opt-in: it is no longer in Arch's repos, and its
+# AUR build compiles gtk2 and gtkmm from source (~30 min). Not part of install-desktop.
+.PHONY: install-nitrogen
+install-nitrogen: ## Install 'nitrogen' via the AUR (slow: builds gtk2 + gtkmm).
+ifeq ($(OS),linux)
+	@command -v yay >/dev/null 2>&1 || $(MAKE) --no-print-directory install-yay
+	yay -S --needed --noconfirm nitrogen
+else
+	@echo "Skipping nitrogen installation (Linux only)."
+endif
+
+install-yay: ## Build and install the 'yay' AUR helper (Linux only).
+ifeq ($(OS),linux)
+	sudo pacman -S --needed --noconfirm base-devel git
+	rm -rf dist/yay-bin
+	@mkdir -p dist
+	git clone https://aur.archlinux.org/yay-bin.git dist/yay-bin
+	cd dist/yay-bin && makepkg -si --noconfirm
+else
+	@echo "Skipping yay installation (Linux only)."
+endif
+
+# The i3 config calls scripts as ~/bin/system/<name>.sh. On a fresh machine, create
+# ~/bin and link each script into it (keeping the .sh names). A real directory, not
+# a link to the repo, so later per-script links can never write back into the repo.
+configure-bin: ## Link the repo's scripts into ~/bin by their .sh names (if ~/bin is absent).
+	@if [ -e $(HOME)/bin ] || [ -L $(HOME)/bin ]; then \
+		echo "  ~/bin already exists — leaving it alone"; \
+	else \
+		for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
+			rel=$${f#$(PWD)/.config/common/bin/}; \
+			mkdir -p "$(HOME)/bin/$$(dirname $$rel)"; \
+			ln -s "$$f" "$(HOME)/bin/$$rel"; \
+		done; \
+		echo "  linked scripts into ~/bin"; \
+	fi
+
+setup-desktop: install-desktop configure-desktop
 
 # ---------------------------------------------------------------
 # jq
@@ -596,15 +745,20 @@ endif
 configure-common: ## Configure common shell files.
 configure-common: .config/common
 	$(call cfg-home,.config/common)
-	@mkdir -p $(HOME)/bin
-	@for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
-		rel=$${f#$(PWD)/.config/common/bin/}; \
-		dir=$$(dirname $$rel); \
-		dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
-		mkdir -p $$(dirname $$dest); \
-		ln -sf $$f $$dest; \
-		echo "  linked $$f -> $$dest"; \
-	done
+	@# If ~/bin already points at the repo's bin dir, per-script links would be written back into the repo (and i3/polybar call the .sh names), so skip them.
+	@if [ -L $(HOME)/bin ] && [ "$$(cd $(HOME)/bin && pwd -P)" = "$$(cd $(PWD)/.config/common/bin && pwd -P)" ]; then \
+		echo "  ~/bin -> .config/common/bin already; scripts are available by their .sh names"; \
+	else \
+		mkdir -p $(HOME)/bin; \
+		for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
+			rel=$${f#$(PWD)/.config/common/bin/}; \
+			dir=$$(dirname $$rel); \
+			dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
+			mkdir -p $$(dirname $$dest); \
+			ln -sf $$f $$dest; \
+			echo "  linked $$f -> $$dest"; \
+		done; \
+	fi
 
 setup-common: configure-common
 
@@ -621,6 +775,10 @@ configure-npmrc: ## Symlink .npmrc into home directory.
 .PHONY: test-ai-aliases
 test-ai-aliases: ## Test .ai-aliases shell functions.
 	@zsh $(PWD)/.config/common/bin/.tests/test-ai-aliases.sh
+
+.PHONY: test-aws-keepalive
+test-aws-keepalive: ## Test aws-keepalive (stubbed aws + crontab).
+	@bash $(PWD)/.config/common/bin/.tests/test-aws-keepalive.sh
 
 # ---------------------------------------------------------------
 # Housekeeping
@@ -642,6 +800,19 @@ configure-tmux: .config/tmux $(HOME)/.config
 	ln -sfn $(PWD)/.config/tmux $(HOME)/.tmux
 
 setup-tmux: install-tmux configure-tmux
+
+.PHONY: test-arch test-arch-worktree
+test-arch: ## Test the COMMITTED dotfiles (HEAD) in a clean Arch container (needs docker; screenshot in dist/arch-test/).
+	docker build -q -t dotfiles-arch-test -f test/arch/Dockerfile test/arch
+	@mkdir -p dist/arch-test
+	git archive HEAD | docker run -i --rm -v "$(PWD)/dist/arch-test:/out" dotfiles-arch-test \
+		bash -c 'mkdir -p /tmp/src && tar -x -C /tmp/src && SRC=/tmp/src bash /tmp/src/test/arch/run-tests.sh'
+
+test-arch-worktree: ## Same, but test the working tree including uncommitted changes.
+	docker build -q -t dotfiles-arch-test -f test/arch/Dockerfile test/arch
+	@mkdir -p dist/arch-test
+	docker run --rm -v "$(PWD):/src:ro" -v "$(PWD)/dist/arch-test:/out" \
+		dotfiles-arch-test /src/test/arch/run-tests.sh
 
 test-tmux: ## Test tmux session functions (pane counts + idempotency).
 	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
