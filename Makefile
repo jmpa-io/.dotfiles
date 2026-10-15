@@ -84,7 +84,8 @@ install: \
 	install-terraform \
 	install-kubectl \
 	install-ripgrep \
-	install-act
+	install-act \
+	install-rtk
 # NOTE: deno and ansible-lint are intentionally omitted here — Mason installs
 # them automatically when Neovim first opens (they're in mason.lua ensure_installed).
 # Mason's bin dir (~/.local/share/nvim/mason/bin) is on PATH via .zshenv.
@@ -112,7 +113,8 @@ configure: \
 	configure-common \
 	configure-dotfiles-d \
 	configure-tmux \
-	configure-vscode
+	configure-vscode \
+	configure-rtk
 
 .PHONY: setup
 setup: ## Install AND configure ALL tools.
@@ -151,7 +153,8 @@ setup: \
 	install-terraform \
 	install-kubectl \
 	install-ripgrep \
-	install-act
+	install-act \
+	setup-rtk
 # NOTE: deno and ansible-lint are intentionally omitted here — Mason installs
 # them automatically when Neovim first opens (they're in mason.lua ensure_installed).
 # Mason's bin dir (~/.local/share/nvim/mason/bin) is on PATH via .zshenv.
@@ -714,6 +717,23 @@ ifeq ($(OS),darwin)
 else
 	@echo "Install act manually on Linux: https://github.com/nektos/act"
 endif
+
+# ---------------------------------------------------------------
+# rtk
+# ---------------------------------------------------------------
+
+.PHONY: install-rtk configure-rtk setup-rtk
+install-rtk: ## Install 'rtk' (CLI proxy that filters command output before it reaches the LLM).
+ifeq ($(OS),darwin)
+	brew install rtk
+else
+	@echo "Install rtk manually on Linux: https://github.com/rtk-ai/rtk"
+endif
+
+configure-rtk: ## Wire the rtk hook into Claude Code (global, hook-only — no RTK.md/CLAUDE.md injection).
+	rtk init -g --hook-only --auto-patch
+
+setup-rtk: install-rtk configure-rtk
 
 # ---------------------------------------------------------------
 # rclone (used by obsidian-upload-to-google-drive script)
