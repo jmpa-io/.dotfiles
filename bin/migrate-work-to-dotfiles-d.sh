@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Migrates ~/work to ~/.dotfiles.d/work.
+# shellcheck disable=SC2016,SC2088 # patterns intentionally match literal ~ and $HOME
 #
 # What it does:
 #   1. Copies ~/work to ~/.dotfiles.d/work (if not already there).

@@ -21,6 +21,6 @@ if [[ -z "$found" ]]; then
 fi
 
 echo "Xcursor.theme: $theme" | xrdb -merge 2>/dev/null
-hash gsettings 2>/dev/null \
-  && gsettings set org.gnome.desktop.interface cursor-theme "$theme" 2>/dev/null
+hash gsettings 2>/dev/null &&
+  gsettings set org.gnome.desktop.interface cursor-theme "$theme" 2>/dev/null
 exit 0
