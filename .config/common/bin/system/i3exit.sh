@@ -21,16 +21,16 @@ run() {
 }
 
 case "$1" in
-  lock)         run "$lock" ;;
-  logout)       run i3-msg exit ;;
-  switch_user)  run dm-tool switch-to-greeter ;;
-  suspend)      run "$lock" && run "$logind" suspend ;;
-  hibernate)    run "$lock" && run "$logind" hibernate ;;
-  reboot)       run "$logind" reboot ;;
-  shutdown)     run "$logind" poweroff ;;
-  *)
-    echo "i3exit: missing or invalid argument" >&2
-    echo "Try again with: lock | logout | switch_user | suspend | hibernate | reboot | shutdown" >&2
-    exit 2
-    ;;
+lock) run "$lock" ;;
+logout) run i3-msg exit ;;
+switch_user) run dm-tool switch-to-greeter ;;
+suspend) run "$lock" && run "$logind" suspend ;;
+hibernate) run "$lock" && run "$logind" hibernate ;;
+reboot) run "$logind" reboot ;;
+shutdown) run "$logind" poweroff ;;
+*)
+  echo "i3exit: missing or invalid argument" >&2
+  echo "Try again with: lock | logout | switch_user | suspend | hibernate | reboot | shutdown" >&2
+  exit 2
+  ;;
 esac

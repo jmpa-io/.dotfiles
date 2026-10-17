@@ -28,7 +28,10 @@ warnDays="${AWS_KEEPALIVE_WARN_DAYS:-7}"
 logLines=200
 
 # funcs.
-die() { echo "$1" >&2; exit "${2:-1}"; }
+die() {
+  echo "$1" >&2
+  exit "${2:-1}"
+}
 
 # resolves symlinks without 'readlink -f' (not available on stock macOS).
 resolve() {
@@ -62,13 +65,13 @@ crontab_without_ours() {
 
 notify() {
   case "$(uname)" in
-    Darwin) osascript -e "display notification \"$2\" with title \"$1\"" 2>/dev/null ;;
-    *)
-      hash notify-send 2>/dev/null || return 0
-      DISPLAY="${DISPLAY:-:0}" \
-        DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}" \
-        notify-send "$1" "$2" 2>/dev/null
-      ;;
+  Darwin) osascript -e "display notification \"$2\" with title \"$1\"" 2>/dev/null ;;
+  *)
+    hash notify-send 2>/dev/null || return 0
+    DISPLAY="${DISPLAY:-:0}" \
+      DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}" \
+      notify-send "$1" "$2" 2>/dev/null
+    ;;
   esac
   return 0
 }
@@ -161,9 +164,9 @@ cmd_run() {
 }
 
 case "${1:-}" in
-  on) cmd_on "${2:-}" ;;
-  off) cmd_off ;;
-  status) cmd_status ;;
-  run) cmd_run ;;
-  *) die "usage: aws-keepalive on [profile] | off | status | run" 2 ;;
+on) cmd_on "${2:-}" ;;
+off) cmd_off ;;
+status) cmd_status ;;
+run) cmd_run ;;
+*) die "usage: aws-keepalive on [profile] | off | status | run" 2 ;;
 esac
