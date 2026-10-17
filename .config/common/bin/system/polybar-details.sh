@@ -21,7 +21,7 @@ mode="${2:-popup}"
 info() {
   case "$module" in
   cpu)
-    echo "$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2- | sed 's/^ //')"
+    grep -m1 'model name' /proc/cpuinfo | cut -d: -f2- | sed 's/^ //'
     echo "Load average: $(cut -d' ' -f1-3 /proc/loadavg)   Cores: $(nproc)"
     echo "Busiest processes:"
     ps -eo pcpu,comm --sort=-pcpu | awk 'NR > 1 && NR <= 6 { printf "  %5s%%  %s\n", $1, $2 }'

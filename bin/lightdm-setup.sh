@@ -9,11 +9,17 @@
 
 set -e
 
-die()  { echo "error: $1" >&2; exit "${2:-1}"; }
+die() {
+  echo "error: $1" >&2
+  exit "${2:-1}"
+}
 info() { echo "  $1"; }
-ok()   { echo "  [ok] $1"; }
+ok() { echo "  [ok] $1"; }
 warn() { echo "  [!!] $1"; }
-hdr()  { echo ""; echo "── $1 ──"; }
+hdr() {
+  echo ""
+  echo "── $1 ──"
+}
 
 FIX=0
 [[ "${1:-}" == "--fix" ]] && FIX=1
@@ -60,18 +66,21 @@ done
 # Determine which greeter config to use.
 if [[ -n "$GREETER_SESSION" ]]; then
   case "$GREETER_SESSION" in
-    *slick*)   GREETER_CONF="/etc/lightdm/slick-greeter.conf" ;;
-    *gtk*)     GREETER_CONF="/etc/lightdm/lightdm-gtk-greeter.conf" ;;
-    *webkit*)  GREETER_CONF="/etc/lightdm/lightdm-webkit2-greeter.conf" ;;
+  *slick*) GREETER_CONF="/etc/lightdm/slick-greeter.conf" ;;
+  *gtk*) GREETER_CONF="/etc/lightdm/lightdm-gtk-greeter.conf" ;;
+  *webkit*) GREETER_CONF="/etc/lightdm/lightdm-webkit2-greeter.conf" ;;
   esac
 fi
 
 # Fall back to whichever config file exists.
 if [[ -z "$GREETER_CONF" ]]; then
   for f in /etc/lightdm/slick-greeter.conf \
-            /etc/lightdm/lightdm-gtk-greeter.conf \
-            /etc/lightdm/lightdm-webkit2-greeter.conf; do
-    [[ -f "$f" ]] && { GREETER_CONF="$f"; break; }
+    /etc/lightdm/lightdm-gtk-greeter.conf \
+    /etc/lightdm/lightdm-webkit2-greeter.conf; do
+    [[ -f "$f" ]] && {
+      GREETER_CONF="$f"
+      break
+    }
   done
 fi
 
@@ -109,7 +118,11 @@ if [[ -n "$GREETER_CONF" && -f "$GREETER_CONF" ]]; then
   if [[ -n "$THEME" ]]; then
     THEME_FOUND=0
     for d in "/usr/share/themes/$THEME" "$HOME/.themes/$THEME" "$HOME/.local/share/themes/$THEME"; do
-      [[ -d "$d" ]] && { ok "GTK theme found: $d"; THEME_FOUND=1; break; }
+      [[ -d "$d" ]] && {
+        ok "GTK theme found: $d"
+        THEME_FOUND=1
+        break
+      }
     done
     [[ "$THEME_FOUND" -eq 0 ]] && warn "GTK theme '$THEME' not found — may have been removed in update"
   fi
@@ -155,7 +168,7 @@ if [[ "$FIX" -eq 1 ]]; then
       if grep -qE '^\s*background\s*=' "$GREETER_CONF"; then
         sed -i "s|^\s*background\s*=.*|background=$FALLBACK|" "$GREETER_CONF"
       else
-        echo "background=$FALLBACK" >> "$GREETER_CONF"
+        echo "background=$FALLBACK" >>"$GREETER_CONF"
       fi
       ok "set background = $FALLBACK"
     else
