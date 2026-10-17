@@ -7,7 +7,10 @@
 # I3_SCROT_DIR. The default is your XDG pictures directory.
 
 for dep in scrot notify-send; do
-  hash "$dep" 2>/dev/null || { echo "missing $dep" >&2; exit 1; }
+  hash "$dep" 2>/dev/null || {
+    echo "missing $dep" >&2
+    exit 1
+  }
 done
 
 conf="$HOME/.config/i3-scrot.conf"
@@ -39,18 +42,32 @@ clip=(-e 'xclip -selection clipboard -t image/png -i $f && rm $f')
 delay=()
 [[ -n "$2" ]] && delay=(-d "$2")
 
-saved()  { sleep 1; notify-send "screenshot has been saved in $scrot_dir"; }
-copied() { sleep 1; notify-send "screenshot has been copied to clipboard"; }
+saved() {
+  sleep 1
+  notify-send "screenshot has been saved in $scrot_dir"
+}
+copied() {
+  sleep 1
+  notify-send "screenshot has been copied to clipboard"
+}
 
 case "$1" in
-  ""|-d|--desk)                   scrot "${delay[@]}" && saved ;;
-  -w|--window)                    scrot "${delay[@]}" -u && saved ;;
-  -s|--select)                    notify-send 'select an area for the screenshot' &
-                                  scrot -s && saved ;;
-  -dc|--desk-to-clipboard)        scrot "${delay[@]}" "${clip[@]}" && copied ;;
-  -wc|--window-to-clipboard)      scrot "${delay[@]}" -u "${clip[@]}" && copied ;;
-  -sc|--select-to-clipboard)      notify-send 'select an area for the screenshot' &
-                                  scrot -s "${clip[@]}" && copied ;;
-  -h|--help)                      usage ;;
-  *)                              echo "i3-scrot: missing or wrong argument" >&2; usage >&2; exit 2 ;;
+"" | -d | --desk) scrot "${delay[@]}" && saved ;;
+-w | --window) scrot "${delay[@]}" -u && saved ;;
+-s | --select)
+  notify-send 'select an area for the screenshot' &
+  scrot -s && saved
+  ;;
+-dc | --desk-to-clipboard) scrot "${delay[@]}" "${clip[@]}" && copied ;;
+-wc | --window-to-clipboard) scrot "${delay[@]}" -u "${clip[@]}" && copied ;;
+-sc | --select-to-clipboard)
+  notify-send 'select an area for the screenshot' &
+  scrot -s "${clip[@]}" && copied
+  ;;
+-h | --help) usage ;;
+*)
+  echo "i3-scrot: missing or wrong argument" >&2
+  usage >&2
+  exit 2
+  ;;
 esac
