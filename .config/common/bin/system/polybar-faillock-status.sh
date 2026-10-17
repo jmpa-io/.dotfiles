@@ -21,8 +21,8 @@ fi
 
 # Count the valid failures, and note when the most recent one happened.
 read -r count last < <(
-  ${FAILLOCK_CMD:-faillock} --user "${USER:-$(id -un)}" 2>/dev/null \
-    | awk 'NR > 1 && $NF == "V" { n++; ts = $1 " " $2 } END { print n + 0, "|" ts }'
+  ${FAILLOCK_CMD:-faillock} --user "${USER:-$(id -un)}" 2>/dev/null |
+    awk 'NR > 1 && $NF == "V" { n++; ts = $1 " " $2 } END { print n + 0, "|" ts }'
 )
 last="${last#|}"
 [[ "${count:-0}" -eq 0 ]] && exit 0

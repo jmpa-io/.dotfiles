@@ -8,8 +8,12 @@
 
 fails=0
 check() {
-  local name="$1"; shift
-  if "$@" >/dev/null 2>&1; then echo "PASS: $name"; else echo "FAIL: $name"; fails=$((fails + 1)); fi
+  local name="$1"
+  shift
+  if "$@" >/dev/null 2>&1; then echo "PASS: $name"; else
+    echo "FAIL: $name"
+    fails=$((fails + 1))
+  fi
 }
 
 export DISPLAY=:99
@@ -47,8 +51,10 @@ if [[ -d /out ]]; then
   import -window root /out/desktop.png && echo "screenshot saved to /out/desktop.png"
 fi
 
-echo; echo "--- errors worth reading:"
+echo
+echo "--- errors worth reading:"
 grep -iE 'error|failed|not found' /tmp/i3.log /tmp/dunst.log 2>/dev/null | head -10
-echo "--- polybar:"; (pgrep -ax polybar | head -1)
+echo "--- polybar:"
+(pgrep -ax polybar | head -1)
 echo "=== DESKTOP SMOKE: $fails check(s) failed"
 exit "$fails"
