@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2012,SC2088 # "~/..." strings are display labels, not paths
+# shellcheck disable=SC2002,SC2012,SC2088 # "~/..." strings are display labels, not paths
 # Full system audit for Arch/Manjaro — cross-references everything expected by these dotfiles.
 # Run on the Linux machine and paste output back to Claude.
 
