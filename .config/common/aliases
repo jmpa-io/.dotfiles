@@ -18,7 +18,11 @@ for index in {0..9}; do alias "$index"="cd +${index}"; done
 unset index
 
 # zsh.
-alias zsrc='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+# Shared re-source command (also used by t-zsrc below). $HOME stays unexpanded here —
+# it's safe to send verbatim into another tmux pane's zsh, expanding at run time there.
+# shellcheck disable=SC2016
+_ZSRC_CMD='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.dotfiles.d/wt" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+alias zsrc="$_ZSRC_CMD"
 
 
 # Re-source shell config across all tmux panes (or a single pane with -p).
@@ -31,8 +35,7 @@ alias zsrc='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfi
 #   claude -c resumes the most recent session for that pane's working directory — correct per-pane.
 # Skips the current pane (caller handles it via zsrc) and panes running anything else.
 t-zsrc() {
-  # shellcheck disable=SC2016  # $HOME intentionally unexpanded — cmd runs in tmux pane's zsh
-  local src_cmd='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+  local src_cmd="$_ZSRC_CMD"
   local current_pane target_pane=""
   current_pane=$(tmux display-message -p '#{pane_id}')
 
@@ -141,67 +144,48 @@ t-zsrc() {
 
 # tmux sessions — each creates or attaches to a named session with a fixed layout.
 # Use across multiple screens — attach from any window with the same alias.
+#
+# All layouts reduce to 4 shapes, so the create+split dance lives in one place
+# (_t-session-layout) and each named command below just picks a session name + shape.
+# shapes: wide-left (wide pane + 2 stacked) | wide-right (mirror of wide-left) |
+#         side-by-side (2 panes) | single (1 pane, attach-or-create)
+_t-session-layout() {
+  local session="$1" shape="$2"
 
-# work-1: wide left + 2 stacked right (3 panes) — CBA work session
-t-work-1() {
-  if ! tmux has-session -t work-1 2>/dev/null; then
-    tmux new-session -d -s work-1
-    tmux split-window -h -t work-1
-    tmux split-window -v -t work-1:1.2
-    tmux select-pane -t work-1:1.1
+  if [[ "$shape" == "single" ]]; then
+    tmux new-session -A -s "$session"
+    return
   fi
-  tmux attach-session -t work-1
-}
 
-# work-2: 2 stacked left + wide right (3 panes) — opposite of work-1
-t-work-2() {
-  if ! tmux has-session -t work-2 2>/dev/null; then
-    tmux new-session -d -s work-2
-    tmux split-window -h -t work-2
-    tmux split-window -v -t work-2:1.1
-    tmux select-pane -t work-2:1.2
+  if ! tmux has-session -t "$session" 2>/dev/null; then
+    tmux new-session -d -s "$session"
+    case "$shape" in
+      wide-left)
+        tmux split-window -h -t "$session"
+        tmux split-window -v -t "$session:1.2"
+        tmux select-pane -t "$session:1.1"
+        ;;
+      wide-right)
+        tmux split-window -h -t "$session"
+        tmux split-window -v -t "$session:1.1"
+        tmux select-pane -t "$session:1.2"
+        ;;
+      side-by-side)
+        tmux split-window -h -t "$session"
+        tmux select-pane -t "$session:1.1"
+        ;;
+    esac
   fi
-  tmux attach-session -t work-2
+  tmux attach-session -t "$session"
 }
 
-# work-3: 2 terminals side by side (2 panes) — CBA work session
-t-work-3() {
-  if ! tmux has-session -t work-3 2>/dev/null; then
-    tmux new-session -d -s work-3
-    tmux split-window -h -t work-3
-    tmux select-pane -t work-3:1.1
-  fi
-  tmux attach-session -t work-3
-}
-
-# work-4: 2 terminals side by side (2 panes) — same as work-3
-t-work-4() {
-  if ! tmux has-session -t work-4 2>/dev/null; then
-    tmux new-session -d -s work-4
-    tmux split-window -h -t work-4
-    tmux select-pane -t work-4:1.1
-  fi
-  tmux attach-session -t work-4
-}
-
-# work-5: single terminal — clean session
-t-work-5() {
-  tmux new-session -A -s work-5
-}
-
-# homelab: main left + 2 stacked right (3 panes)
-t-homelab() {
-  if ! tmux has-session -t homelab 2>/dev/null; then
-    tmux new-session -d -s homelab
-    tmux split-window -h -t homelab
-    tmux split-window -v -t homelab:1.2
-    tmux select-pane -t homelab:1.1
-  fi
-  tmux attach-session -t homelab
-}
-
-# misc: single pane — clean shell for one-offs
-t-misc() { tmux new-session -A -s misc; }
+t-work-1()  { _t-session-layout work-1  wide-left; }     # wide left + 2 stacked right — CBA work session
+t-work-2()  { _t-session-layout work-2  wide-right; }    # 2 stacked left + wide right — opposite of work-1
+t-work-3()  { _t-session-layout work-3  side-by-side; }  # 2 terminals side by side — CBA work session
+t-work-4()  { _t-session-layout work-4  side-by-side; }  # 2 terminals side by side — same shape as work-3
+t-work-5()  { _t-session-layout work-5  single; }        # single terminal — clean session
+t-homelab() { _t-session-layout homelab wide-left; }     # main left + 2 stacked right
+t-misc()    { _t-session-layout misc    single; }        # single pane — clean shell for one-offs
 
 # t-claude [name] [path] — create or attach a task-named Claude session.
 # Usage:
@@ -711,193 +695,3 @@ host=github.com" 2>/dev/null || true
   esac
 }
 
-# wt — git worktree manager.
-# Usage:
-#   wt          interactive picker: add, switch, or remove a worktree
-#   wt cd       interactive fzf picker: cd into an existing worktree
-#   wt switch   alias for wt cd
-#   wt add      create a new worktree
-#   wt rm       remove a worktree
-#   wt ls       list worktrees
-wt() {
-  local root
-  root=$(git rev-parse --show-toplevel 2>/dev/null)
-  if [[ -z "$root" ]]; then
-    echo "wt: not inside a git repo" >&2
-    return 1
-  fi
-
-  # ensure .worktrees/ is gitignored — only in repos we own (under $ROOT).
-  # shellcheck disable=SC2153  # $ROOT is exported from .zshenv
-  if [[ "$root" == "$ROOT"* ]] && ! grep -qxF '.worktrees/' "$root/.gitignore" 2>/dev/null; then
-    echo '.worktrees/' >>"$root/.gitignore"
-    echo "wt: added .worktrees/ to $root/.gitignore"
-  fi
-
-  # helper: build a worktree from a branch name.
-  _wt_add() {
-    local branch="$1"
-    local worktree_path="$root/.worktrees/$branch"
-    mkdir -p "$(dirname "$worktree_path")"
-    if git -C "$root" show-ref --verify --quiet "refs/heads/$branch"; then
-      git -C "$root" worktree add "$worktree_path" "$branch"
-    else
-      git -C "$root" worktree add "$worktree_path" -b "$branch"
-    fi
-  }
-
-  # helper: pick an existing worktree (excluding current) and cd into it.
-  _wt_pick_cd() {
-    local current
-    current=$(pwd -P)
-    local entries
-    entries=$(git -C "$root" worktree list --porcelain | awk -v cur="$current" '
-      /^worktree / { path=$2; branch=""; sha="" }
-      /^HEAD /     { sha=substr($2,1,7) }
-      /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
-      /^$/ {
-        if (path != "" && path != cur) {
-          if (branch != "") printf "%s  (%s)\n", path, branch
-          else if (sha != "") printf "%s  (detached @ %s)\n", path, sha
-        }
-        path=""; branch=""; sha=""
-      }
-    ')
-    if [[ -z "$entries" ]]; then
-      echo "wt: no other worktrees to switch to" >&2
-      return 1
-    fi
-    local selected
-    if command -v fzf &>/dev/null; then
-      selected=$(echo "$entries" | fzf --prompt="switch > " --height=40% --border --header="Switch to worktree")
-    else
-      echo "$entries"
-      read "selected?Path to switch to: "
-    fi
-    [[ -z "$selected" ]] && return 1
-    # extract path (first field before the two-space separator)
-    local target_path
-    target_path=$(echo "$selected" | awk '{ print $1 }')
-    echo "$target_path"
-  }
-
-  # helper: pick an existing non-current worktree to remove.
-  # prints "branch:path" to stdout so the caller doesn't need a second lookup.
-  _wt_pick_rm() {
-    local removable
-    removable=$(git -C "$root" worktree list --porcelain | awk -v root="$root" '
-      /^worktree / { path=$2; branch=""; sha="" }
-      /^HEAD /     { sha=substr($2,1,7) }
-      /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
-      /^$/ {
-        if (path != "" && path != root) {
-          if (branch != "") printf "%s\t%s\n", branch, path
-          else if (sha != "") printf "(detached @ %s)\t%s\n", sha, path
-        }
-        path=""; branch=""; sha=""
-      }
-    ')
-    if [[ -z "$removable" ]]; then
-      echo "wt: no worktrees to remove" >&2
-      return 1
-    fi
-    local selected
-    if command -v fzf &>/dev/null; then
-      selected=$(printf '%s\n' "$removable" | awk -F'\t' '{print $1}' | fzf --prompt="remove > " --height=40% --border --header="Select worktree to remove")
-    else
-      printf '%s\n' "$removable" | awk -F'\t' '{print $1}'
-      local branch
-      read "branch?Branch to remove: "
-      selected="$branch"
-    fi
-    [[ -z "$selected" ]] && return 1
-    printf '%s\n' "$removable" | awk -F'\t' -v sel="$selected" '$1 == sel { print $1 ":" $2 }'
-  }
-
-  case "${1:-}" in
-
-  cd | switch)
-    local target_path
-    target_path=$(_wt_pick_cd) || return 0
-    cd "$target_path" || return 1
-    ;;
-
-  ls)
-    git -C "$root" worktree list
-    ;;
-
-  add)
-    local branch="${2:-}"
-    if [[ -z "$branch" ]]; then
-      read "branch?Branch name (new or existing): "
-      [[ -z "$branch" ]] && return 0
-    fi
-    _wt_add "$branch"
-    ;;
-
-  rm)
-    local branch="" force=""
-    local -a rest=()
-    for arg in "${@:2}"; do
-      case "$arg" in
-        -f|--force) force="--force" ;;
-        *) rest+=("$arg") ;;
-      esac
-    done
-    branch="${rest[1]:-}"
-    local remove_path
-    if [[ -z "$branch" ]]; then
-      local picked
-      picked=$(_wt_pick_rm) || return 0
-      branch="${picked%%:*}"
-      remove_path="${picked#*:}"
-    else
-      remove_path=$(git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch" '
-          /^worktree / { path=$2 }
-          /^branch /   { if ($2 == branch) print path }
-        ')
-    fi
-    if [[ -z "$remove_path" ]]; then
-      echo "wt: no worktree found for branch '$branch'" >&2
-      return 1
-    fi
-    git -C "$root" worktree remove ${force:+"$force"} "$remove_path"
-    echo "wt: removed worktree for '$branch'"
-    # offer to delete the local branch too
-    local reply
-    read "reply?Delete local branch '$branch'? [y/N] "
-    if [[ "$reply" =~ ^[Yy]$ ]]; then
-      if git -C "$root" branch -d "$branch" 2>/dev/null; then
-        echo "wt: deleted branch '$branch'"
-      else
-        echo "wt: branch '$branch' not fully merged — use 'git branch -D $branch' to force delete" >&2
-      fi
-    fi
-    ;;
-
-  "")
-    # no args — interactive picker: add or remove.
-    if ! command -v fzf &>/dev/null; then
-      echo "wt: fzf not available, use 'wt add' or 'wt rm'" >&2
-      return 1
-    fi
-    local action
-    action=$(printf 'switch\nadd\nremove' | fzf \
-      --prompt="wt > " \
-      --height=20% \
-      --border \
-      --header="Worktree action")
-    [[ -z "$action" ]] && return 0
-    case "$action" in
-    switch) wt cd ;;
-    add) wt add ;;
-    remove) wt rm ;;
-    esac
-    ;;
-
-  *)
-    echo "usage: wt [ls | cd | switch | add [branch] | rm [-f] [branch]]" >&2
-    return 1
-    ;;
-  esac
-}
