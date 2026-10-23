@@ -10,13 +10,9 @@ claude() {
   local bin
   bin=$(whence -p claude)
 
-  local ver_file="$HOME/.claude/.last-xattr-version"
-  if [[ "$bin" -nt "$ver_file" ]]; then
-    local cur_ver
-    cur_ver=$("$bin" --version 2>/dev/null | awk '{print $1}')
-    if [[ "$(<"$ver_file" 2>/dev/null)" != "$cur_ver" ]]; then
-      xattr -d com.apple.quarantine "$bin" 2>/dev/null
-      echo "$cur_ver" > "$ver_file"
+  if xattr -p com.apple.quarantine "$bin" &>/dev/null; then
+    if ! xattr -d com.apple.quarantine "$bin" 2>/dev/null; then
+      echo "claude: failed to clear quarantine on $bin — run: sudo xattr -d com.apple.quarantine $bin" >&2
     fi
   fi
 
