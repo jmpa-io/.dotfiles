@@ -93,20 +93,48 @@ else
   fail "claude() in multi-worktree repo did NOT run directly (got: $output)"
 fi
 
-# ── Test 6: quarantine removal only runs when binary is newer ─────────────────
-# ver_file matches fake claude's "version" — binary is older — so xattr path is skipped.
+# ── Test 6: quarantine is stripped when the attribute is present ──────────────
+# fake xattr reports the attribute present on -p, and succeeds on -d — claude
+# should still run normally afterwards.
 
-VER_FILE="$TMPDIR_TEST/.claude/.last-xattr-version"
-mkdir -p "$(dirname "$VER_FILE")"
-echo "99.9.9" >"$VER_FILE"
-touch -t 197001010000 "$FAKE_BIN/claude"
+FAKE_XATTR="$FAKE_BIN/xattr"
+printf '#!/bin/sh\ncase "$1" in\n  -p) exit 0 ;;\n  -d) exit 0 ;;\nesac\n' >"$FAKE_XATTR"
+chmod +x "$FAKE_XATTR"
 
-output=$(ZDOTDIR="$EMPTY_ZDOTDIR" PATH="$FAKE_BIN:$(echo "$PATH" | tr ':' '\n' | grep -v fzf | tr '\n' ':' | sed 's/:$//')" HOME="$TMPDIR_TEST" zsh -c "source $AI_ALIASES; claude --version" 2>&1)
-
-if echo "$output" | grep -q "FAKE_CLAUDE_CALLED"; then
-  pass "claude() runs normally when binary is not newer than version file"
+output=$(_zsh "claude --version")
+if echo "$output" | grep -q "FAKE_CLAUDE_CALLED: --version"; then
+  pass "claude() strips quarantine when present and still runs normally"
 else
-  fail "claude() failed to run when binary was not newer (got: $output)"
+  fail "claude() did not run after stripping quarantine (got: $output)"
+fi
+
+# ── Test 7: no xattr -d call when the attribute is absent ────────────────────
+# fake xattr reports the attribute absent on -p, and fails hard if -d is ever
+# called — proves claude() skips the strip entirely when there's nothing to do.
+
+printf '#!/bin/sh\ncase "$1" in\n  -p) exit 1 ;;\n  -d) echo "UNEXPECTED_XATTR_D_CALL" >&2; exit 1 ;;\nesac\n' >"$FAKE_XATTR"
+chmod +x "$FAKE_XATTR"
+
+output=$(_zsh "claude --version")
+if echo "$output" | grep -q "UNEXPECTED_XATTR_D_CALL"; then
+  fail "claude() called xattr -d even though the attribute was absent"
+else
+  pass "claude() does not call xattr -d when the attribute is absent"
+fi
+
+# ── Test 8: failed xattr -d warns but still runs claude ──────────────────────
+# fake xattr reports the attribute present both before and after -d (simulating
+# a permission failure) — claude() must print the sudo remediation hint to
+# stderr and still invoke the real binary rather than blocking.
+
+printf '#!/bin/sh\ncase "$1" in\n  -p) exit 0 ;;\n  -d) exit 1 ;;\nesac\n' >"$FAKE_XATTR"
+chmod +x "$FAKE_XATTR"
+
+output=$(_zsh "claude --version")
+if echo "$output" | grep -q "failed to clear quarantine" && echo "$output" | grep -q "FAKE_CLAUDE_CALLED: --version"; then
+  pass "claude() warns and still runs when xattr -d fails"
+else
+  fail "claude() did not warn and run correctly on xattr -d failure (got: $output)"
 fi
 
 # ── Results ───────────────────────────────────────────────────────────────────

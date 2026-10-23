@@ -66,7 +66,7 @@ setopt HIST_VERIFY            # do not execute immediately upon history expansio
 # all processes (including non-interactive ones like Claude Code). Sourcing it
 # again here would double-run pyenv init, gh auth token, etc.
 if [[ -d "$HOME/.dotfiles.d" ]]; then
-  for f in "$HOME/.dotfiles.d/aliases" "$HOME/.dotfiles.d/ai-aliases"; do
+  for f in "$HOME/.dotfiles.d/aliases" "$HOME/.dotfiles.d/wt" "$HOME/.dotfiles.d/ai-aliases"; do
     [[ -f "$f" ]] && source "$f"
   done
 else
