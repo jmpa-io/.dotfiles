@@ -474,9 +474,6 @@ t-help() {
 EOF
 }
 
-# kubectl shorthand.
-alias k="kubectl"
-
 # general.
 case "$os" in
 Darwin)
@@ -502,16 +499,16 @@ Linux)
   alias clock="tty-clock -s -c -C 5 -t"             # renders a nice clock, using tty-clock, in the terminal.
   alias neofetch="fastfetch"                        # prints system information.
   alias open="pcmanfm"                              # opens the given directory in a GUI file manager.
+
+  # opens the last screenshot taken in Firefox (resolved at invocation time, not source time).
+  olss() {
+    local f
+    # shellcheck disable=SC2012  # ls -t is intentional for mtime sort; filenames here won't have newlines
+    f=$(ls -1t "$HOME/Pictures" | head -n1)
+    [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
+  }
   ;;
 esac
-
-# opens the last screenshot taken in Firefox (resolved at invocation time, not source time).
-olss() {
-  local f
-  # shellcheck disable=SC2012  # ls -t is intentional for mtime sort; filenames here won't have newlines
-  f=$(ls -1t "$HOME/Pictures" | head -n1)
-  [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
-}
 
 # Writes the active AWS_PROFILE to ~/.dotfiles.d/work so it persists across new terminals.
 # Only writes if ~/.dotfiles.d/work exists — no-op otherwise.
