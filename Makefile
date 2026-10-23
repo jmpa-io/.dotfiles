@@ -633,6 +633,7 @@ configure-dotfiles-d: ## Symlink versioned shell files into ~/.dotfiles.d/.
 	@mkdir -p $(HOME)/.dotfiles.d
 	@ln -sf $(PWD)/.config/common/aliases $(HOME)/.dotfiles.d/aliases && echo "  linked aliases"
 	@ln -sf $(PWD)/.config/common/.ai-aliases $(HOME)/.dotfiles.d/ai-aliases && echo "  linked ai-aliases"
+	@ln -sf $(PWD)/.config/common/wt $(HOME)/.dotfiles.d/wt && echo "  linked wt"
 
 .PHONY: configure-npmrc
 configure-npmrc: ## Symlink .npmrc into home directory.
