@@ -25,6 +25,7 @@ jobs:
               - '.config/zsh/**'
               - '.config/common/bin/**'
               - '.config/common/aliases'
+              - '.config/common/wt'
               - 'scripts/**'
             makefile:
               - 'Makefile'

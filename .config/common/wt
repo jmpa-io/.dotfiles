@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+# wt — git worktree manager.
+# Sourced into the shell (not run as a script): `wt cd`/`wt switch` needs to
+# change the CURRENT shell's directory, which only works as a sourced function.
+# shellcheck disable=SC2162  # read "var?prompt" is zsh syntax — file is sourced by zsh, not executed as bash
+
+# wt — git worktree manager.
+# Usage:
+#   wt          interactive picker: add, switch, or remove a worktree
+#   wt cd       interactive fzf picker: cd into an existing worktree
+#   wt switch   alias for wt cd
+#   wt add      create a new worktree
+#   wt rm       remove a worktree
+#   wt ls       list worktrees
+wt() {
+  local root
+  root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$root" ]]; then
+    echo "wt: not inside a git repo" >&2
+    return 1
+  fi
+
+  # ensure .worktrees/ is gitignored — only in repos we own (under $ROOT).
+  # shellcheck disable=SC2153  # $ROOT is exported from .zshenv
+  if [[ "$root" == "$ROOT"* ]] && ! grep -qxF '.worktrees/' "$root/.gitignore" 2>/dev/null; then
+    echo '.worktrees/' >>"$root/.gitignore"
+    echo "wt: added .worktrees/ to $root/.gitignore"
+  fi
+
+  # helper: build a worktree from a branch name.
+  _wt_add() {
+    local branch="$1"
+    local worktree_path="$root/.worktrees/$branch"
+    mkdir -p "$(dirname "$worktree_path")"
+    if git -C "$root" show-ref --verify --quiet "refs/heads/$branch"; then
+      git -C "$root" worktree add "$worktree_path" "$branch"
+    else
+      git -C "$root" worktree add "$worktree_path" -b "$branch"
+    fi
+  }
+
+  # helper: pick an existing worktree (excluding current) and cd into it.
+  _wt_pick_cd() {
+    local current
+    current=$(pwd -P)
+    local entries
+    entries=$(git -C "$root" worktree list --porcelain | awk -v cur="$current" '
+      /^worktree / { path=$2; branch=""; sha="" }
+      /^HEAD /     { sha=substr($2,1,7) }
+      /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
+      /^$/ {
+        if (path != "" && path != cur) {
+          if (branch != "") printf "%s  (%s)\n", path, branch
+          else if (sha != "") printf "%s  (detached @ %s)\n", path, sha
+        }
+        path=""; branch=""; sha=""
+      }
+    ')
+    if [[ -z "$entries" ]]; then
+      echo "wt: no other worktrees to switch to" >&2
+      return 1
+    fi
+    local selected
+    if command -v fzf &>/dev/null; then
+      selected=$(echo "$entries" | fzf --prompt="switch > " --height=40% --border --header="Switch to worktree")
+    else
+      echo "$entries"
+      read "selected?Path to switch to: "
+    fi
+    [[ -z "$selected" ]] && return 1
+    # extract path (first field before the two-space separator)
+    local target_path
+    target_path=$(echo "$selected" | awk '{ print $1 }')
+    echo "$target_path"
+  }
+
+  # helper: pick an existing non-current worktree to remove.
+  # prints "branch:path" to stdout so the caller doesn't need a second lookup.
+  _wt_pick_rm() {
+    local removable
+    removable=$(git -C "$root" worktree list --porcelain | awk -v root="$root" '
+      /^worktree / { path=$2; branch=""; sha="" }
+      /^HEAD /     { sha=substr($2,1,7) }
+      /^branch /   { branch=$2; gsub("refs/heads/","",branch) }
+      /^$/ {
+        if (path != "" && path != root) {
+          if (branch != "") printf "%s\t%s\n", branch, path
+          else if (sha != "") printf "(detached @ %s)\t%s\n", sha, path
+        }
+        path=""; branch=""; sha=""
+      }
+    ')
+    if [[ -z "$removable" ]]; then
+      echo "wt: no worktrees to remove" >&2
+      return 1
+    fi
+    local selected
+    if command -v fzf &>/dev/null; then
+      selected=$(printf '%s\n' "$removable" | awk -F'\t' '{print $1}' | fzf --prompt="remove > " --height=40% --border --header="Select worktree to remove")
+    else
+      printf '%s\n' "$removable" | awk -F'\t' '{print $1}'
+      local branch
+      read "branch?Branch to remove: "
+      selected="$branch"
+    fi
+    [[ -z "$selected" ]] && return 1
+    printf '%s\n' "$removable" | awk -F'\t' -v sel="$selected" '$1 == sel { print $1 ":" $2 }'
+  }
+
+  case "${1:-}" in
+
+  cd | switch)
+    local target_path
+    target_path=$(_wt_pick_cd) || return 0
+    cd "$target_path" || return 1
+    ;;
+
+  ls)
+    git -C "$root" worktree list
+    ;;
+
+  add)
+    local branch="${2:-}"
+    if [[ -z "$branch" ]]; then
+      read "branch?Branch name (new or existing): "
+      [[ -z "$branch" ]] && return 0
+    fi
+    _wt_add "$branch"
+    ;;
+
+  rm)
+    local branch="" force=""
+    local -a rest=()
+    for arg in "${@:2}"; do
+      case "$arg" in
+        -f|--force) force="--force" ;;
+        *) rest+=("$arg") ;;
+      esac
+    done
+    branch="${rest[1]:-}"
+    local remove_path
+    if [[ -z "$branch" ]]; then
+      local picked
+      picked=$(_wt_pick_rm) || return 0
+      branch="${picked%%:*}"
+      remove_path="${picked#*:}"
+    else
+      remove_path=$(git -C "$root" worktree list --porcelain | awk -v branch="refs/heads/$branch" '
+          /^worktree / { path=$2 }
+          /^branch /   { if ($2 == branch) print path }
+        ')
+    fi
+    if [[ -z "$remove_path" ]]; then
+      echo "wt: no worktree found for branch '$branch'" >&2
+      return 1
+    fi
+    git -C "$root" worktree remove ${force:+"$force"} "$remove_path"
+    echo "wt: removed worktree for '$branch'"
+    # offer to delete the local branch too
+    local reply
+    read "reply?Delete local branch '$branch'? [y/N] "
+    if [[ "$reply" =~ ^[Yy]$ ]]; then
+      if git -C "$root" branch -d "$branch" 2>/dev/null; then
+        echo "wt: deleted branch '$branch'"
+      else
+        echo "wt: branch '$branch' not fully merged — use 'git branch -D $branch' to force delete" >&2
+      fi
+    fi
+    ;;
+
+  "")
+    # no args — interactive picker: add or remove.
+    if ! command -v fzf &>/dev/null; then
+      echo "wt: fzf not available, use 'wt add' or 'wt rm'" >&2
+      return 1
+    fi
+    local action
+    action=$(printf 'switch\nadd\nremove' | fzf \
+      --prompt="wt > " \
+      --height=20% \
+      --border \
+      --header="Worktree action")
+    [[ -z "$action" ]] && return 0
+    case "$action" in
+    switch) wt cd ;;
+    add) wt add ;;
+    remove) wt rm ;;
+    esac
+    ;;
+
+  *)
+    echo "usage: wt [ls | cd | switch | add [branch] | rm [-f] [branch]]" >&2
+    return 1
+    ;;
+  esac
+}
