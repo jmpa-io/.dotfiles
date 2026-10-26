@@ -6,6 +6,8 @@
       "Rewritable" : true,
       "Guid" : "39A7C2DC-2023-4CB7-B816-4B8C44F1D925",
       "Enable Triggers in Interactive Apps" : false,
+      "Normal Font" : "FiraCodeNFM-Reg 10",
+      "Use Non-ASCII Font" : false,
       "Keyboard Map" : {
 
       }
