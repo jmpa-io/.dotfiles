@@ -64,10 +64,6 @@ bindsym $mod+F5           exec $wm_media_player_gui
 bindsym $mod+F6           exec $wm_audio_control_gui
 bindsym $mod+$smod+F6     exec $wm_terminal -e $wm_audio_control_tui
 
-# screen brightness keys.
-bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set 5%+
-bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
-
 # notifications (dunst): ` = recall last, shift = close all, ctrl = do-not-disturb.
 bindsym $mod+grave            exec --no-startup-id dunstctl history-pop
 bindsym $mod+$smod+grave      exec --no-startup-id dunstctl close-all
