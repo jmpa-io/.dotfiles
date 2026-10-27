@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 # Tests tmux session functions defined in .config/common/aliases.
 # Verifies correct pane counts and idempotency (no extra panes on re-run).
-# Safe to run at any time — creates and kills sessions, does not attach.
 # Requires base-index 1 (set by configure-tmux / tmux.conf).
+#
+# Runs against an isolated tmux server (-L socket), never the default one.
+# The session names used here (work-1, homelab, etc.) are the same names
+# real daily sessions use — on the default server this would collide with
+# and kill a real attached session instead of a disposable test one.
 
 set -euo pipefail
+
+TEST_SOCKET="dotfiles-test-$$"
+tmux() { command tmux -L "$TEST_SOCKET" "$@"; }
+cleanup() { command tmux -L "$TEST_SOCKET" kill-server 2>/dev/null || true; }
+trap cleanup EXIT
 
 pass=0
 fail=0
