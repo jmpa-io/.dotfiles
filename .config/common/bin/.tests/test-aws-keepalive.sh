@@ -46,8 +46,13 @@ case "\$1" in
 esac
 STUB
 
-# stub notify-send: records that it was called.
+# stub notify-send (Linux) and osascript (macOS) — aws-keepalive.sh's notify()
+# picks one based on `uname`, so both need stubbing or the real one runs instead.
 cat >"$tmp/stubs/notify-send" <<STUB
+#!/usr/bin/env bash
+echo "\$*" >>"$tmp/notified"
+STUB
+cat >"$tmp/stubs/osascript" <<STUB
 #!/usr/bin/env bash
 echo "\$*" >>"$tmp/notified"
 STUB
