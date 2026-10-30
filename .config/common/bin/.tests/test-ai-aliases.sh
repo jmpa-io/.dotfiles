@@ -140,7 +140,9 @@ fi
 # ── Test 9: ai-export-context claude picks the newest session on GNU and BSD stat ──
 # Regression: it used BSD-only `stat -f`, so it never found a session on Linux.
 # jq is stubbed so the test needs nothing beyond zsh.
-ALIASES="${HOME}/.dotfiles.d/aliases"
+# Test the repo's copy so this runs on CI/clean machines too.
+ALIASES="${0:A:h}/../../aliases"
+[[ -f "$ALIASES" ]] || ALIASES="${HOME}/.dotfiles.d/aliases"
 [[ -f "$ALIASES" ]] || ALIASES="${HOME}/.aliases"
 if [[ -f "$ALIASES" ]]; then
   EXPORT_HOME="$TMPDIR_TEST/export-home"
@@ -162,7 +164,7 @@ if [[ -f "$ALIASES" ]]; then
     fail "ai-export-context claude did NOT find the newest session (got: $output)"
   fi
 else
-  echo "SKIP  ai-export-context test ($ALIASES not found)"
+  fail "ai-export-context test: aliases file not found"
 fi
 
 # ── Results ───────────────────────────────────────────────────────────────────
