@@ -54,7 +54,8 @@ endef
 define link-backup
 	mkdir -p "$$(dirname "$2")"; \
 	if [ -e "$2" ] && [ ! -L "$2" ] && ! cmp -s "$2" "$(CURDIR)/$1"; then \
-		mv "$2" "$2.dotfiles-bak.$$(date +%s)" && echo "  backed up $2"; \
+		mv "$2" "$2.dotfiles-bak.$$(date +%s)" || { echo "  backup of $2 failed, not replacing it" >&2; exit 1; }; \
+		echo "  backed up $2"; \
 	fi; \
 	ln -sf "$(CURDIR)/$1" "$2"
 endef
