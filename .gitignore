@@ -12,6 +12,7 @@ dist/work-certs/
 .worktrees/
 .config/zsh/.zcompdump
 dist/arch-test/
+__pycache__/
 
 # Local, network-specific dev-container scaffold (Artifactory mirror config,
 # pre-fetched AUR sources, etc). Not portable — never commit this.
