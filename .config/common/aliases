@@ -283,7 +283,7 @@ alias t-ls='tmux ls 2>/dev/null || echo "No tmux sessions running."'
 # hung forever (it only ever "completed" for quick, non-interactive calls
 # like --version).
 copilot() {
-  local real_copilot="/Users/jordan.cleal/.npm-packages/bin/copilot"
+  local real_copilot="${COPILOT_BIN:-$HOME/.npm-packages/bin/copilot}"
   local -a env_prefix=()
   [[ -f "$HOME/.auto_approve" ]] && env_prefix=(env COPILOT_ALLOW_ALL=true)
   local attempt=1 max=3 rc errfile
@@ -357,9 +357,11 @@ ai-export-context() {
 
   elif [[ "$source" == "claude" ]]; then
     local cwd_encoded session_file
+    local -a stat_fmt=(-f "%m %N") # BSD/macOS
+    stat -c %Y / >/dev/null 2>&1 && stat_fmt=(-c "%Y %n") # GNU/Linux
     cwd_encoded=$(echo "$real_pwd" | tr '/.' '-')
-    session_file=$(find "$HOME/.claude/projects/$cwd_encoded" -maxdepth 1 -name "*.jsonl" 2>/dev/null \
-      -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+    session_file=$(find "$HOME/.claude/projects/$cwd_encoded" -maxdepth 1 -name "*.jsonl" \
+      -exec stat "${stat_fmt[@]}" {} \; 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
     if [[ -z "$session_file" ]]; then
       echo "ai-export-context: no Claude session found for $real_pwd" >&2
       rm -f "$outfile"

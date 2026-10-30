@@ -137,6 +137,34 @@ else
   fail "claude() did not warn and run correctly on xattr -d failure (got: $output)"
 fi
 
+# ── Test 9: ai-export-context claude picks the newest session on GNU and BSD stat ──
+# Regression: it used BSD-only `stat -f`, so it never found a session on Linux.
+# jq is stubbed so the test needs nothing beyond zsh.
+ALIASES="${HOME}/.dotfiles.d/aliases"
+[[ -f "$ALIASES" ]] || ALIASES="${HOME}/.aliases"
+if [[ -f "$ALIASES" ]]; then
+  EXPORT_HOME="$TMPDIR_TEST/export-home"
+  EXPORT_PROJ="$TMPDIR_TEST/export-proj"
+  mkdir -p "$EXPORT_PROJ"
+  real_proj=$(cd "$EXPORT_PROJ" && pwd -P)
+  sessions="$EXPORT_HOME/.claude/projects/$(echo "$real_proj" | tr '/.' '-')"
+  mkdir -p "$sessions"
+  echo '{}' >"$sessions/older.jsonl"
+  touch -t 202001010000 "$sessions/older.jsonl"
+  echo '{}' >"$sessions/newer.jsonl"
+  printf '#!/bin/sh\necho stub-jq\n' >"$FAKE_BIN/jq"
+  chmod +x "$FAKE_BIN/jq"
+  output=$(cd "$EXPORT_PROJ" && HOME="$EXPORT_HOME" os="$(uname)" ZDOTDIR="$EMPTY_ZDOTDIR" PATH="$FAKE_BIN:$PATH" \
+    zsh -c "source $ALIASES; f=\$(ai-export-context claude) && cat \"\$f\" && rm -f \"\$f\"" 2>&1)
+  if [[ "$output" == *"newer"* ]]; then
+    pass "ai-export-context claude finds the newest session"
+  else
+    fail "ai-export-context claude did NOT find the newest session (got: $output)"
+  fi
+else
+  echo "SKIP  ai-export-context test ($ALIASES not found)"
+fi
+
 # ── Results ───────────────────────────────────────────────────────────────────
 
 echo
