@@ -86,8 +86,9 @@ source "$HOME/.zsh/zsh-defer/zsh-defer.plugin.zsh"
 # use starship, if installed.
 # Cache the init script keyed by the binary's mtime — invalidated automatically on upgrade.
 if command -v starship &>/dev/null; then
-  _starship_bin=$(command -v starship)
-  _starship_mtime=$(date -r "$_starship_bin" +%s 2>/dev/null || stat -c %Y "$_starship_bin" 2>/dev/null)
+  # zsh builtins (no forks): ${commands[...]} and zstat, instead of $(command -v)/date/stat.
+  _starship_bin=${commands[starship]}
+  zmodload -F zsh/stat b:zstat 2>/dev/null && zstat -A _starship_mtime +mtime -- "$_starship_bin" 2>/dev/null
   _starship_cache="${XDG_CACHE_HOME:-$HOME/.cache}/starship-init-${_starship_mtime}.zsh"
   if [[ ! -f "$_starship_cache" ]]; then
     rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/starship-init-*.zsh
