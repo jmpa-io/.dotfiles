@@ -127,6 +127,12 @@ n=0
 while true; do
   ((n % ${POLL_FRAMES:-25} == 0)) && refresh
   render "${frames[n % ${#frames[@]}]}"
-  n=$((n + 1))
-  sleep "${FRAME_DELAY:-0.12}"
+  if [[ "$state" == connected ]]; then
+    n=$((n + 1))
+    sleep "${FRAME_DELAY:-0.12}"
+  else
+    # nothing to animate: re-check slowly instead of redrawing ~8x a second.
+    n=0
+    sleep "${IDLE_DELAY:-2}"
+  fi
 done
