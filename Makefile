@@ -29,7 +29,7 @@ endef
 
 # Symlink a config directory into ~/.config/.
 define cfg
-	ln -sfn $(PWD)/$1 $(HOME)/.config/
+	ln -sfn $(CURDIR)/$1 $(HOME)/.config/
 endef
 
 # Symlink one repo file to a destination: $(call link-file,<repo path>,<dest>).
@@ -37,14 +37,14 @@ endef
 # the repo copy; otherwise leaves it alone and says so.
 define link-file
 	@mkdir -p "$$(dirname "$2")"; \
-	if [ -L "$2" ] && [ "$$(readlink "$2")" = "$(PWD)/$1" ]; then \
+	if [ -L "$2" ] && [ "$$(readlink "$2")" = "$(CURDIR)/$1" ]; then \
 		echo "  $2 already linked"; \
 	elif [ ! -e "$2" ] && [ ! -L "$2" ]; then \
-		ln -s "$(PWD)/$1" "$2" && echo "  linked $2"; \
-	elif [ -f "$2" ] && [ ! -L "$2" ] && cmp -s "$2" "$(PWD)/$1"; then \
-		ln -sf "$(PWD)/$1" "$2" && echo "  linked $2 (was identical)"; \
+		ln -s "$(CURDIR)/$1" "$2" && echo "  linked $2"; \
+	elif [ -f "$2" ] && [ ! -L "$2" ] && cmp -s "$2" "$(CURDIR)/$1"; then \
+		ln -sf "$(CURDIR)/$1" "$2" && echo "  linked $2 (was identical)"; \
 	else \
-		echo "  $2 differs from the repo copy — skipped (see: diff $2 $(PWD)/$1)"; \
+		echo "  $2 differs from the repo copy — skipped (see: diff $2 $(CURDIR)/$1)"; \
 	fi
 endef
 
@@ -53,10 +53,10 @@ endef
 # <dest>.dotfiles-bak.<timestamp>, so re-running never loses local edits.
 define link-backup
 	mkdir -p "$$(dirname "$2")"; \
-	if [ -e "$2" ] && [ ! -L "$2" ] && ! cmp -s "$2" "$(PWD)/$1"; then \
+	if [ -e "$2" ] && [ ! -L "$2" ] && ! cmp -s "$2" "$(CURDIR)/$1"; then \
 		mv "$2" "$2.dotfiles-bak.$$(date +%s)" && echo "  backed up $2"; \
 	fi; \
-	ln -sf "$(PWD)/$1" "$2"
+	ln -sf "$(CURDIR)/$1" "$2"
 endef
 
 # Symlink files from a directory directly into $HOME/ (see link-backup).
@@ -353,7 +353,7 @@ install-neovim: ## Install 'neovim'.
 configure-neovim: ## Configure 'neovim'.
 configure-neovim: .config/neovim $(HOME)/.config
 	git submodule update --init --recursive
-	ln -sfn $(PWD)/.config/neovim/ $(HOME)/.config/nvim
+	ln -sfn $(CURDIR)/.config/neovim/ $(HOME)/.config/nvim
 
 setup-neovim: install-neovim configure-neovim
 
@@ -462,7 +462,7 @@ setup-brightnessctl: install-brightnessctl
 configure-i3: ## Configure 'i3' (Linux only).
 ifeq ($(OS),linux)
 configure-i3: .config/i3
-	ln -sfn $(PWD)/.config/i3 $(HOME)/.i3
+	ln -sfn $(CURDIR)/.config/i3 $(HOME)/.i3
 else
 configure-i3:
 	@echo "Skipping i3 configuration (Linux only)."
@@ -612,8 +612,8 @@ configure-bin: ## Link the repo's scripts into ~/bin by their .sh names (if ~/bi
 	@if [ -e $(HOME)/bin ] || [ -L $(HOME)/bin ]; then \
 		echo "  ~/bin already exists — leaving it alone"; \
 	else \
-		for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
-			rel=$${f#$(PWD)/.config/common/bin/}; \
+		for f in $$(find $(CURDIR)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
+			rel=$${f#$(CURDIR)/.config/common/bin/}; \
 			mkdir -p "$(HOME)/bin/$$(dirname $$rel)"; \
 			ln -s "$$f" "$(HOME)/bin/$$rel"; \
 		done; \
@@ -654,7 +654,7 @@ setup-docker: install-docker
 configure-iterm2: ## Configure 'iTerm2' profile (macOS only).
 ifeq ($(OS),darwin)
 	mkdir -p "$(HOME)/Library/Application Support/iTerm2/DynamicProfiles"
-	ln -sfn $(PWD)/.config/iterm2/Default.json \
+	ln -sfn $(CURDIR)/.config/iterm2/Default.json \
 		"$(HOME)/Library/Application Support/iTerm2/DynamicProfiles/Default.json"
 	@mkdir -p $(HOME)/bin
 	@if [ -f "/Applications/iTerm.app/Contents/Resources/utilities/imgcat" ]; then \
@@ -682,14 +682,14 @@ configure-vscode: ## Configure VS Code settings and extensions (macOS only).
 ifeq ($(OS),darwin)
 configure-vscode: .config/vscode
 	@mkdir -p "$(HOME)/Library/Application Support/Code/User"
-	@ln -sf $(PWD)/.config/vscode/settings.json \
+	@ln -sf $(CURDIR)/.config/vscode/settings.json \
 		"$(HOME)/Library/Application Support/Code/User/settings.json"
-	@ln -sf $(PWD)/.config/vscode/extensions.json \
+	@ln -sf $(CURDIR)/.config/vscode/extensions.json \
 		"$(HOME)/Library/Application Support/Code/User/extensions.json"
 	@echo "  linked VS Code settings.json and extensions.json"
 	@if command -v code >/dev/null 2>&1; then \
 		echo "  installing recommended extensions..."; \
-		jq -r '.recommendations[]' $(PWD)/.config/vscode/extensions.json 2>/dev/null | \
+		jq -r '.recommendations[]' $(CURDIR)/.config/vscode/extensions.json 2>/dev/null | \
 			grep -v '^\s*//' | \
 			xargs -I{} code --install-extension {} --force; \
 	else \
@@ -711,7 +711,7 @@ install-fonts: ## Install fonts (Linux only).
 ifeq ($(OS),linux)
 	sudo pacman -S --needed --noconfirm noto-fonts-emoji
 	mkdir -p $(HOME)/.local/share/fonts
-	cp $(PWD)/fonts/*.ttf $(PWD)/fonts/*.otf $(HOME)/.local/share/fonts/ 2>/dev/null || true
+	cp $(CURDIR)/fonts/*.ttf $(CURDIR)/fonts/*.otf $(HOME)/.local/share/fonts/ 2>/dev/null || true
 	fc-cache -fv
 else
 	@echo "Skipping font installation (Linux only — macOS uses brew cask)."
@@ -807,12 +807,12 @@ configure-common: ## Configure common shell files.
 configure-common: .config/common
 	$(call cfg-home,.config/common)
 	@# If ~/bin already points at the repo's bin dir, per-script links would be written back into the repo (and i3/polybar call the .sh names), so skip them.
-	@if [ -L $(HOME)/bin ] && [ "$$(cd $(HOME)/bin && pwd -P)" = "$$(cd $(PWD)/.config/common/bin && pwd -P)" ]; then \
+	@if [ -L $(HOME)/bin ] && [ "$$(cd $(HOME)/bin && pwd -P)" = "$$(cd $(CURDIR)/.config/common/bin && pwd -P)" ]; then \
 		echo "  ~/bin -> .config/common/bin already; scripts are available by their .sh names"; \
 	else \
 		mkdir -p $(HOME)/bin; \
-		for f in $$(find $(PWD)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
-			rel=$${f#$(PWD)/.config/common/bin/}; \
+		for f in $$(find $(CURDIR)/.config/common/bin -type f -name "*.sh" ! -path "*/.tests/*"); do \
+			rel=$${f#$(CURDIR)/.config/common/bin/}; \
 			dir=$$(dirname $$rel); \
 			dest=$(HOME)/bin/$$([ "$$dir" = "." ] && echo "" || echo "$$dir/")$$(basename $$rel .sh); \
 			mkdir -p $$(dirname $$dest); \
@@ -826,25 +826,25 @@ setup-common: configure-common
 .PHONY: configure-dotfiles-d
 configure-dotfiles-d: ## Symlink versioned shell files into ~/.dotfiles.d/.
 	@mkdir -p $(HOME)/.dotfiles.d
-	@ln -sf $(PWD)/.config/common/aliases $(HOME)/.dotfiles.d/aliases && echo "  linked aliases"
-	@ln -sf $(PWD)/.config/common/.ai-aliases $(HOME)/.dotfiles.d/ai-aliases && echo "  linked ai-aliases"
-	@ln -sf $(PWD)/.config/common/wt $(HOME)/.dotfiles.d/wt && echo "  linked wt"
+	@ln -sf $(CURDIR)/.config/common/aliases $(HOME)/.dotfiles.d/aliases && echo "  linked aliases"
+	@ln -sf $(CURDIR)/.config/common/.ai-aliases $(HOME)/.dotfiles.d/ai-aliases && echo "  linked ai-aliases"
+	@ln -sf $(CURDIR)/.config/common/wt $(HOME)/.dotfiles.d/wt && echo "  linked wt"
 
 .PHONY: configure-npmrc
 configure-npmrc: ## Symlink .npmrc into home directory.
-	@ln -sf $(PWD)/.config/common/.npmrc $(HOME)/.npmrc && echo "  linked .npmrc"
+	@ln -sf $(CURDIR)/.config/common/.npmrc $(HOME)/.npmrc && echo "  linked .npmrc"
 
 .PHONY: test-ai-aliases
 test-ai-aliases: ## Test .ai-aliases shell functions.
-	@zsh $(PWD)/.config/common/bin/.tests/test-ai-aliases.sh
+	@zsh $(CURDIR)/.config/common/bin/.tests/test-ai-aliases.sh
 
 .PHONY: test-links
 test-links: ## Test link-backup/cfg-home (backups, idempotency) in a temp HOME.
-	@bash $(PWD)/.config/common/bin/.tests/test-links.sh
+	@bash $(CURDIR)/.config/common/bin/.tests/test-links.sh
 
 .PHONY: test-aws-keepalive
 test-aws-keepalive: ## Test aws-keepalive (stubbed aws + crontab).
-	@bash $(PWD)/.config/common/bin/.tests/test-aws-keepalive.sh
+	@bash $(CURDIR)/.config/common/bin/.tests/test-aws-keepalive.sh
 
 # ---------------------------------------------------------------
 # Housekeeping
@@ -863,7 +863,7 @@ install-tmux: ## Install 'tmux'.
 configure-tmux: ## Configure 'tmux'.
 configure-tmux: .config/tmux $(HOME)/.config
 	$(call cfg,.config/tmux)
-	ln -sfn $(PWD)/.config/tmux $(HOME)/.tmux
+	ln -sfn $(CURDIR)/.config/tmux $(HOME)/.tmux
 
 setup-tmux: install-tmux configure-tmux
 
@@ -871,17 +871,17 @@ setup-tmux: install-tmux configure-tmux
 test-arch: ## Test the COMMITTED dotfiles (HEAD) in a clean Arch container (needs docker; screenshot in dist/arch-test/).
 	docker build -q -t dotfiles-arch-test -f test/arch/Dockerfile test/arch
 	@mkdir -p dist/arch-test
-	git archive HEAD | docker run -i --rm -v "$(PWD)/dist/arch-test:/out" dotfiles-arch-test \
+	git archive HEAD | docker run -i --rm -v "$(CURDIR)/dist/arch-test:/out" dotfiles-arch-test \
 		bash -c 'mkdir -p /tmp/src && tar -x -C /tmp/src && SRC=/tmp/src bash /tmp/src/test/arch/run-tests.sh'
 
 test-arch-worktree: ## Same, but test the working tree including uncommitted changes.
 	docker build -q -t dotfiles-arch-test -f test/arch/Dockerfile test/arch
 	@mkdir -p dist/arch-test
-	docker run --rm -v "$(PWD):/src:ro" -v "$(PWD)/dist/arch-test:/out" \
+	docker run --rm -v "$(CURDIR):/src:ro" -v "$(CURDIR)/dist/arch-test:/out" \
 		dotfiles-arch-test /src/test/arch/run-tests.sh
 
 test-tmux: ## Test tmux session functions (pane counts + idempotency).
-	@bash $(PWD)/.config/common/bin/.tests/test-tmux.sh
+	@bash $(CURDIR)/.config/common/bin/.tests/test-tmux.sh
 
 
 # ---------------------------------------------------------------

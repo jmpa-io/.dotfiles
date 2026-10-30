@@ -1,1 +1,1 @@
-*/15 * * * * AWS_KEEPALIVE_PROFILE=jmpa /home/me/.dotfiles/.config/common/bin/aws-keepalive.sh run # aws-keepalive
+*/15 * * * * AWS_KEEPALIVE_PROFILE=jmpa $HOME/.dotfiles/.config/common/bin/aws-keepalive.sh run # aws-keepalive

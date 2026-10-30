@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Terminate any existing instances of polybar.
-killall -q polybar
+pkill -u "$UID" -x polybar
 
 # Wait until the processes have been shut down.
 while pgrep -u "$UID" -x polybar >/dev/null; do sleep 0.5; done
