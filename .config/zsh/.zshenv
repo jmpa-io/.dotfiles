@@ -1,6 +1,10 @@
 
-# determine os (export so it's available in .zshrc).
-os=$(uname) || { echo "failed to get operating system" >&2; exit 1; }
+# determine os (export so it's available in .zshrc). $OSTYPE avoids forking uname on every shell.
+case "$OSTYPE" in
+darwin*) os=Darwin ;;
+linux*) os=Linux ;;
+*) os=$(uname) || { echo "failed to get operating system" >&2; exit 1; } ;;
+esac
 export os
 
 # general (cross-platform).
