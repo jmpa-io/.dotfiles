@@ -82,3 +82,5 @@ jobs:
         run: make test-tmux
       - name: Run aws-keepalive tests
         run: make test-aws-keepalive
+      - name: Run link tests
+        run: make test-links

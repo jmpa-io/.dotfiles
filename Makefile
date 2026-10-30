@@ -8,7 +8,7 @@ OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 
 # Package manager per OS.
 PKG_DARWIN  = brew install
-PKG_LINUX   = sudo pacman -S --noconfirm
+PKG_LINUX   = sudo pacman -S --needed --noconfirm
 
 # i3 desktop packages (Arch and Manjaro). Manjaro's 'manjaro-i3-settings' used
 # to pull i3, picom, dunst etc. in implicitly; list them so plain Arch gets them.
@@ -48,10 +48,21 @@ define link-file
 	fi
 endef
 
-# Symlink files from a directory directly into $HOME/.
+# Force-link one repo file to a destination: $(call link-backup,<repo path>,<dest>).
+# A real file at <dest> that differs from the repo copy is first moved aside to
+# <dest>.dotfiles-bak.<timestamp>, so re-running never loses local edits.
+define link-backup
+	mkdir -p "$$(dirname "$2")"; \
+	if [ -e "$2" ] && [ ! -L "$2" ] && ! cmp -s "$2" "$(PWD)/$1"; then \
+		mv "$2" "$2.dotfiles-bak.$$(date +%s)" && echo "  backed up $2"; \
+	fi; \
+	ln -sf "$(PWD)/$1" "$2"
+endef
+
+# Symlink files from a directory directly into $HOME/ (see link-backup).
 define cfg-home
 	for f in $$(find $1 -mindepth 1 -maxdepth 1 -type f); do \
-		ln -sf $(PWD)/$$f $(HOME)/; \
+		$(call link-backup,$$f,$(HOME)/$$(basename $$f)); \
 	done
 endef
 
@@ -223,8 +234,7 @@ install-github-cli: ## Install 'github-cli'.
 
 configure-github-cli: ## Configure 'github-cli'.
 configure-github-cli: .config/gh
-	mkdir -p $(HOME)/.config/gh
-	ln -sf $(PWD)/.config/gh/config.yml $(HOME)/.config/gh/config.yml
+	@$(call link-backup,.config/gh/config.yml,$(HOME)/.config/gh/config.yml)
 	gh auth status &>/dev/null || gh auth login
 	gh auth setup-git
 
@@ -238,7 +248,7 @@ setup-github-cli: install-github-cli configure-github-cli
 configure-ssh: ## Configure 'ssh'.
 configure-ssh: .config/ssh
 	mkdir -p $(HOME)/.ssh
-	ln -sf $(PWD)/.config/ssh/config $(HOME)/.ssh/config
+	@$(call link-backup,.config/ssh/config,$(HOME)/.ssh/config)
 
 setup-ssh: configure-ssh
 
@@ -356,7 +366,7 @@ install-wezterm: ## Install 'wezterm'.
 ifeq ($(OS),darwin)
 	brew install --cask wezterm
 else
-	sudo pacman -S --noconfirm wezterm
+	sudo pacman -S --needed --noconfirm wezterm
 endif
 
 configure-wezterm: ## Configure 'wezterm'.
@@ -383,7 +393,7 @@ setup-btop: configure-btop
 .PHONY: install-polybar configure-polybar setup-polybar
 install-polybar: ## Install 'polybar' (Linux only).
 ifeq ($(OS),linux)
-	sudo pacman -S --noconfirm polybar
+	sudo pacman -S --needed --noconfirm polybar
 else
 	@echo "Skipping polybar installation (Linux only)."
 endif
@@ -422,7 +432,7 @@ setup-picom: configure-picom
 .PHONY: install-pulsemixer setup-pulsemixer
 install-pulsemixer: ## Install 'pulsemixer' (Linux only).
 ifeq ($(OS),linux)
-	sudo pacman -S --noconfirm pulsemixer
+	sudo pacman -S --needed --noconfirm pulsemixer
 else
 	@echo "Skipping pulsemixer installation (Linux only)."
 endif
@@ -436,7 +446,7 @@ setup-pulsemixer: install-pulsemixer
 .PHONY: install-brightnessctl setup-brightnessctl
 install-brightnessctl: ## Install 'brightnessctl' and add the user to 'video' (Linux only).
 ifeq ($(OS),linux)
-	sudo pacman -S --noconfirm brightnessctl
+	sudo pacman -S --needed --noconfirm brightnessctl
 	sudo usermod -aG video $(USER)
 else
 	@echo "Skipping brightnessctl installation (Linux only)."
@@ -534,10 +544,37 @@ else
 	@echo "Skipping desktop installation (Linux only)."
 endif
 
-install-desktop-aur: ## Install the desktop's AUR packages via yay (Linux only).
+install-desktop-aur: ## Install the desktop's AUR packages via yay (Linux only). Set AUR_SRC_DIR=<dir with <pkg>/PKGBUILD> to build from staged sources instead (no yay, no network to the AUR).
 ifeq ($(OS),linux)
+ifdef AUR_SRC_DIR
+# Offline/restricted networks: build each package from $(AUR_SRC_DIR)/<pkg> in a scratch copy
+# (makepkg writes src/ and pkg/ next to the PKGBUILD). Already-installed packages are skipped.
+# A package with no staged PKGBUILD is an error (they are all required by the desktop), after
+# the others have been built.
+	@missing=""; \
+	for pkg in $(DESKTOP_AUR_PKGS); do \
+		if pacman -Qi "$$pkg" >/dev/null 2>&1; then \
+			echo "  $$pkg already installed"; \
+		elif [ ! -f "$(AUR_SRC_DIR)/$$pkg/PKGBUILD" ]; then \
+			echo "  warning: no $(AUR_SRC_DIR)/$$pkg/PKGBUILD for $$pkg" >&2; \
+			missing="$$missing $$pkg"; \
+		else \
+			build=$$(mktemp -d) || exit 1; \
+			cp -R "$(AUR_SRC_DIR)/$$pkg/." "$$build/" \
+				&& (cd "$$build" && makepkg -si --noconfirm --needed); \
+			rc=$$?; \
+			rm -rf "$$build"; \
+			[ $$rc -eq 0 ] || exit $$rc; \
+		fi; \
+	done; \
+	if [ -n "$$missing" ]; then \
+		echo "error: AUR packages with no staged source in $(AUR_SRC_DIR):$$missing" >&2; \
+		exit 1; \
+	fi
+else
 	@command -v yay >/dev/null 2>&1 || $(MAKE) --no-print-directory install-yay
 	yay -S --needed --noconfirm $(DESKTOP_AUR_PKGS)
+endif
 else
 	@echo "Skipping desktop AUR installation (Linux only)."
 endif
@@ -604,7 +641,7 @@ install-docker: ## Install 'docker'.
 ifeq ($(OS),darwin)
 	brew install --cask docker
 else
-	sudo pacman -S --noconfirm docker docker-compose
+	sudo pacman -S --needed --noconfirm docker docker-compose
 endif
 
 setup-docker: install-docker
@@ -672,7 +709,7 @@ setup-vscode: configure-vscode
 .PHONY: install-fonts setup-fonts
 install-fonts: ## Install fonts (Linux only).
 ifeq ($(OS),linux)
-	sudo pacman -S --noconfirm noto-fonts-emoji
+	sudo pacman -S --needed --noconfirm noto-fonts-emoji
 	mkdir -p $(HOME)/.local/share/fonts
 	cp $(PWD)/fonts/*.ttf $(PWD)/fonts/*.otf $(HOME)/.local/share/fonts/ 2>/dev/null || true
 	fc-cache -fv
@@ -691,7 +728,7 @@ install-terraform: ## Install 'terraform'.
 ifeq ($(OS),darwin)
 	brew install hashicorp/tap/terraform
 else
-	sudo pacman -S --noconfirm terraform
+	sudo pacman -S --needed --noconfirm terraform
 endif
 
 # ---------------------------------------------------------------
@@ -754,7 +791,7 @@ install-rclone: ## Install 'rclone'.
 .PHONY: install-xautolock
 install-xautolock: ## Install 'xautolock' (Linux only).
 ifeq ($(OS),linux)
-	sudo pacman -S --noconfirm xautolock
+	sudo pacman -S --needed --noconfirm xautolock
 else
 	@echo "Skipping xautolock installation (Linux only)."
 endif
@@ -800,6 +837,10 @@ configure-npmrc: ## Symlink .npmrc into home directory.
 .PHONY: test-ai-aliases
 test-ai-aliases: ## Test .ai-aliases shell functions.
 	@zsh $(PWD)/.config/common/bin/.tests/test-ai-aliases.sh
+
+.PHONY: test-links
+test-links: ## Test link-backup/cfg-home (backups, idempotency) in a temp HOME.
+	@bash $(PWD)/.config/common/bin/.tests/test-links.sh
 
 .PHONY: test-aws-keepalive
 test-aws-keepalive: ## Test aws-keepalive (stubbed aws + crontab).
