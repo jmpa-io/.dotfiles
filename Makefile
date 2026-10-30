@@ -553,12 +553,16 @@ else
 	@echo "Skipping nitrogen installation (Linux only)."
 endif
 
-install-yay: ## Build and install the 'yay' AUR helper (Linux only).
+install-yay: ## Build and install the 'yay' AUR helper (Linux only). Set YAY_SRC=<dir with PKGBUILD> to skip the AUR clone.
 ifeq ($(OS),linux)
 	sudo pacman -S --needed --noconfirm base-devel git
 	rm -rf dist/yay-bin
 	@mkdir -p dist
+ifdef YAY_SRC
+	cp -R $(YAY_SRC) dist/yay-bin
+else
 	git clone https://aur.archlinux.org/yay-bin.git dist/yay-bin
+endif
 	cd dist/yay-bin && makepkg -si --noconfirm
 else
 	@echo "Skipping yay installation (Linux only)."
