@@ -24,7 +24,6 @@ unset index
 _ZSRC_CMD='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.dotfiles.d/wt" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
 alias zsrc="$_ZSRC_CMD"
 
-
 # Re-source shell config across all tmux panes (or a single pane with -p).
 # Usage:
 #   t-zsrc          — re-source all panes
@@ -160,32 +159,32 @@ _t-session-layout() {
   if ! tmux has-session -t "$session" 2>/dev/null; then
     tmux new-session -d -s "$session"
     case "$shape" in
-      wide-left)
-        tmux split-window -h -t "$session"
-        tmux split-window -v -t "$session:1.2"
-        tmux select-pane -t "$session:1.1"
-        ;;
-      wide-right)
-        tmux split-window -h -t "$session"
-        tmux split-window -v -t "$session:1.1"
-        tmux select-pane -t "$session:1.2"
-        ;;
-      side-by-side)
-        tmux split-window -h -t "$session"
-        tmux select-pane -t "$session:1.1"
-        ;;
+    wide-left)
+      tmux split-window -h -t "$session"
+      tmux split-window -v -t "$session:1.2"
+      tmux select-pane -t "$session:1.1"
+      ;;
+    wide-right)
+      tmux split-window -h -t "$session"
+      tmux split-window -v -t "$session:1.1"
+      tmux select-pane -t "$session:1.2"
+      ;;
+    side-by-side)
+      tmux split-window -h -t "$session"
+      tmux select-pane -t "$session:1.1"
+      ;;
     esac
   fi
   tmux attach-session -t "$session"
 }
 
-t-work-1()  { _t-session-layout work-1  wide-left; }     # wide left + 2 stacked right — work session
-t-work-2()  { _t-session-layout work-2  wide-right; }    # 2 stacked left + wide right — opposite of work-1
-t-work-3()  { _t-session-layout work-3  side-by-side; }  # 2 terminals side by side — work session
-t-work-4()  { _t-session-layout work-4  side-by-side; }  # 2 terminals side by side — same shape as work-3
-t-work-5()  { _t-session-layout work-5  single; }        # single terminal — clean session
-t-homelab() { _t-session-layout homelab wide-left; }     # main left + 2 stacked right
-t-misc()    { _t-session-layout misc    single; }        # single pane — clean shell for one-offs
+t-work-1() { _t-session-layout work-1 wide-left; }    # wide left + 2 stacked right — work session
+t-work-2() { _t-session-layout work-2 wide-right; }   # 2 stacked left + wide right — opposite of work-1
+t-work-3() { _t-session-layout work-3 side-by-side; } # 2 terminals side by side — work session
+t-work-4() { _t-session-layout work-4 side-by-side; } # 2 terminals side by side — same shape as work-3
+t-work-5() { _t-session-layout work-5 single; }       # single terminal — clean session
+t-homelab() { _t-session-layout homelab wide-left; }  # main left + 2 stacked right
+t-misc() { _t-session-layout misc single; }           # single pane — clean shell for one-offs
 
 # t-claude [name] [path] — create or attach a task-named Claude session.
 # Usage:
@@ -288,15 +287,18 @@ copilot() {
   [[ -f "$HOME/.auto_approve" ]] && env_prefix=(env COPILOT_ALLOW_ALL=true)
   local attempt=1 max=3 rc errfile
   errfile=$(mktemp "${TMPDIR:-/tmp}/copilot-stderr.XXXXXX")
-  while (( attempt <= max )); do
-    : > "$errfile"
+  while ((attempt <= max)); do
+    : >"$errfile"
     "${env_prefix[@]}" "$real_copilot" "$@" 2> >(tee "$errfile" >&2)
     rc=$?
     wait
     if [[ $rc -ne 0 ]] && grep -q "dyld.*Library not loaded" "$errfile" 2>/dev/null; then
-      (( attempt == max )) && { rm -f "$errfile"; return $rc; }
+      ((attempt == max)) && {
+        rm -f "$errfile"
+        return $rc
+      }
       sleep 1
-      (( attempt++ ))
+      ((attempt++))
       continue
     fi
     rm -f "$errfile"
@@ -351,13 +353,13 @@ ai-export-context() {
       sqlite3 -json "$HOME/.copilot/session-store.db" \
         "SELECT turn_index, user_message, assistant_response FROM turns
          WHERE session_id = '$session_id'
-         ORDER BY turn_index DESC LIMIT $max;" 2>/dev/null \
-        | jq -r 'reverse | .[] | "## Turn \(.turn_index)\n\n**User:** \(.user_message)\n\n**Assistant:** \(.assistant_response // "(no response yet)")\n"'
-    } > "$outfile"
+         ORDER BY turn_index DESC LIMIT $max;" 2>/dev/null |
+        jq -r 'reverse | .[] | "## Turn \(.turn_index)\n\n**User:** \(.user_message)\n\n**Assistant:** \(.assistant_response // "(no response yet)")\n"'
+    } >"$outfile"
 
   elif [[ "$source" == "claude" ]]; then
     local cwd_encoded session_file
-    local -a stat_fmt=(-f "%m %N") # BSD/macOS
+    local -a stat_fmt=(-f "%m %N")                        # BSD/macOS
     stat -c %Y / >/dev/null 2>&1 && stat_fmt=(-c "%Y %n") # GNU/Linux
     cwd_encoded=$(echo "$real_pwd" | tr '/.' '-')
     session_file=$(find "$HOME/.claude/projects/$cwd_encoded" -maxdepth 1 -name "*.jsonl" \
@@ -378,7 +380,7 @@ ai-export-context() {
         | select($text != "" and $text != null)
         | "**\($m.role | ascii_upcase):** \($text)\n"
       ' "$session_file" 2>/dev/null
-    } > "$outfile"
+    } >"$outfile"
   else
     echo "usage: ai-export-context <claude|copilot> [max_turns]" >&2
     rm -f "$outfile"
@@ -402,13 +404,16 @@ ai-export-context() {
 ai-handoff() {
   local target="$1" max="${2:-15}" source outfile
   case "$target" in
-    claude) source="copilot" ;;
-    copilot) source="claude" ;;
-    *) echo "usage: ai-handoff <claude|copilot> [max_turns]" >&2; return 64 ;;
+  claude) source="copilot" ;;
+  copilot) source="claude" ;;
+  *)
+    echo "usage: ai-handoff <claude|copilot> [max_turns]" >&2
+    return 64
+    ;;
   esac
 
   outfile=$(ai-export-context "$source" "$max") || return 1
-  echo "Handoff context from $source written to $outfile ($(wc -l < "$outfile" | tr -d ' ') lines)"
+  echo "Handoff context from $source written to $outfile ($(wc -l <"$outfile" | tr -d ' ') lines)"
 
   local seed
   seed="Continuing a session handed off from $(tr '[:lower:]' '[:upper:]' <<<"${source:0:1}")${source:1}. Prior context below — continue from here:
@@ -693,4 +698,3 @@ host=github.com" 2>/dev/null || true
     ;;
   esac
 }
-

@@ -8,7 +8,8 @@
 export DISPLAY=:1 TERM=xterm-256color
 OUT=${OUT:-/tmp/chk}
 PASSWORD=${DEVBOX_PASSWORD:-devbox}
-rm -rf "$OUT"; mkdir -p "$OUT"
+rm -rf "$OUT"
+mkdir -p "$OUT"
 fails=0
 pass() { printf 'PASS  %s\n' "$1"; }
 fail() {
@@ -25,7 +26,9 @@ shot() { import -window root "$OUT/$1.png"; }
 
 # xautolock may have locked the idle desktop; get past it so the checks can run.
 if pgrep -x i3lock >/dev/null; then
-  xdotool type --delay 100 "$PASSWORD"; xdotool key Return; sleep 3
+  xdotool type --delay 100 "$PASSWORD"
+  xdotool key Return
+  sleep 3
 fi
 closeall
 
@@ -35,39 +38,50 @@ i3-msg reload 2>&1 | grep -q true && pass "i3 reload via i3-msg" || fail "i3 rel
 
 # 2. Mod+Return opens terminal
 before=$(nwin)
-xdotool key super+Return; sleep 6
+xdotool key super+Return
+sleep 6
 after=$(nwin)
 [ "$after" -gt "$before" ] && pass "Mod+Return opens a terminal ($before -> $after windows)" || fail "Mod+Return opens terminal"
 shot 1-terminal
 
 # 3. fullscreen toggle
-xdotool key super+f; sleep 1
+xdotool key super+f
+sleep 1
 i3-msg -t get_tree | grep -q '"fullscreen_mode":1' && pass "Mod+f fullscreen" || fail "Mod+f fullscreen"
-xdotool key super+f; sleep 1
+xdotool key super+f
+sleep 1
 
 # 4. second terminal tiles
-xdotool key super+Return; sleep 6
+xdotool key super+Return
+sleep 6
 shot 2-tiled
 [ "$(nwin)" -ge $((after + 1)) ] && pass "second terminal tiles next to first" || fail "second terminal tiles"
 
 # 5. workspace switch
-i3-msg workspace 2 >/dev/null; sleep 1
+i3-msg workspace 2 >/dev/null
+sleep 1
 i3-msg -t get_workspaces | grep -q '"name":"2","visible":true\|"name":"2".*"focused":true' && pass "workspace 2 switch" || fail "workspace 2 switch"
-xdotool key super+Return; sleep 6
+xdotool key super+Return
+sleep 6
 shot 3-workspace2
-i3-msg workspace 1 >/dev/null; sleep 1
+i3-msg workspace 1 >/dev/null
+sleep 1
 
 # 6. rofi launcher via Mod+d
 closeall
-xdotool key super+d; sleep 3
+xdotool key super+d
+sleep 3
 pgrep -x rofi >/dev/null && pass "Mod+d opens rofi" || fail "Mod+d opens rofi"
-xdotool type --delay 80 "wez"; sleep 2
+xdotool type --delay 80 "wez"
+sleep 2
 shot 4-rofi-filter
-xdotool key Escape; sleep 1
+xdotool key Escape
+sleep 1
 
 # 7. screenshot key
 rm -f ~/Pictures/*.png 2>/dev/null
-xdotool key Print; sleep 3
+xdotool key Print
+sleep 3
 if find ~ -newer "$OUT/1-terminal.png" -name '*.png' -not -path "$OUT/*" -not -path '*/.cache/*' -not -path '*/nvim/*' 2>/dev/null | grep -q .; then
   pass "Print key saves a screenshot"
 else
@@ -75,12 +89,14 @@ else
 fi
 
 # 8. polybar modules respond
-polybar-msg cmd hide >/dev/null 2>&1; polybar-msg cmd show >/dev/null 2>&1 && pass "polybar ipc (hide/show)" || fail "polybar ipc"
+polybar-msg cmd hide >/dev/null 2>&1
+polybar-msg cmd show >/dev/null 2>&1 && pass "polybar ipc (hide/show)" || fail "polybar ipc"
 for s in ~/bin/system/polybar-*-status.sh; do
   [ -x "$s" ] || continue
   name=$(basename "$s")
   # nordvpn runs forever in polybar "tail" mode unless told to print once.
-  out=$(timeout 5 bash "$s" --once 2>&1 | head -1); rc=${PIPESTATUS[0]}
+  out=$(timeout 5 bash "$s" --once 2>&1 | head -1)
+  rc=${PIPESTATUS[0]}
   # faillock prints nothing when there are no failed logins; that is healthy.
   if [ "$rc" -ne 0 ]; then
     fail "$name exited $rc"
@@ -97,21 +113,32 @@ bash ~/bin/system/lock.sh >/dev/null 2>&1 &
 sleep 5
 pgrep -x i3lock >/dev/null && pass "lock.sh starts i3lock" || fail "lock.sh starts i3lock"
 shot 5-locked
-xdotool key x; shot 5a-lock-keypress
-xdotool key BackSpace; xdotool key ctrl+u
-xdotool type --delay 80 "wrong-password"; xdotool key Return; sleep 0.5
+xdotool key x
+shot 5a-lock-keypress
+xdotool key BackSpace
+xdotool key ctrl+u
+xdotool type --delay 80 "wrong-password"
+xdotool key Return
+sleep 0.5
 shot 5b-lock-verifying
-sleep 1.5; shot 5c-lock-wrong
+sleep 1.5
+shot 5c-lock-wrong
 pgrep -x i3lock >/dev/null && pass "wrong password keeps the screen locked" || fail "wrong password keeps the screen locked"
 sleep 2
-xdotool type --delay 100 "$PASSWORD"; xdotool key Return; sleep 3
+xdotool type --delay 100 "$PASSWORD"
+xdotool key Return
+sleep 3
 pgrep -x i3lock >/dev/null && fail "unlock with password" || pass "unlock with password"
 
 # 10. notifications
 eval "$(dbus-launch --sh-syntax)"
-pgrep -x dunst >/dev/null || { dunst -config ~/.config/dunst/dunstrc >/dev/null 2>&1 & sleep 2; }
+pgrep -x dunst >/dev/null || {
+  dunst -config ~/.config/dunst/dunstrc >/dev/null 2>&1 &
+  sleep 2
+}
 notify-send "check" "notify ok" && pass "notify-send" || fail "notify-send"
-sleep 1; shot 6-notify
+sleep 1
+shot 6-notify
 
 # 11. nvim: LSP, formatting, treesitter, telescope
 cd "${REPO:-$PWD}" || exit 1
