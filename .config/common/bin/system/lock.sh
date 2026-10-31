@@ -7,8 +7,15 @@ hash i3lock 2>/dev/null || {
 }
 
 # colors: Dracula, same palette as polybar, rofi and dunst.
-fg="f8f8f2ff"; muted="6272a4ff"; purple="bd93f9"; pink="ff79c6"; cyan="8be9fd"
-orange="ffb86c"; red="ff5555"; ring="44475a"; font="FiraCode Nerd Font"
+fg="f8f8f2ff"
+muted="6272a4ff"
+purple="bd93f9"
+pink="ff79c6"
+cyan="8be9fd"
+orange="ffb86c"
+red="ff5555"
+ring="44475a"
+font="FiraCode Nerd Font"
 tree="$HOME/tree-v2.png"
 [[ -f $tree ]] || tree="$HOME/.dotfiles/.config/common/tree-v2.png"
 

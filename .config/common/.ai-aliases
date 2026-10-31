@@ -21,4 +21,3 @@ claude() {
 
   command claude "${extra_args[@]}" "$@"
 }
-

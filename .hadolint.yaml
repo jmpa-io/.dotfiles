@@ -1,0 +1,6 @@
+ignored:
+  # Smoke-test images: apt packages are intentionally unpinned so the build
+  # tracks current Ubuntu security updates.
+  - DL3008
+  # The (non-numeric) user in test/arch/Dockerfile is created in the same image.
+  - DL3066
