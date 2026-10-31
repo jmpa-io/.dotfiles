@@ -835,6 +835,38 @@ configure-dotfiles-d: ## Symlink versioned shell files into ~/.dotfiles.d/.
 configure-npmrc: ## Symlink .npmrc into home directory.
 	@ln -sf $(CURDIR)/.config/common/.npmrc $(HOME)/.npmrc && echo "  linked .npmrc"
 
+# ---------------------------------------------------------------
+# Quality: `make lint`, `make format` and `make test` (same names as the org's
+# other repos; CI runs these too).
+# ---------------------------------------------------------------
+
+# Fails with a clear message when a tool is missing: $(call require,<tool>).
+define require
+	@command -v $1 >/dev/null 2>&1 || { echo "  missing '$1' (install it, e.g. brew install $1)" >&2; exit 1; }
+endef
+
+.PHONY: lint lint-sh lint-workflows lint-docker format test
+lint: lint-sh lint-workflows lint-docker ## Lint everything (shell, workflows, Dockerfiles).
+
+lint-sh: ## Lint shell scripts (shellcheck + shfmt --diff).
+	$(call require,shellcheck)
+	$(call require,shfmt)
+	@files=$$(bin/list-shell-files.sh) && shellcheck -x $$files && shfmt -d $$files
+
+lint-workflows: ## Lint GitHub Actions workflows (actionlint).
+	$(call require,actionlint)
+	@actionlint
+
+lint-docker: ## Lint Dockerfiles (hadolint).
+	$(call require,hadolint)
+	@hadolint Dockerfile test/arch/Dockerfile
+
+format: ## Format shell scripts (shfmt, per .editorconfig).
+	$(call require,shfmt)
+	@shfmt -w $$(bin/list-shell-files.sh)
+
+test: test-ai-aliases test-links test-aws-keepalive test-tmux ## Run the fast tests (the ones CI runs).
+
 .PHONY: test-ai-aliases
 test-ai-aliases: ## Test .ai-aliases shell functions.
 	@zsh $(CURDIR)/.config/common/bin/.tests/test-ai-aliases.sh

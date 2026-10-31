@@ -22,6 +22,7 @@ unset index
 # it's safe to send verbatim into another tmux pane's zsh, expanding at run time there.
 # shellcheck disable=SC2016
 _ZSRC_CMD='unset _WORK_SOURCED; for f in "$HOME/.dotfiles.d/work" "$HOME/.dotfiles.d/aliases" "$HOME/.dotfiles.d/wt" "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.dotfiles.d/ai-aliases"; do [[ -f "$f" ]] && source "$f"; done'
+# shellcheck disable=SC2139  # intentional: the command string is fixed at definition time
 alias zsrc="$_ZSRC_CMD"
 
 # Re-source shell config across all tmux panes (or a single pane with -p).
@@ -484,6 +485,7 @@ EOF
 # general.
 case "$os" in
 Darwin)
+  # shellcheck disable=SC2262  # intentional: interactive alias; no script in this file relies on it
   alias ls='ls -G'
   alias dotfiles='code "$DOTFILES"'
   alias code='open -a "Visual Studio Code"'
@@ -510,7 +512,7 @@ Linux)
   # opens the last screenshot taken in Firefox (resolved at invocation time, not source time).
   olss() {
     local f
-    # shellcheck disable=SC2012  # ls -t is intentional for mtime sort; filenames here won't have newlines
+    # shellcheck disable=SC2012,SC2263  # ls -t is intentional for mtime sort; filenames here won't have newlines
     f=$(ls -1t "$HOME/Pictures" | head -n1)
     [[ -n "$f" ]] && firefox "$HOME/Pictures/$f"
   }
