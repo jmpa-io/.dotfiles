@@ -127,9 +127,15 @@ EOF
 printf 'local x = 1\nprint(x)\n' >/tmp/a.lua
 printf '#!/usr/bin/env bash\necho hi\n' >/tmp/a.sh
 printf 'package main\nfunc main() {}\n' >/tmp/a.go
-for f in /tmp/a.lua /tmp/a.sh /tmp/a.go; do
+for spec in lua:lua_ls sh:bashls go:gopls; do
+  f=/tmp/a.${spec%%:*}
+  want=${spec##*:}
   r=$(nvim --headless "$f" -S /tmp/lsp.lua 2>&1 | tr '\n' ' ')
-  echo "INFO  nvim $f -> $r"
+  case "$r" in
+    *"LSP:"*"$want"*) pass "nvim LSP $want attaches ($f)" ;;
+    *) fail "nvim LSP $want attaches ($f): $r" ;;
+  esac
+  case "$r" in *"TS:true"*) pass "nvim treesitter active ($f)" ;; *) fail "nvim treesitter active ($f): $r" ;; esac
 done
 printf 'local   x=1\n' >/tmp/f.lua
 nvim --headless /tmp/f.lua "+lua require('conform').format({async=false})" +wq 2>/dev/null
