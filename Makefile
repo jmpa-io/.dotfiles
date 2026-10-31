@@ -15,7 +15,7 @@ PKG_LINUX   = sudo pacman -S --needed --noconfirm
 DESKTOP_PKGS = i3-wm picom dunst dmenu polybar rofi scrot xclip xorg-xrdb \
 	xdg-user-dirs lightdm lightdm-slick-greeter \
 	volumeicon pavucontrol arandr polkit-gnome pcmanfm ranger btop pulseaudio xorg-xrandr \
-	ttf-firacode-nerd noto-fonts-emoji adwaita-cursors papirus-icon-theme
+	ttf-firacode-nerd noto-fonts-emoji adwaita-cursors papirus-icon-theme imagemagick
 # AUR on Arch (some, like clipit and lightdm-settings, are only in Manjaro's repos).
 DESKTOP_AUR_PKGS = i3lock-color xautolock clipit lightdm-settings
 
