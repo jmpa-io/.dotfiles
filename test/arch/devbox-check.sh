@@ -23,6 +23,10 @@ closeall() {
 }
 shot() { import -window root "$OUT/$1.png"; }
 
+# xautolock may have locked the idle desktop; get past it so the checks can run.
+if pgrep -x i3lock >/dev/null; then
+  xdotool type --delay 100 "$PASSWORD"; xdotool key Return; sleep 3
+fi
 closeall
 
 # 1. i3 config valid + reload
@@ -87,12 +91,19 @@ for s in ~/bin/system/polybar-*-status.sh; do
   fi
 done
 
-# 9. lock screen: lock, screenshot, unlock with tester's password
+# 9. lock screen: every state, then unlock with tester's password
 closeall
 bash ~/bin/system/lock.sh >/dev/null 2>&1 &
 sleep 5
 pgrep -x i3lock >/dev/null && pass "lock.sh starts i3lock" || fail "lock.sh starts i3lock"
 shot 5-locked
+xdotool key x; shot 5a-lock-keypress
+xdotool key BackSpace; xdotool key ctrl+u
+xdotool type --delay 80 "wrong-password"; xdotool key Return; sleep 0.5
+shot 5b-lock-verifying
+sleep 1.5; shot 5c-lock-wrong
+pgrep -x i3lock >/dev/null && pass "wrong password keeps the screen locked" || fail "wrong password keeps the screen locked"
+sleep 2
 xdotool type --delay 100 "$PASSWORD"; xdotool key Return; sleep 3
 pgrep -x i3lock >/dev/null && fail "unlock with password" || pass "unlock with password"
 
