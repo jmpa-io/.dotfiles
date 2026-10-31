@@ -39,7 +39,8 @@ i3lock \
   --ring-width=20 \
   --greeter-font="FiraCode Nerd Font" \
   --greeter-size=100 \
-  --greeter-pos="x+947:y+450" \
+  --greeter-pos="x+960:y+450" \
+  --greeter-align=2 \
   --verif-size=24 \
   --wrong-size=24 \
   \
