@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+# Windows batch files must stay CRLF.
+*.bat -text
+
+*.png binary
+*.jpg binary
+*.ttf binary
+*.otf binary
+
+# Vendored assets: keep them out of the language stats.
+fonts/** linguist-vendored
+wallpapers/** linguist-vendored
