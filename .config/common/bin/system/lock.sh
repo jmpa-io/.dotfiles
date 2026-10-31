@@ -7,63 +7,57 @@ hash i3lock || {
   exit 1
 }
 
-# colors.
-# shellcheck disable=SC2034  # some colors unused directly but kept for reference/future use
-yellow="#f1fa8c"
-orange="#ffb86c"
-red="#ff5555"
-magenta="#ff79c6"
-blue="#6272a4"
-cyan="#8be9fd"
-green="#50fa7b"
-grey="#44475a"
+# colors (Dracula, toned down). i3lock wants RRGGBBAA without the '#'.
+fg="f8f8f2ff"
+muted="a9b1d6ff"
+ring="6272a4ff"
+panel="1e1f29d9"
+accent="8be9fd"
+orange="ffb86c"
+red="ff5555"
 
 # lock screen.
 i3lock \
   \
   --time-str="%I:%M %p" \
-  --date-str="%A, %e %B %Y" \
+  --date-str="%A, %e %B" \
   --screen 1 \
-  --blur 10 \
+  --blur 12 \
   --clock \
   --indicator \
   --ignore-empty-password \
   --show-failed-attempts \
   --pointer=default \
-  --line-uses-ring \
   --pass-media-keys \
   --pass-screen-keys \
   --pass-volume-keys \
   --pass-power-keys \
-  --radius=200 \
-  --ring-width=20 \
-  --greeter-font="FiraCode Nerd Font" \
-  --greeter-size=100 \
-  --greeter-pos="x+960:y+450" \
-  --greeter-align=2 \
-  --verif-size=24 \
-  --wrong-size=24 \
-  \
-  --greeter-text="" \
-  --verif-text="Checking..." \
-  --wrong-text="Wrong. 6 fails = 30s lockout" \
-  --noinput="Please type your password." \
+  --radius=170 \
+  --ring-width=4 \
+  --time-size=56 \
+  --date-size=18 \
+  --verif-size=16 \
+  --wrong-size=16 \
+  --greeter-text="" \
+  --verif-text="Verifying..." \
+  --wrong-text="Incorrect. 6 fails = 30s lockout" \
+  --noinput="Enter your password" \
   --lock-text="Locking..." \
-  --lockfailed-text="Locking failed!" \
+  --lockfailed-text="Locking failed" \
   \
-  --insidever-color="$grey" \
-  --insidewrong-color="$grey" \
-  --inside-color="$grey" \
-  --ringver-color="$green" \
-  --ringwrong-color="$red" \
-  --ring-color="$blue" \
-  --keyhl-color="$magenta" \
-  --bshl-color="$orange" \
-  --separator-color="$grey" \
-  --verif-color="$green" \
-  --wrong-color="$red" \
-  --greeter-color="$green" \
-  --modif-color="$red" \
-  --layout-color="$blue" \
-  --date-color="$cyan" \
-  --time-color="$magenta"
+  --inside-color="$panel" \
+  --insidever-color="$panel" \
+  --insidewrong-color="$panel" \
+  --ring-color="$ring" \
+  --ringver-color="${accent}ff" \
+  --ringwrong-color="${red}ff" \
+  --line-color="00000000" \
+  --separator-color="00000000" \
+  --keyhl-color="${fg}" \
+  --bshl-color="${orange}ff" \
+  --time-color="$fg" \
+  --date-color="$muted" \
+  --verif-color="${accent}ff" \
+  --wrong-color="${red}ff" \
+  --modif-color="${red}ff" \
+  --layout-color="$muted"
