@@ -17,7 +17,7 @@ fail() {
 }
 nwin() { i3-msg -t get_tree | grep -o '"window":[0-9]\+' | wc -l; }
 closeall() {
-  xdotool search --class org.wezfurlong.wezterm windowkill %@ >/dev/null 2>&1
+  pkill -u "$USER" -x wezterm-gui 2>/dev/null
   pkill -x rofi 2>/dev/null
   sleep 1
 }
