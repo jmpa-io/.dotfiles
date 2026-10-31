@@ -133,8 +133,8 @@ wt() {
     local -a rest=()
     for arg in "${@:2}"; do
       case "$arg" in
-        -f|--force) force="--force" ;;
-        *) rest+=("$arg") ;;
+      -f | --force) force="--force" ;;
+      *) rest+=("$arg") ;;
       esac
     done
     branch="${rest[1]:-}"

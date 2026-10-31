@@ -54,12 +54,16 @@ make install-desktop AUR_SRC_DIR=/path/to/aur-src
 
 Leaving `AUR_SRC_DIR` unset keeps the default `yay` behaviour. `make install-yay YAY_SRC=<dir with PKGBUILD>` does the same for `yay` itself. `test/arch/run-tests.sh` uses `/aur-src` automatically when it exists.
 
-## Tests
+## Lint and tests
 
 ```sh
-make test-ai-aliases test-aws-keepalive test-tmux test-links   # fast, run in CI
+make lint     # shellcheck + shfmt + actionlint + hadolint (needs those tools installed)
+make format   # shfmt -w on the shell scripts
+make test     # fast tests (test-ai-aliases test-aws-keepalive test-tmux test-links), run in CI
 make test-arch                                                  # clean Arch container (needs docker)
 ```
+
+`test/arch/devbox-check.sh` is an interactive functional check (i3, polybar, rofi, lock screen, nvim) for a running Arch desktop container; it writes screenshots to `$OUT` (default `/tmp/chk`).
 
 ## Git identity
 

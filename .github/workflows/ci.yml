@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [main]
 
+# Least privilege by default; jobs that need more (the lint status checks) ask for it.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   # ── Detect which paths changed ───────────────────────────────────────────────
@@ -15,8 +23,8 @@ jobs:
       shell: ${{ steps.filter.outputs.shell }}
       makefile: ${{ steps.filter.outputs.makefile }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         id: filter
         with:
           filters: |
@@ -37,17 +45,21 @@ jobs:
       contents: read
       statuses: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       - name: Lint
-        uses: super-linter/super-linter@v7
+        uses: super-linter/super-linter@12150456a73e248bdc94d0794898f94e23127c88 # v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Read root-level linter configs (.editorconfig, .hadolint.yaml).
+          LINTER_RULES_PATH: .
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_BASH: true
           VALIDATE_BASH_EXEC: true
           VALIDATE_SHELL_SHFMT: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_YAML: true
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
@@ -59,7 +71,7 @@ jobs:
     if: needs.changes.outputs.makefile == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Validate Makefile targets parse correctly
         run: make --dry-run help
 
@@ -69,7 +81,7 @@ jobs:
     if: needs.changes.outputs.shell == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Install zsh and tmux
         run: sudo apt-get install -y zsh tmux
       - name: Configure dotfiles.d symlinks

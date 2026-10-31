@@ -1,0 +1,19 @@
+---
+version: 2
+updates:
+
+  # Update `GitHub Action` dependencies weekly.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "github-actions"]
+
+  # Update Dockerfile base images weekly.
+  - package-ecosystem: docker
+    directories: ["/", "/test/arch"]
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "docker"]
