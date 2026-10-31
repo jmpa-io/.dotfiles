@@ -159,8 +159,8 @@ for spec in lua:lua_ls sh:bashls go:gopls; do
   want=${spec##*:}
   r=$(nvim --headless "$f" -S /tmp/lsp.lua 2>&1 | tr '\n' ' ')
   case "$r" in
-    *"LSP:"*"$want"*) pass "nvim LSP $want attaches ($f)" ;;
-    *) fail "nvim LSP $want attaches ($f): $r" ;;
+  *"LSP:"*"$want"*) pass "nvim LSP $want attaches ($f)" ;;
+  *) fail "nvim LSP $want attaches ($f): $r" ;;
   esac
   case "$r" in *"TS:true"*) pass "nvim treesitter active ($f)" ;; *) fail "nvim treesitter active ($f): $r" ;; esac
 done
