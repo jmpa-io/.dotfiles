@@ -94,6 +94,8 @@ i3lock \
   "${greeterArgs[@]}" \
   --time-size=60 \
   --date-size=24 \
+  --verif-pos="ix:iy+75" \
+  --wrong-pos="ix:iy+75" \
   --verif-size=24 \
   --wrong-size=19 \
   \
