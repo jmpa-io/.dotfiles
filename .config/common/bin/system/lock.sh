@@ -64,6 +64,14 @@ if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
     greeterArgs=(--greeter-pos="ix-42:iy-20" --greeter-align=1 --ind-pos="x+w/2:y+h/2-$lift" --greeter-color="$green")
 fi
 
+# "n/max" failed-attempt counter: needs the patched i3lock-color (see
+# docs/tools.md); stock i3lock only draws the bare number.
+attemptsArgs=()
+if grep -aq -- attempts-text "$(command -v i3lock)"; then
+  max=$(sed -nE 's/^[[:space:]]*deny[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' /etc/security/faillock.conf 2>/dev/null | tail -1)
+  attemptsArgs=(--attempts-text="%d/${max:-6}" --attempts-size=26)
+fi
+
 # lock screen.
 i3lock \
   "${bgArgs[@]}" \
@@ -74,6 +82,7 @@ i3lock \
   --indicator \
   --ignore-empty-password \
   --show-failed-attempts \
+  "${attemptsArgs[@]}" \
   --pointer=default \
   --line-uses-ring \
   --pass-media-keys \
@@ -96,6 +105,7 @@ i3lock \
   --date-size=24 \
   --verif-pos="ix:iy+75" \
   --wrong-pos="ix:iy+75" \
+  --status-pos="ix:iy+75" \
   --verif-size=24 \
   --wrong-size=19 \
   \
