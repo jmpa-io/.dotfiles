@@ -62,7 +62,7 @@ if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
     -fill '#50fa7b' -draw "circle $((boxX + 54)),$((boxTop + 13)) $((boxX + 54 + 5)),$((boxTop + 13))" \
     -font "$font" -pointsize "$fs" "${rows[@]}" "$bg" 2>/dev/null &&
     bgArgs=(--image="$bg") &&
-    greeterArgs=(--greeter-pos="ix-51:iy-24" --greeter-align=1 --ind-pos="x+w/2:y+h/2-$lift" --greeter-color="$green")
+    greeterArgs=(--greeter-pos="ix-47:iy-24" --greeter-align=1 --ind-pos="x+w/2:y+h/2-$lift" --greeter-color="$green")
 fi
 
 # "n/max" failed-attempt counter: needs the patched i3lock-color (see
@@ -103,7 +103,7 @@ i3lock \
   --greeter-size=120 \
   "${greeterArgs[@]}" \
   --time-size=72 \
-  --date-size=28 \
+  --date-size=22 \
   --verif-pos="ix:iy+90" \
   --wrong-pos="ix:iy+90" \
   --status-pos="ix:iy+90" \
