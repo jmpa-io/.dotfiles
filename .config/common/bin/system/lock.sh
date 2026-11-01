@@ -68,7 +68,7 @@ fi
 i3lock \
   "${bgArgs[@]}" \
   --time-str="%I:%M %p" \
-  --date-str="%a %-d %b %Y %Z" \
+  --date-str="%A, %-d %B %Y" \
   --screen 1 \
   --clock \
   --indicator \
