@@ -41,7 +41,7 @@ if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
     -stroke none -font FiraCode-Nerd-Font-Reg -gravity northwest -pointsize 18 -fill '#f8f8f2' \
     -interline-spacing 6 -annotate "+$((cx - tw / 2))+$((boxTop + pad))" "$details" "$bg" 2>/dev/null &&
     bgArgs=(--image="$bg") &&
-    greeterArgs=(--greeter-pos="ix-42:iy+120" --greeter-align=1 --greeter-color="$green")
+    greeterArgs=(--greeter-pos="ix-42:iy-90" --greeter-align=1 --greeter-color="$green")
 fi
 
 # lock screen.
