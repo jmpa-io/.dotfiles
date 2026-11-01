@@ -25,20 +25,23 @@ bg="$(mktemp --suffix=.png)"
 trap 'rm -f "$bg"' EXIT
 
 bgArgs=(--blur 10)
-greeterPos=(--greeter-pos="x+947:y+450")
+greeterArgs=(--greeter-pos="x+947:y+450" --greeter-color="$green")
 if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   read -r w h < <(magick identify -format '%w %h\n' "$bg"); then
   cx=$((w / 2)) cy=$((h / 2))
-  greeterPos=(--greeter-pos="x+$cx:y+$((cy + 125))" --greeter-align=2)
-  boxW=420 boxH=104 boxTop=$((cy + 200 + 40))
   details="$(printf '%s@%s\nlocked at %s\nup %s' "${USER:-$(id -un)}" "${HOSTNAME%%.*}" \
     "$(date '+%H:%M')" "$(uptime -p 2>/dev/null | sed 's/^up //')")"
-  magick "$bg" -blur 0x10 \
+  # size the box to its text so the padding is even.
+  read -r tw th < <(magick -font FiraCode-Nerd-Font-Reg -pointsize 18 -interline-spacing 6 \
+    label:"$details" -format '%w %h\n' info:)
+  pad=20 boxW=$((tw + pad * 2)) boxH=$((th + pad * 2)) boxTop=$((cy + 219 + 22))
+  magick "$bg" -blur 0x10 -fill '#282a3659' -draw "rectangle 0,0 $w,$h" \
     -fill '#282a36d9' -stroke '#bd93f9' -strokewidth 2 \
     -draw "roundrectangle $((cx - boxW / 2)),$boxTop $((cx + boxW / 2)),$((boxTop + boxH)) 14,14" \
-    -stroke none -fill '#f8f8f2' -font FiraCode-Nerd-Font-Reg -pointsize 18 -gravity northwest \
-    -interline-spacing 6 -annotate "+$((cx - boxW / 2 + 28))+$((boxTop + 16))" "$details" "$bg" 2>/dev/null &&
-    bgArgs=(--image="$bg")
+    -stroke none -font FiraCode-Nerd-Font-Reg -gravity northwest -pointsize 18 -fill '#f8f8f2' \
+    -interline-spacing 6 -annotate "+$((cx - tw / 2))+$((boxTop + pad))" "$details" "$bg" 2>/dev/null &&
+    bgArgs=(--image="$bg") &&
+    greeterArgs=(--greeter-pos="ix-42:iy+120" --greeter-align=1 --greeter-color="$green")
 fi
 
 # lock screen.
@@ -61,15 +64,18 @@ i3lock \
   --ring-width=20 \
   --time-font="FiraCode Nerd Font Propo SemBd" \
   --date-font="FiraCode Nerd Font" \
+  --layout-font="FiraCode Nerd Font" \
+  --time-pos="ix:iy-10" \
+  --date-pos="tx:ty+36" \
   --verif-font="FiraCode Nerd Font" \
   --wrong-font="FiraCode Nerd Font" \
   --greeter-font="FiraCode Nerd Font" \
   --greeter-size=100 \
-  "${greeterPos[@]}" \
-  --time-size=72 \
+  "${greeterArgs[@]}" \
+  --time-size=60 \
   --date-size=24 \
   --verif-size=24 \
-  --wrong-size=24 \
+  --wrong-size=19 \
   \
   --greeter-text="" \
   --verif-text="Checking..." \
@@ -89,7 +95,6 @@ i3lock \
   --separator-color="$grey" \
   --verif-color="$green" \
   --wrong-color="$red" \
-  --greeter-color="$green" \
   --modif-color="$red" \
   --layout-color="$blue" \
   --date-color="$cyan" \
