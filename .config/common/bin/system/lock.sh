@@ -24,13 +24,11 @@ grey="#44475a"
 bg="$(mktemp --suffix=.png)"
 trap 'rm -f "$bg"' EXIT
 
+radius=250
 bgArgs=(--blur 10)
 greeterArgs=(--greeter-pos="x+947:y+450" --greeter-color="$green")
 if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   read -r w h < <(magick identify -format '%w %h\n' "$bg"); then
-  # lift the ring so ring + info panel are centred on screen as one group.
-  lift=65
-  cx=$((w / 2)) cy=$((h / 2 - lift))
   user="${USER:-$(id -un)}"
   up="$(uptime -p 2>/dev/null | sed 's/^up //')"
   font=FiraCode-Nerd-Font-Reg fs=17 rowH=26 titleH=26 pad=18
@@ -40,7 +38,10 @@ if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   keyW=$((charW * 8))
   longest=$(printf '%s\n' "$user@${HOSTNAME%%.*}" "$(date '+%H:%M')" "$up" | awk '{ if (length($0) > m) m = length($0) } END { print m }')
   boxW=$((pad * 2 + keyW + charW * longest)) boxH=$((titleH + 12 + rowH * 3 + 4))
-  boxX=$((cx - boxW / 2)) boxTop=$((cy + 219 + 20)) tx=$((cx - boxW / 2 + pad))
+  # lift the ring so ring + info panel are centred on screen as one group.
+  lift=$((boxH / 2 + 15))
+  cx=$((w / 2)) cy=$((h / 2 - lift))
+  boxX=$((cx - boxW / 2)) boxTop=$((cy + radius + 19 + 20)) tx=$((cx - boxW / 2 + pad))
   rowsTop=$((boxTop + titleH + 12))
   # no -gravity: -annotate then positions by baseline, so mixed glyph heights line up.
   row() { # key value index
@@ -61,7 +62,7 @@ if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
     -fill '#50fa7b' -draw "circle $((boxX + 54)),$((boxTop + 13)) $((boxX + 54 + 5)),$((boxTop + 13))" \
     -font "$font" -pointsize "$fs" "${rows[@]}" "$bg" 2>/dev/null &&
     bgArgs=(--image="$bg") &&
-    greeterArgs=(--greeter-pos="ix-42:iy-20" --greeter-align=1 --ind-pos="x+w/2:y+h/2-$lift" --greeter-color="$green")
+    greeterArgs=(--greeter-pos="ix-51:iy-24" --greeter-align=1 --ind-pos="x+w/2:y+h/2-$lift" --greeter-color="$green")
 fi
 
 # "n/max" failed-attempt counter: needs the patched i3lock-color (see
@@ -69,7 +70,7 @@ fi
 attemptsArgs=()
 if grep -aq -- attempts-text "$(command -v i3lock)"; then
   max=$(sed -nE 's/^[[:space:]]*deny[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' /etc/security/faillock.conf 2>/dev/null | tail -1)
-  attemptsArgs=(--attempts-text="%d/${max:-6}" --attempts-size=26)
+  attemptsArgs=(--attempts-text="%d/${max:-6}" --attempts-size=30)
 fi
 
 # lock screen.
@@ -89,25 +90,25 @@ i3lock \
   --pass-screen-keys \
   --pass-volume-keys \
   --pass-power-keys \
-  --radius=200 \
+  --radius="$radius" \
   --ring-width=20 \
   --time-font="FiraCode Nerd Font Propo SemBd" \
   --date-font="FiraCode Nerd Font" \
   --layout-font="FiraCode Nerd Font" \
-  --time-pos="ix:iy+60" \
+  --time-pos="ix:iy+72" \
   --date-pos="tx:ty+36" \
   --verif-font="FiraCode Nerd Font" \
   --wrong-font="FiraCode Nerd Font" \
   --greeter-font="FiraCode Nerd Font" \
-  --greeter-size=100 \
+  --greeter-size=120 \
   "${greeterArgs[@]}" \
-  --time-size=60 \
-  --date-size=24 \
-  --verif-pos="ix:iy+75" \
-  --wrong-pos="ix:iy+75" \
-  --status-pos="ix:iy+75" \
-  --verif-size=24 \
-  --wrong-size=19 \
+  --time-size=72 \
+  --date-size=28 \
+  --verif-pos="ix:iy+90" \
+  --wrong-pos="ix:iy+90" \
+  --status-pos="ix:iy+90" \
+  --verif-size=28 \
+  --wrong-size=24 \
   \
   --greeter-text="" \
   --verif-text="Checking..." \
