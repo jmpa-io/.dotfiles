@@ -1,0 +1,81 @@
+--- a/i3lock.c	2026-11-02 00:17:44
++++ b/i3lock.c	2026-11-02 00:18:21
+@@ -195,6 +195,8 @@
+ char* noinput_text = "no input";
+ char* lock_text = "locking…";
+ char* lock_failed_text = "lock failed!";
++char* attempts_text = "%d";
++double attempts_size = 32.0;
+ int   keylayout_mode = -1;
+ char* layout_text = NULL;
+ char* greeter_text = "";
+@@ -1638,6 +1640,8 @@
+         {"date-size", required_argument, NULL, 531},
+         {"verif-size", required_argument, NULL, 532},
+         {"wrong-size", required_argument, NULL, 533},
++        {"attempts-text", required_argument, NULL, 960},
++        {"attempts-size", required_argument, NULL, 961},
+         {"layout-size", required_argument, NULL, 534},
+         {"modif-size", required_argument, NULL, 535},
+         {"greeter-size", required_argument, NULL, 536},
+@@ -2084,6 +2088,33 @@
+                     verif_size = 28.0;
+                 }
+                 break;
++            case 960: {
++                // must be a printf format with exactly one %d and no other conversions
++                const char *f = optarg;
++                int convs = 0;
++                bool ok = true;
++                for (; *f; f++) {
++                    if (*f != '%')
++                        continue;
++                    if (f[1] == '%') {
++                        f++;
++                    } else if (f[1] == 'd') {
++                        convs++;
++                        f++;
++                    } else {
++                        ok = false;
++                        break;
++                    }
++                }
++                if (!ok || convs != 1)
++                    errx(1, "attempts-text must contain exactly one %%d and no other conversions\n");
++                attempts_text = optarg;
++                break;
++            }
++            case 961:
++                if (sscanf(optarg, "%lf", &attempts_size) != 1 || attempts_size < 1)
++                    errx(1, "attempts-size must be a positive number\n");
++                break;
+             case 533:
+                 arg = optarg;
+                 if (sscanf(arg, "%lf", &wrong_size) != 1)
+--- a/unlock_indicator.c	2026-11-02 00:17:44
++++ b/unlock_indicator.c	2026-11-02 00:18:21
+@@ -169,6 +169,8 @@
+ 
+ /* Whether the failed attempts should be displayed. */
+ extern bool show_failed_attempts;
++extern char *attempts_text;
++extern double attempts_size;
+ /* Number of failed unlock attempts. */
+ extern int failed_attempts;
+ 
+@@ -885,12 +887,12 @@
+                     draw_data.status_text.size = wrong_size;
+                     draw_data.status_text.outline_width = wrongoutlinewidth;
+                     draw_data.status_text.align = wrong_align;
+-                    // TODO: variable for this
+-                    draw_data.status_text.size = 32.0;
++                    draw_data.status_text.size = attempts_size;
+                     if (failed_attempts > 999) {
+                         strncpy(draw_data.status_text.str, "> 999", sizeof(draw_data.status_text.str));
+                     } else {
+-                        snprintf(draw_data.status_text.str, sizeof(draw_data.status_text.str), "%d", failed_attempts);
++                        // attempts_text is validated at startup to hold a single %d
++                        snprintf(draw_data.status_text.str, sizeof(draw_data.status_text.str), attempts_text, failed_attempts);
+                     }
+                 }
+                 break;

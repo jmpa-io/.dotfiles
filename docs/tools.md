@@ -303,6 +303,24 @@ systemd services or LightDM; use a VM for that.
 
 `/etc/pam.d/i3lock` is shipped by the `i3lock-color` package (it includes `system-local-login`, which is where `pam_faillock` is applied) and is not mirrored here.
 
+### Patched i3lock-color (optional, `n/6` attempt counter)
+
+Stock `i3lock-color` only draws the failed-attempt counter as a bare number. `patches/i3lock-color-attempts-text.patch`
+adds `--attempts-text` (a format with exactly one `%d`, e.g. `%d/6`) and `--attempts-size`.
+`lock.sh` uses them when the installed `i3lock` supports them (it reads the max from `deny` in
+`/etc/security/faillock.conf`, default 6) and otherwise falls back to the bare number.
+
+Build and install it over the AUR package (it applies to `2.13.c.5`):
+
+```sh
+curl -sSL https://github.com/Raymo111/i3lock-color/archive/refs/tags/2.13.c.5.tar.gz | tar xz
+cd i3lock-color-2.13.c.5 && patch -p1 < ~/.dotfiles/patches/i3lock-color-attempts-text.patch
+./build.sh && sudo install -m755 build/i3lock /usr/bin/i3lock
+```
+
+A `pacman` upgrade of `i3lock-color` replaces it; re-run the above. The counter only counts failures; it does not
+lock you out (`pam_faillock` can't record failures for a non-root `i3lock`).
+
 ### System services (enabled outside this repo)
 
 Not installed or enabled by the Makefile — recorded here so a rebuild isn't a surprise.
