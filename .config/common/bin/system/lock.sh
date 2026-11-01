@@ -14,7 +14,7 @@ pink="ff79c6"
 cyan="8be9fd"
 orange="ffb86c"
 red="ff5555"
-ring="44475a"
+ring="6272a4"
 font="FiraCode Nerd Font"
 tree="$HOME/tree-v2.png"
 [[ -f $tree ]] || tree="$HOME/.dotfiles/.config/common/tree-v2.png"
@@ -24,11 +24,12 @@ tree="$HOME/tree-v2.png"
 # terminal's tree on top. Falls back to plain i3lock blur if scrot/imagemagick/awk
 # are missing or fail: the screen must lock either way.
 bg="$(mktemp --suffix=.png)"
-trap 'rm -f "$bg"' EXIT
+treeImg="$(mktemp --suffix=.png)"
+trap 'rm -f "$bg" "$treeImg"' EXIT
 bgArgs=(--blur 12)
 if hash scrot magick awk 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   read -r w h < <(magick identify -format '%w %h\n' "$bg"); then
-  points=$(awk -v cx=$((w / 2)) -v cy=$((h / 2)) -v r=255 -v n=6 'BEGIN {
+  points=$(awk -v cx=$((w / 2)) -v cy=$((h / 2)) -v r=225 -v n=6 'BEGIN {
     for (i = 0; i < 160; i++) {
       t = 2 * 3.14159265 * i / 160; c = cos(t); s = sin(t)
       x = (c < 0 ? -1 : 1) * (c < 0 ? -c : c) ^ (2 / n)
@@ -39,17 +40,22 @@ if hash scrot magick awk 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   if magick "$bg" -blur 0x12 -fill '#282a3699' -draw "rectangle 0,0 $w,$h" \
     -fill '#282a36f2' -stroke "#$purple" -strokewidth 3 -draw "polygon $points" "$bg"; then
     bgArgs=(--image="$bg")
-    [[ -f $tree ]] &&
-      magick "$bg" \( "$tree" -resize 88x \) -gravity center -geometry +0-200 -composite "$bg"
+    if [[ -f $tree ]] && magick "$tree" -resize 64x "$treeImg" &&
+      read -r tw th < <(magick identify -format '%w %h\n' "$treeImg") &&
+      magick "$treeImg" -alpha set \( +clone -alpha transparent -fill white \
+        -draw "roundrectangle 0,0 $((tw - 1)),$((th - 1)) 10,10" \) \
+        -compose DstIn -composite "$treeImg"; then
+      magick "$bg" "$treeImg" -gravity center -geometry +0-178 -composite "$bg"
+    fi
     magick "$bg" -gravity center -font FiraCode-Nerd-Font-Reg -pointsize 16 -fill "#${muted%ff}" \
-      -annotate +0+215 "${USER:-$(id -un)}@${HOSTNAME%%.*}" "$bg" 2>/dev/null
+      -annotate +0+180 "${USER:-$(id -un)}@${HOSTNAME%%.*}" "$bg" 2>/dev/null
   fi
 fi
 
 i3lock \
   "${bgArgs[@]}" \
   --time-str="%I:%M %p" \
-  --date-str="%A, %e %B" \
+  --date-str="%A, %-d %B" \
   --screen 1 \
   --clock \
   --indicator \
@@ -57,10 +63,10 @@ i3lock \
   --show-failed-attempts \
   --pointer=default \
   --pass-media-keys --pass-screen-keys --pass-volume-keys --pass-power-keys \
-  --radius=150 \
+  --radius=125 \
   --ring-width=3 \
   --time-font="$font" --date-font="$font" --verif-font="$font" --wrong-font="$font" \
-  --time-size=48 \
+  --time-size=40 \
   --date-size=16 \
   --verif-size=16 \
   --wrong-size=16 \
@@ -76,6 +82,6 @@ i3lock \
   --ringwrong-color="${red}ff" \
   --line-color=00000000 --separator-color=00000000 \
   --keyhl-color="${pink}ff" --bshl-color="${orange}ff" \
-  --time-color="$fg" --date-color="$muted" \
+  --time-color="$fg" --date-color="${purple}ff" \
   --verif-color="${cyan}ff" --wrong-color="${red}ff" --modif-color="${red}ff" \
   --layout-color="$muted"
