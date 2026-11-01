@@ -27,12 +27,29 @@ bgArgs=(--blur 12)
 if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   read -r w h < <(magick identify -format '%w %h\n' "$bg"); then
   cx=$((w / 2)) cy=$((h / 2))
+  # Symmetric, odd-width lines so per-line centring lines up. No backslashes
+  # (-annotate eats them) and no runs of '-' or '=' (Fira Code ligatures).
+  logo="$(
+    cat <<'LOGO'
+,___,
+( ._. )
+|     |
+._________.
+|         |
+|    O    |
+|    |    |
+'_________'
+LOGO
+  )"
+  details="$(printf '%s@%s\nlocked %s\nup %s' "${USER:-$(id -un)}" "${HOSTNAME%%.*}" \
+    "$(date '+%H:%M')" "$(uptime -p 2>/dev/null | sed 's/^up //')")"
   magick "$bg" -blur 0x12 -fill '#282a3699' -draw "rectangle 0,0 $w,$h" \
-    \( -size "${w}x${h}" xc:none -fill none -stroke "#${purple}aa" -strokewidth 10 \
-    -draw "circle $cx,$cy $((cx + 132)),$cy" -blur 0x16 \) -composite \
-    -fill '#282a36ea' -stroke none -draw "circle $cx,$cy $((cx + 128)),$cy" "$bg" &&
-    magick "$bg" -gravity center -font FiraCode-Nerd-Font-Reg -pointsize 14 -fill "#${muted%ff}" \
-      -annotate +0+160 "${USER:-$(id -un)}@${HOSTNAME%%.*}" "$bg" 2>/dev/null &&
+    \( -size "${w}x${h}" xc:none -fill none -stroke "#${purple}aa" -strokewidth 14 \
+    -draw "circle $cx,$cy $((cx + 200)),$cy" -blur 0x20 \) -composite \
+    -fill '#282a36ea' -stroke none -draw "circle $cx,$cy $((cx + 194)),$cy" "$bg" &&
+    magick "$bg" -gravity center -font FiraCode-Nerd-Font-Reg -interline-spacing 0 \
+      -pointsize 16 -fill "#${purple}" -annotate +0-295 "$logo" \
+      -pointsize 16 -fill "#${muted%ff}" -annotate +0+265 "$details" "$bg" 2>/dev/null &&
     bgArgs=(--image="$bg")
 fi
 
@@ -44,16 +61,15 @@ i3lock \
   --clock \
   --indicator \
   --ignore-empty-password \
-  --show-failed-attempts \
   --pointer=default \
   --pass-media-keys --pass-screen-keys --pass-volume-keys --pass-power-keys \
-  --radius=125 \
-  --ring-width=4 \
+  --radius=190 \
+  --ring-width=14 \
   --time-font="$font" --date-font="$font" --verif-font="$font" --wrong-font="$font" \
-  --time-size=40 \
-  --date-size=16 \
-  --verif-size=16 \
-  --wrong-size=16 \
+  --time-size=68 \
+  --date-size=26 \
+  --verif-size=22 \
+  --wrong-size=22 \
   --greeter-text="" \
   --verif-text="Verifying..." \
   --wrong-text="Incorrect password" \
