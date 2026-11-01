@@ -28,7 +28,9 @@ bgArgs=(--blur 10)
 greeterArgs=(--greeter-pos="x+947:y+450" --greeter-color="$green")
 if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   read -r w h < <(magick identify -format '%w %h\n' "$bg"); then
-  cx=$((w / 2)) cy=$((h / 2))
+  # lift the ring so ring + info panel are centred on screen as one group.
+  lift=65
+  cx=$((w / 2)) cy=$((h / 2 - lift))
   user="${USER:-$(id -un)}"
   up="$(uptime -p 2>/dev/null | sed 's/^up //')"
   font=FiraCode-Nerd-Font-Reg fs=17 rowH=26 titleH=26 pad=18
@@ -47,7 +49,7 @@ if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
   }
   mapfile -t rows < <(
     row user "$user@${HOSTNAME%%.*}" 0
-    row locked "$(date '+%H:%M')" 1
+    row locked "$(date '+%I:%M %p %Z')" 1
     row uptime "$up" 2
   )
   magick "$bg" -blur 0x10 -fill '#282a3659' -draw "rectangle 0,0 $w,$h" \
@@ -59,14 +61,14 @@ if hash magick scrot 2>/dev/null && scrot -o "$bg" 2>/dev/null &&
     -fill '#50fa7b' -draw "circle $((boxX + 54)),$((boxTop + 13)) $((boxX + 54 + 5)),$((boxTop + 13))" \
     -font "$font" -pointsize "$fs" "${rows[@]}" "$bg" 2>/dev/null &&
     bgArgs=(--image="$bg") &&
-    greeterArgs=(--greeter-pos="ix-42:iy-40" --greeter-align=1 --greeter-color="$green")
+    greeterArgs=(--greeter-pos="ix-42:iy-20" --greeter-align=1 --ind-pos="x+w/2:y+h/2-$lift" --greeter-color="$green")
 fi
 
 # lock screen.
 i3lock \
   "${bgArgs[@]}" \
   --time-str="%I:%M %p" \
-  --date-str="%A, %-d %B %Y" \
+  --date-str="%a %-d %b %Y %Z" \
   --screen 1 \
   --clock \
   --indicator \
@@ -83,7 +85,7 @@ i3lock \
   --time-font="FiraCode Nerd Font Propo SemBd" \
   --date-font="FiraCode Nerd Font" \
   --layout-font="FiraCode Nerd Font" \
-  --time-pos="ix:iy+40" \
+  --time-pos="ix:iy+60" \
   --date-pos="tx:ty+36" \
   --verif-font="FiraCode Nerd Font" \
   --wrong-font="FiraCode Nerd Font" \
