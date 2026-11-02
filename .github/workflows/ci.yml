@@ -23,7 +23,7 @@ jobs:
       shell: ${{ steps.filter.outputs.shell }}
       makefile: ${{ steps.filter.outputs.makefile }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         id: filter
         with:
@@ -45,7 +45,7 @@ jobs:
       contents: read
       statuses: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Lint
@@ -71,7 +71,7 @@ jobs:
     if: needs.changes.outputs.makefile == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate Makefile targets parse correctly
         run: make --dry-run help
 
@@ -81,7 +81,7 @@ jobs:
     if: needs.changes.outputs.shell == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install zsh and tmux
         run: sudo apt-get install -y zsh tmux
       - name: Configure dotfiles.d symlinks
