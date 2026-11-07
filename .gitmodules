@@ -3,4 +3,4 @@
 	url = https://github.com/jmpa-io/NvChad
 [submodule ".claude/config"]
 	path = .claude/config
-	url = https://github.com/jmpa-io/claude-config
+	url = https://github.com/jmpa-io/claude
