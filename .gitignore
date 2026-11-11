@@ -8,7 +8,6 @@
 
 # Diagnostics dump from fix.sh — force-add with: git add -f dist/diagnostics.txt
 dist/diagnostics.txt
-dist/work-certs/
 .worktrees/
 .config/zsh/.zcompdump
 dist/arch-test/
