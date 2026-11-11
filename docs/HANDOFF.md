@@ -49,7 +49,6 @@ Still to verify or do:
 
 ## Parked from earlier sessions
 
-- work hostnames in this public repo: decide whether to scrub them.
 - Typo `.cbai` at `.config/ssh/config` line 51.
 
 ## Devbox test harness

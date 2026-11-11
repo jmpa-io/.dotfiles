@@ -1,0 +1,11 @@
+# GitHub configuration.
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+
+# Common for all environments.
+Host *
+  ServerAliveInterval 25
+
+# Machine-specific hosts (jump hosts, work networks) belong in ~/.ssh/config.d/*, not in this repo.
