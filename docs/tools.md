@@ -285,7 +285,7 @@ Installed to `~/bin/` via `make configure-common`. Scripts live in `.config/comm
 | Script | Purpose |
 |--------|---------|
 | `aws-cloudfront-invalidate-distribution` | Looks up a CloudFront distribution by repo name and creates a `/*` invalidation |
-| `aws-keepalive` | `on [profile]` / `off` / `status` installs a cron job that refreshes the AWS SSO session every 15 min so you stay authed until the SSO registration expires (~90 days) |
+| `aws-keepalive` | `on [profile]` / `off` / `status` installs a cron job that refreshes the AWS SSO session every 15 min while the IAM Identity Center session lasts (default 8 h; raise it to keep the login for days), warns and `status` shows when it is failing |
 | `aws-ssm-list-parameters-by-name` | Lists all SSM parameter names in the authed account with pagination |
 | `github-actions-clear-workflow-runs` | Bulk-deletes all workflow runs for a given `org/repo` (token from SSM) |
 | `github-list-repository-topics` | Lists topics for a given `org/repo` via GitHub API |

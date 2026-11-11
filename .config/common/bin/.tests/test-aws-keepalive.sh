@@ -108,9 +108,24 @@ check "run logs FAIL on a single line" test "$(grep -c ' FAIL .*Token has expire
 check "first failure notifies" test "$(wc -l <"$tmp/notified" 2>/dev/null | tr -d ' ')" -eq 1
 kp run
 check "repeat failure does not re-notify" test "$(wc -l <"$tmp/notified" | tr -d ' ')" -eq 1
+check "notification names the sso login command" grep -q 'aws sso login --profile testprofile' "$tmp/notified"
+check "status says FAILING with a count" bash -c "bash '$script' status | grep -q 'FAILING since .* (2 consecutive FAIL); last ok '"
+echo 1999-01-01 >"$tmp/keepalive.log.notified"
+kp run
+check "repeat failure re-notifies on a new day" test "$(wc -l <"$tmp/notified" | tr -d ' ')" -eq 2
+kp run
+check "and only once that day" test "$(wc -l <"$tmp/notified" | tr -d ' ')" -eq 2
 rm "$tmp/aws-fail"
 kp run
+check "status says healthy after recovery" bash -c "bash '$script' status | grep -q '^healthy: last ok '"
 check "recovers after failure" bash -c "tail -n1 '$tmp/keepalive.log' | grep -q ' ok '"
+
+# the log is trimmed even while failing.
+touch "$tmp/aws-fail"
+for _ in $(seq 1 250); do echo "x FAIL y" >>"$tmp/keepalive.log"; done
+kp run
+check "log is trimmed to 200 lines while failing" test "$(wc -l <"$tmp/keepalive.log" | tr -d ' ')" -eq 200
+rm "$tmp/aws-fail"
 
 # log is trimmed.
 for _ in $(seq 1 250); do echo "x ok" >>"$tmp/keepalive.log"; done
