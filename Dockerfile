@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 # pipefail so a failing `curl` in a pipe (starship installer) fails the build.
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
